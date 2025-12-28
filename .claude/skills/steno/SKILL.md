@@ -1,6 +1,6 @@
 ---
 name: steno
-description: "Execute stenographic shorthand commands. Triggers on patterns like dx:@file, mk:thing, ch:@file +mod, viz:type, stat:test, ?plan, ~deep. Use when you see verb:target syntax with @file references, +additions, -exclusions, .flags, or ? and ~ modifiers."
+description: Execute stenographic shorthand commands for efficient coding. Triggers on verb:target patterns like dx:@file.csv, mk:api, ch:@file, viz:pca, stat:ttest. Also triggers on ?plan or ?sketch prefixes and ~deep suffix. Use when input matches verb:target syntax.
 ---
 
 # Steno: Stenographic Command Interface
