@@ -260,7 +260,7 @@ POWER:
   steno:replay    - re-run command sequences
   steno:template  - reusable command workflows
   steno:diff      - compare nodes/branches/bookmarks
-  steno:transcript - link to conversation transcripts
+  steno:transcript - generate/link conversation transcripts
 ```
 
 ### steno:history
@@ -1428,6 +1428,97 @@ Cleared transcript links.
   Removed: .steno/transcript-links.json
 ```
 
+---
+
+#### Automatic Generation (Phase 2)
+
+When claude-code-transcripts is installed, generate transcripts directly:
+
+**Generate current session transcript:**
+
+```
+> steno:transcript +generate
+
+Checking for claude-code-transcripts...
+  ✓ Found: claude-code-transcripts 0.4
+
+Generating transcript for current session...
+  Session: sess_20251228_143000
+  Messages: 47
+
+Adding steno node anchors...
+  ✓ 12 nodes linked
+
+Saved to: .steno/transcripts/sess_20251228_143000.html
+
+View: open .steno/transcripts/sess_20251228_143000.html
+```
+
+**Generate all session transcripts:**
+
+```
+> steno:transcript +all
+
+Checking for claude-code-transcripts...
+  ✓ Found: claude-code-transcripts 0.4
+
+Generating transcripts for all sessions...
+  sess_20251227_091500: 23 messages → sess_20251227_091500.html (8 nodes)
+  sess_20251228_143000: 47 messages → sess_20251228_143000.html (12 nodes)
+
+Creating index page with steno graph...
+  ✓ Index with 2 sessions, 20 total nodes
+
+Saved to: .steno/transcripts/
+  Index: .steno/transcripts/index.html
+  Sessions: 2 HTML files
+```
+
+**Generate with custom output path:**
+
+```
+> steno:transcript +generate .out:./docs/transcripts/
+
+Generating to custom path...
+  Output: ./docs/transcripts/
+
+Saved to: ./docs/transcripts/sess_20251228_143000.html
+```
+
+**Node anchoring behavior:**
+
+When generating transcripts, steno:
+1. Runs `claude-code-transcripts` to generate base HTML
+2. Scans generated HTML for user messages matching steno commands
+3. Injects anchor tags at matching positions: `<a id="n_XXX"></a>`
+4. Updates `.steno/transcript-links.json` with new mappings
+
+**Index page features:**
+
+The generated `index.html` includes:
+- List of all sessions with timestamps
+- Steno graph visualization (ASCII tree)
+- Quick links to each node across sessions
+- Session statistics (message count, node count)
+
+**When tool not installed:**
+
+```
+> steno:transcript +generate
+
+Transcript generation requires claude-code-transcripts.
+
+Install:
+  pip install claude-code-transcripts
+  # or
+  pipx install claude-code-transcripts
+
+Alternative: Link to existing archive:
+  steno:transcript +link <path>
+```
+
+---
+
 **Command options:**
 
 | Command | Action |
@@ -1435,6 +1526,9 @@ Cleared transcript links.
 | `steno:transcript` | Show status and setup help |
 | `steno:transcript +link <path>` | Link to local archive directory |
 | `steno:transcript +link <url>` | Link to remote archive URL |
+| `steno:transcript +generate` | Generate current session transcript |
+| `steno:transcript +all` | Generate all session transcripts |
+| `steno:transcript +generate .out:<path>` | Generate to custom path |
 | `steno:transcript n_XXX` | Open transcript at specific node |
 | `steno:transcript @bookmark` | Open transcript at bookmarked node |
 | `steno:transcript ^` | Open transcript for last node |
@@ -2328,6 +2422,55 @@ Transcript URL: ./archive/sess_20251228.html#n_005
 
 ⚠ Could not open browser automatically.
   Open the URL above manually, or set BROWSER environment variable.
+```
+
+**Tool not installed (generation):**
+```
+> steno:transcript +generate
+
+⚠ claude-code-transcripts not installed.
+
+Install with:
+  pip install claude-code-transcripts
+  # or
+  pipx install claude-code-transcripts
+
+Alternative: Link to existing archive:
+  steno:transcript +link <path>
+```
+
+**Generation failed:**
+```
+> steno:transcript +generate
+
+⚠ Transcript generation failed.
+  Error: No Claude conversation files found in ~/.claude/projects/
+
+Check that:
+  1. Claude Code has been used in this project
+  2. Conversation data exists in ~/.claude/
+```
+
+**No sessions to generate:**
+```
+> steno:transcript +all
+
+⚠ No sessions found.
+  Start using steno commands to create sessions.
+
+Or link an existing archive:
+  steno:transcript +link <path>
+```
+
+**Output path not writable:**
+```
+> steno:transcript +generate .out:/root/transcripts/
+
+⚠ Cannot write to output path: /root/transcripts/
+  Permission denied.
+
+Try a writable path:
+  steno:transcript +generate .out:./transcripts/
 ```
 
 ### State Recovery

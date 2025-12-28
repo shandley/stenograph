@@ -88,7 +88,7 @@ steno-graph/
 - Replay: `steno:replay n_001..n_005`
 - Templates: `steno:template react-component Button`
 - Diff: `steno:diff @baseline ^`
-- Transcripts: `steno:transcript n_005` (links to claude-code-transcripts)
+- Transcripts: `steno:transcript +generate` / `+all` (integrates claude-code-transcripts)
 
 ## Development Lessons
 

@@ -238,19 +238,19 @@ Click node ID to view transcript.
 
 ## Implementation Phases
 
-### Phase 1: Basic Linking
+### Phase 1: Basic Linking ✓ (v1.3.0)
 
-1. Detect claude-code-transcripts installation
-2. `steno:transcript +link` to point to archive
-3. Store transcript URLs in nodes
-4. `steno:transcript n_XXX` opens browser to URL
+1. ✓ Detect claude-code-transcripts installation
+2. ✓ `steno:transcript +link` to point to archive
+3. ✓ Store transcript URLs in nodes
+4. ✓ `steno:transcript n_XXX` opens browser to URL
 
-### Phase 2: Automatic Generation
+### Phase 2: Automatic Generation ✓ (v1.4.0)
 
-1. `steno:transcript` generates current session
-2. `steno:transcript +all` generates all
-3. Add node anchors to generated HTML
-4. Index page with steno graph visualization
+1. ✓ `steno:transcript +generate` generates current session
+2. ✓ `steno:transcript +all` generates all
+3. ✓ Add node anchors to generated HTML
+4. ✓ Index page with steno graph visualization
 
 ### Phase 3: Rich Export
 
