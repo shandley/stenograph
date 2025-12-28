@@ -407,6 +407,109 @@ def get_javascript():
 """
 
 
+def get_index_javascript():
+    """Return JavaScript specific to the index page for session filtering."""
+    return """
+(function() {
+  // Session filtering
+  var searchInput = document.querySelector(".transcript-search input");
+  var searchStats = document.querySelector(".search-stats");
+  var sessionCards = Array.from(document.querySelectorAll(".session-card"));
+  var focusedIndex = -1;
+
+  function filterSessions(query) {
+    var visibleCount = 0;
+    query = query.toLowerCase();
+    sessionCards.forEach(function(card) {
+      var text = card.textContent.toLowerCase();
+      var matches = !query || text.includes(query);
+      card.style.display = matches ? "" : "none";
+      if (matches) visibleCount++;
+    });
+    if (searchStats) {
+      searchStats.textContent = query ? visibleCount + " of " + sessionCards.length : "";
+    }
+    // Reset focus when filtering
+    focusedIndex = -1;
+    sessionCards.forEach(function(c) { c.classList.remove("focused"); });
+  }
+
+  if (searchInput) {
+    var debounceTimer;
+    searchInput.addEventListener("input", function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function() { filterSessions(searchInput.value); }, 150);
+    });
+  }
+
+  // Keyboard navigation for session cards
+  function getVisibleCards() {
+    return sessionCards.filter(function(c) { return c.style.display !== "none"; });
+  }
+
+  function focusCard(index) {
+    var visible = getVisibleCards();
+    sessionCards.forEach(function(c) { c.classList.remove("focused"); });
+    if (index >= 0 && index < visible.length) {
+      focusedIndex = index;
+      visible[index].classList.add("focused");
+      visible[index].scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  function openFocusedCard() {
+    var visible = getVisibleCards();
+    if (focusedIndex >= 0 && focusedIndex < visible.length) {
+      var link = visible[focusedIndex].querySelector("a");
+      if (link) window.location.href = link.href;
+    }
+  }
+
+  var shortcutsModal = document.querySelector(".keyboard-shortcuts-modal");
+  var toggle = document.querySelector(".theme-toggle");
+
+  document.addEventListener("keydown", function(e) {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+      if (e.key === "Escape") { e.target.blur(); filterSessions(""); if (searchInput) searchInput.value = ""; }
+      return;
+    }
+    var visible = getVisibleCards();
+    switch (e.key) {
+      case "j": case "ArrowDown":
+        e.preventDefault();
+        focusCard(focusedIndex < 0 ? 0 : Math.min(focusedIndex + 1, visible.length - 1));
+        break;
+      case "k": case "ArrowUp":
+        e.preventDefault();
+        focusCard(focusedIndex < 0 ? visible.length - 1 : Math.max(focusedIndex - 1, 0));
+        break;
+      case "Enter":
+        if (focusedIndex >= 0) { e.preventDefault(); openFocusedCard(); }
+        break;
+      case "/":
+        e.preventDefault();
+        if (searchInput) searchInput.focus();
+        break;
+      case "Escape":
+        if (shortcutsModal) shortcutsModal.classList.remove("visible");
+        filterSessions("");
+        if (searchInput) searchInput.value = "";
+        focusedIndex = -1;
+        sessionCards.forEach(function(c) { c.classList.remove("focused"); });
+        break;
+      case "d":
+        if (toggle) toggle.click();
+        break;
+      case "?":
+        e.preventDefault();
+        if (shortcutsModal) shortcutsModal.classList.toggle("visible");
+        break;
+    }
+  });
+})();
+"""
+
+
 # ============================================
 # Steno Node Parsing
 # ============================================
@@ -1187,6 +1290,23 @@ def generate_index(sessions_info, css, project_name="Steno-Graph", steno_data=No
     <button class="theme-toggle" aria-label="Toggle dark mode"></button>
   </div>
 
+  <div class="transcript-search">
+    <input type="search" placeholder="Filter sessions... (press /)" />
+    <span class="search-stats"></span>
+  </div>
+
+  <div class="keyboard-shortcuts-modal">
+    <div class="shortcuts-content">
+      <h2>Keyboard Shortcuts</h2>
+      <div class="shortcut-row"><span class="shortcut-key"><kbd>j</kbd> / <kbd>↓</kbd></span><span class="shortcut-desc">Next session</span></div>
+      <div class="shortcut-row"><span class="shortcut-key"><kbd>k</kbd> / <kbd>↑</kbd></span><span class="shortcut-desc">Previous session</span></div>
+      <div class="shortcut-row"><span class="shortcut-key"><kbd>Enter</kbd></span><span class="shortcut-desc">Open session</span></div>
+      <div class="shortcut-row"><span class="shortcut-key"><kbd>/</kbd></span><span class="shortcut-desc">Focus search</span></div>
+      <div class="shortcut-row"><span class="shortcut-key"><kbd>d</kbd></span><span class="shortcut-desc">Toggle dark mode</span></div>
+      <div class="shortcut-row"><span class="shortcut-key"><kbd>?</kbd></span><span class="shortcut-desc">Show this help</span></div>
+    </div>
+  </div>
+
   <main class="transcript-container container">
     <header class="transcript-header">
       <h1>{project_name} Transcripts</h1>
@@ -1206,6 +1326,7 @@ def generate_index(sessions_info, css, project_name="Steno-Graph", steno_data=No
 
   <script>
 {get_javascript()}
+{get_index_javascript()}
   </script>
 </body>
 </html>'''
