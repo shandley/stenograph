@@ -510,6 +510,9 @@ Exported to workflow.md
 | `steno:export` | Markdown | Documentation, sharing |
 | `steno:export .json` | JSON | Import to another project |
 | `steno:export .sh` | Shell script | Replay commands |
+| `steno:export .html` | HTML | Interactive web view |
+| `steno:export +transcript` | Markdown | With embedded conversations |
+| `steno:export .html +transcript` | HTML | Interactive with search |
 
 **JSON export:**
 
@@ -584,6 +587,137 @@ Includes embedded file contents for:
 - counts.csv (18 rows)
 - counts_clr.csv (18 rows)
 - metadata.csv (19 rows)
+```
+
+---
+
+#### Rich Export with Transcripts (Phase 3)
+
+Embed conversation context directly in exports using `+transcript`.
+
+**Markdown export with embedded transcripts:**
+
+```
+> steno:export +transcript
+
+Exported to workflow-with-context.md
+
+# Steno Workflow Export
+**Project:** /Users/me/api-project
+**Exported:** 2025-12-28T16:00:00Z
+**Nodes:** 8 (5 with transcripts)
+
+## Workflow
+
+### 1. n_005: ch:@api.ts +auth
+
+**Command:** `ch:@api.ts +auth`
+**Result:** Added JWT authentication
+
+<details>
+<summary>📝 View conversation (12 messages)</summary>
+
+**User:** ch:@api.ts +auth
+
+**Claude:** I'll add JWT authentication to api.ts. Let me first read the current implementation...
+
+[Reading api.ts...]
+
+I see this is an Express API. I'll add:
+1. JWT middleware for token validation
+2. Login endpoint to issue tokens
+3. Protected route wrapper
+
+[Full conversation excerpt]
+
+</details>
+
+---
+
+### 2. n_006: ts:@api.test.ts
+...
+```
+
+**HTML export with interactive transcripts:**
+
+```
+> steno:export .html +transcript
+
+Exported to workflow.html
+
+Features:
+  - Interactive transcript toggles
+  - Full-text search across commands and conversations
+  - Branch visualization with clickable nodes
+  - Syntax highlighting for code blocks
+```
+
+The generated HTML includes:
+
+```html
+<div class="steno-workflow">
+  <div class="search-bar">
+    <input type="text" placeholder="Search commands and conversations...">
+  </div>
+
+  <div class="node" id="n_005">
+    <div class="command">ch:@api.ts +auth</div>
+    <div class="summary">Added JWT authentication</div>
+    <button class="transcript-toggle" onclick="toggleTranscript('n_005')">
+      📝 Show conversation
+    </button>
+    <div class="transcript" id="transcript-n_005" hidden>
+      <div class="message user">ch:@api.ts +auth</div>
+      <div class="message assistant">
+        I'll add JWT authentication to api.ts...
+      </div>
+      <!-- Full conversation -->
+    </div>
+  </div>
+</div>
+```
+
+**Search functionality:**
+
+The HTML export includes JavaScript for searching:
+- Filter nodes by command text
+- Search within transcript content
+- Highlight matching terms
+- Jump to matched nodes
+
+**Transcript export options:**
+
+| Command | Format | Features |
+|---------|--------|----------|
+| `steno:export +transcript` | Markdown | `<details>` blocks for conversations |
+| `steno:export .html +transcript` | HTML | Interactive toggles, search, syntax highlighting |
+| `steno:export +transcript +full` | Markdown | Transcripts + file contents |
+| `steno:export .html +transcript @branch` | HTML | Branch-specific with transcripts |
+
+**When transcripts not configured:**
+
+```
+> steno:export +transcript
+
+⚠ Transcripts not configured.
+  Set up first: steno:transcript +link <path>
+  Or generate: steno:transcript +generate
+
+Exporting without transcripts...
+  Exported to workflow.md (no conversation context)
+```
+
+**Partial transcript availability:**
+
+```
+> steno:export +transcript
+
+Exported to workflow-with-context.md
+
+Note: 3 of 8 nodes missing transcript links.
+  n_001, n_002, n_003 - created before transcript linking
+
+Run steno:transcript +link <path> to rescan archive.
 ```
 
 ### steno:import
@@ -687,10 +821,43 @@ main
 └── n_003 ch:^ +cluster
 ```
 
+**Show transcript availability:**
+
+```
+> steno:graph +transcript
+
+main
+├── n_001 dx:@samples.csv [📝]
+├── n_002 viz:heatmap ^ [📝]
+│   └── experiment (merged)
+│       └── n_004 dx:@samples.csv [📝]
+└── n_003 ch:^ +cluster
+
+[📝] = transcript available
+3 of 4 nodes linked to transcripts.
+
+Tip: Click node ID to view transcript (steno:transcript n_XXX)
+```
+
+**When no transcripts configured:**
+
+```
+> steno:graph +transcript
+
+main
+├── n_001 dx:@samples.csv
+├── n_002 viz:heatmap ^
+└── n_003 ch:^ +cluster
+
+No transcripts linked.
+Set up: steno:transcript +link <path>
+```
+
 **Behavior:**
 1. Read `.steno/graph.json` and `.steno/current-session.json`
 2. Build tree structure from branches and nodes
 3. Render as ASCII tree with box-drawing characters
+4. With `+transcript`: Check `.steno/transcript-links.json` and show [📝] indicator
 
 **Rendering rules:**
 - Use box-drawing: ├── for middle items, └── for last item, │ for vertical continuation
@@ -698,6 +865,7 @@ main
 - Show node ID and raw command
 - Indent child branches under their parent node
 - Mark current branch with asterisk if not main
+- With `+transcript`: Append [📝] to nodes with linked transcripts
 
 **Tree structure:**
 - Main branch nodes are the trunk
@@ -2471,6 +2639,52 @@ Or link an existing archive:
 
 Try a writable path:
   steno:transcript +generate .out:./transcripts/
+```
+
+### Export Transcript Errors
+
+**Transcripts not configured for export:**
+```
+> steno:export +transcript
+
+⚠ Transcripts not configured.
+  Set up first: steno:transcript +link <path>
+  Or generate: steno:transcript +generate
+
+Exporting without transcripts...
+  Exported to workflow.md (no conversation context)
+```
+
+**Partial transcript coverage:**
+```
+> steno:export +transcript
+
+Exported to workflow-with-context.md
+
+Note: 3 of 8 nodes missing transcript links.
+  n_001, n_002, n_003 - created before transcript linking
+
+Run steno:transcript +link <path> to rescan archive.
+```
+
+**HTML export file already exists:**
+```
+> steno:export .html +transcript
+
+⚠ File exists: workflow.html
+  Use a different name: steno:export my-export.html +transcript
+  Or overwrite with: steno:export! .html +transcript
+```
+
+**Transcript content unavailable:**
+```
+> steno:export +transcript
+
+⚠ Transcript links found but content unavailable.
+  Archive path may have moved: ./archive/
+
+  Update link: steno:transcript +link <new-path>
+  Or regenerate: steno:transcript +generate
 ```
 
 ### State Recovery

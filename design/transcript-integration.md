@@ -252,12 +252,12 @@ Click node ID to view transcript.
 3. ✓ Add node anchors to generated HTML
 4. ✓ Index page with steno graph visualization
 
-### Phase 3: Rich Export
+### Phase 3: Rich Export ✓ (v1.5.0)
 
-1. `steno:export +transcript` embeds context
-2. Interactive HTML with expandable conversations
-3. Full-text search across commands and conversations
-4. Branch visualization with transcript links
+1. ✓ `steno:export +transcript` embeds context
+2. ✓ Interactive HTML with expandable conversations
+3. ✓ Full-text search across commands and conversations
+4. ✓ Branch visualization with transcript links (`steno:graph +transcript`)
 
 ## File Structure
 

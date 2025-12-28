@@ -89,6 +89,7 @@ steno-graph/
 - Templates: `steno:template react-component Button`
 - Diff: `steno:diff @baseline ^`
 - Transcripts: `steno:transcript +generate` / `+all` (integrates claude-code-transcripts)
+- Rich export: `steno:export .html +transcript` (interactive HTML with search)
 
 ## Development Lessons
 

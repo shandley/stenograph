@@ -95,6 +95,9 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 | `steno:export` | Export as markdown |
 | `steno:export .json` | Export for import |
 | `steno:export .sh` | Export as script |
+| `steno:export .html` | Export interactive HTML |
+| `steno:export +transcript` | Export with conversations |
+| `steno:graph +transcript` | Show transcript availability |
 | `steno:import! file.json` | Import workflow |
 | `steno:reset!` | Reset all state (destructive) |
 
