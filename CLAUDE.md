@@ -82,6 +82,13 @@ steno-graph/
 - Undo/redo: `steno:undo`, `steno:redo`
 - Export/import: `steno:export`, `steno:import`
 
+### Power Commands (v1.1+)
+- Aliases: `steno:alias name "cmd"` (with `{param}` support)
+- Search: `steno:search pattern` (by verb, modifier, file)
+- Replay: `steno:replay n_001..n_005`
+- Templates: `steno:template react-component Button`
+- Diff: `steno:diff @baseline ^`
+
 ## Development Lessons
 
 ### 1. Skill Description Parsing
@@ -119,7 +126,8 @@ Steno-graph is a grammar, not an execution engine. If Claude doesn't have access
 
 **Core verbs**: dx, mk, ch, rm, fnd, viz, stat, ts, doc
 **Branching**: fork, switch, compare, merge, abandon
-**Session**: steno:history, steno:stale, steno:refresh, steno:bookmark, steno:graph, steno:undo, steno:redo, steno:export, steno:import
+**Session**: steno:history, steno:graph, steno:bookmark, steno:undo, steno:redo, steno:export, steno:import
+**Power**: steno:alias, steno:search, steno:replay, steno:template, steno:diff
 
 See `CHEATSHEET.md` for complete reference.
 
@@ -157,6 +165,16 @@ switch:main
 compare:main test
 steno:undo
 steno:export
+```
+
+Test power commands:
+```
+steno:alias greet "dx:@{1}"
+greet README.md
+steno:search dx
+steno:replay n_001
+steno:template
+steno:diff n_001 n_002
 ```
 
 ## Key Files

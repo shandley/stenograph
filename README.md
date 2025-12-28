@@ -69,6 +69,8 @@ ts:@utils.test.js         # Run tests
 | `ch` | Change/modify | `ch:@login.py +validation` |
 | `rm` | Remove/delete | `rm:@deprecated` |
 | `fnd` | Find/search | `fnd:auth-handlers` |
+| `viz` | Visualize | `viz:chart @data.csv` |
+| `stat` | Statistics | `stat:summary @results.csv` |
 | `ts` | Test | `ts:@utils.ts` |
 | `doc` | Document | `doc:@api/` |
 
@@ -115,6 +117,7 @@ steno:bookmark baseline  # Save for later
 
 | Command | Action |
 |---------|--------|
+| `steno:help` | Quick reference |
 | `steno:history` | Show command history |
 | `steno:graph` | Show workflow as tree |
 | `steno:bookmark <name>` | Save as reference |
@@ -122,6 +125,16 @@ steno:bookmark baseline  # Save for later
 | `steno:redo` | Redo undone command |
 | `steno:export` | Export workflow |
 | `steno:import` | Import workflow |
+
+### Power Commands
+
+| Command | Action |
+|---------|--------|
+| `steno:alias name "cmd"` | Create command shortcut |
+| `steno:search pattern` | Search command history |
+| `steno:replay n_001..n_005` | Re-run command sequence |
+| `steno:template name` | Run reusable workflow |
+| `steno:diff n_001 n_005` | Compare node outputs |
 
 ## Branching
 
@@ -170,6 +183,22 @@ abandon:risky-refactor         # Discard
 ?plan microservices +docker    # Plan architecture
 ?sketch auth-flow              # Draft implementation
 ?challenge current-approach    # Critique existing code
+```
+
+### Power Features
+```bash
+# Create reusable alias
+steno:alias setup "dx:@package.json && ts:@tests/"
+
+# Use alias with parameters
+steno:alias greet "dx:@{1}.ts"
+greet utils                    # Expands to: dx:@utils.ts
+
+# Run a template
+steno:template react-component Button
+
+# Compare workflow states
+steno:diff @baseline ^         # Compare bookmark to current
 ```
 
 ## Why It Works

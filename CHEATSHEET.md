@@ -186,3 +186,7 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 - **Use ?**: When unsure, add `?` to ask first
 - **Trust Claude**: It generalizes beyond defined verbs
 - **Check errors**: Failed commands log to history
+- **Create aliases**: Save common patterns with `steno:alias`
+- **Use templates**: `steno:template` for multi-step workflows
+- **Compare work**: `steno:diff @baseline ^` to see changes
+- **Search history**: `steno:search +auth` finds related commands

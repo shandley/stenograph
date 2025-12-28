@@ -211,6 +211,91 @@ Same result, fewer keystrokes, direct execution.
 
 ---
 
+## Power Commands
+
+Steno-graph includes advanced features for productivity.
+
+### Aliases
+
+Create shortcuts for common command patterns:
+
+```
+> steno:alias setup "dx:@package.json && ch:@tsconfig.json +strict"
+
+Alias "setup" created.
+
+> setup
+
+Running alias "setup"...
+  → dx:@package.json
+  → ch:@tsconfig.json +strict
+```
+
+**Parameterized aliases:**
+
+```
+> steno:alias explore "dx:@{1} ~deep"
+
+> explore src/api.ts
+
+Running: dx:@src/api.ts ~deep
+```
+
+### Templates
+
+Reusable multi-step workflows:
+
+```
+> steno:template
+
+Built-in templates:
+  react-component  - Create React component with tests
+  api-endpoint     - Create REST endpoint with validation
+  refactor         - Safe refactoring workflow
+  test-suite       - Test file with setup
+
+> steno:template react-component Button
+
+Running template "react-component"...
+  Step 1/4: mk:components/Button.tsx +functional → OK
+  Step 2/4: mk:components/Button.test.tsx +jest → OK
+  ...
+```
+
+### Search & Replay
+
+Find and re-run past commands:
+
+```
+> steno:search +validation
+
+Found 3 matches:
+  n_012: ch:@auth.ts +validation (Dec 27)
+  n_008: ch:@api.py +validation (Dec 26)
+  ...
+
+> steno:replay n_008..n_012
+
+Replaying 5 commands...
+```
+
+### Diff
+
+Compare workflow states:
+
+```
+> steno:diff @baseline ^
+
+Comparing bookmark "baseline" (n_004) → current (n_012)
+
+Changes since baseline:
+  8 commands executed
+  3 files created
+  2 files modified
+```
+
+---
+
 ## Key Principles
 
 1. **Terse input** - Minimum keystrokes for maximum clarity
