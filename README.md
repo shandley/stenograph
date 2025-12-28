@@ -102,6 +102,8 @@ stat:test? @data.csv
 | Syntax | Meaning |
 |--------|---------|
 | `@file.ext` | File reference |
+| `@name` | Bookmark reference |
+| `^` | Previous output |
 | `+feature` | Add/include |
 | `-thing` | Exclude |
 | `.flag` | Apply flag |
@@ -143,6 +145,50 @@ ts:@utils.ts                       # Run tests
 ?plan refactor-auth                # Plan refactoring
 ```
 
+## Session Graph
+
+Steno tracks commands in `.steno/` for cross-session memory and workflow continuity.
+
+### Chaining Commands
+
+```bash
+dx:@samples.csv              # Analyze data (n_001)
+ch:^ +normalize              # ^ = samples.csv from previous
+viz:heatmap ^                # ^ = normalized output
+steno:bookmark baseline      # Save for later reference
+```
+
+### Cross-Session Memory
+
+```bash
+# New session
+steno:history                # Shows previous commands
+stat:ttest @baseline @new    # @baseline resolves from bookmark
+```
+
+### Session Commands
+
+| Command | Action |
+|---------|--------|
+| `steno:history` | Show command history |
+| `steno:stale` | Check for stale outputs |
+| `steno:refresh` | Re-run stale commands |
+| `steno:bookmark <name>` | Save last command as reference |
+| `steno:status` | Show session status |
+
+### Stale Detection
+
+When input files change, steno detects which outputs need refreshing:
+
+```bash
+# After modifying samples.csv
+steno:stale
+# Reports: n_001, n_002, n_003 need refresh
+
+steno:refresh
+# Re-runs stale commands in order
+```
+
 ## Why This Works
 
 1. **Structure in** — Steno provides unambiguous structure
@@ -154,10 +200,14 @@ ts:@utils.ts                       # Run tests
 
 ```
 steno-graph/
-├── .claude/skills/steno/   # The skill (the integration)
+├── .claude/skills/steno/   # The skill (Claude learns the grammar)
+├── .steno/                 # Session graph (created on first use)
+│   ├── graph.json         # All sessions + bookmarks
+│   └── current-session.json
 ├── spec/                   # Formal grammar specification
 │   ├── grammar/           # Parser reference implementation
 │   └── extensions/        # Extension system reference
+├── design/                 # Architecture documentation
 ├── examples/
 │   └── vignette/          # Sample data and workflows
 ├── archive/               # Historical: mapper, daemon examples
