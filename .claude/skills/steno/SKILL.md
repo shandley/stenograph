@@ -404,7 +404,7 @@ Undoing n_003: viz:heatmap @samples.csv
    - Move to `undone` array (for redo)
    - List created files (user can delete manually)
    - Warn about orphaned dependents
-5. Hard undo (`!`):
+5. Hard undo (add **!** flag):
    - Remove node and all dependents
    - Delete created files
    - Revert modified files (if backup exists)
@@ -1583,50 +1583,76 @@ Top differences:
 
 ### steno:transcript
 
-Link steno nodes to conversation transcripts for full context.
+Generate themed HTML transcripts from Claude Code session data.
 
-Integrates with [claude-code-transcripts](https://github.com/simonw/claude-code-transcripts) to connect terse steno commands with complete conversation history.
+**Script location:** `scripts/generate-transcript.py`
 
-**Check transcript tool status:**
+**Check transcript status:**
 
 ```
 > steno:transcript
 
 Transcript status:
-  claude-code-transcripts: not installed
-  Archive link: not configured
+  Output directory: .steno/transcripts/
+  Sessions available: 12
+  Last generated: 2025-12-28 14:30
 
-Setup options:
-  1. Install: pip install claude-code-transcripts
-  2. Or link existing archive: steno:transcript +link <path>
+Commands:
+  steno:transcript +generate   Generate current session
+  steno:transcript +all        Generate all sessions
+  steno:transcript n_XXX       Open transcript at node
 ```
 
-**Link to existing archive:**
+---
 
-```
-> steno:transcript +link ./archive/
+#### Generate Transcripts
 
-Scanning archive for sessions...
-  Found: 5 sessions, 127 messages
+**Generate current session:**
 
-Linking steno nodes to transcript positions...
-  Matched: 23 nodes across 2 sessions
-
-Links saved to .steno/transcript-links.json
-
-Use steno:transcript n_XXX to open transcript at node.
+```bash
+python scripts/generate-transcript.py
 ```
 
-**Link to remote archive:**
+**Generate all sessions:**
 
+```bash
+python scripts/generate-transcript.py --all
 ```
-> steno:transcript +link https://example.com/transcripts/
 
-Remote transcript base URL set.
-Links will open: https://example.com/transcripts/{session}.html#{node}
+**Generate specific session:**
 
-Saved to .steno/transcript-links.json
+```bash
+python scripts/generate-transcript.py --session 907d46e0
 ```
+
+**Generate to custom path:**
+
+```bash
+python scripts/generate-transcript.py --output ./docs/transcripts/
+```
+
+**Generate and open in browser:**
+
+```bash
+python scripts/generate-transcript.py --open
+```
+
+---
+
+#### Transcript Features
+
+The generated HTML includes:
+
+- **4 color themes**: Purple (default), Bubblegum, Midnight, Minimal
+- **Dark/light mode**: Toggle with `d` key or button
+- **Search**: Press `/` to search, `Enter`/`Shift+Enter` to navigate matches
+- **Copy buttons**: One-click copy on all code blocks
+- **Keyboard navigation**: `j`/`k` to navigate messages, `?` for shortcuts
+- **Collapsible blocks**: Toggle thinking (`t`) and tool (`o`) blocks
+
+---
+
+#### View Transcript at Node
 
 **View transcript for specific node:**
 
@@ -1634,10 +1660,7 @@ Saved to .steno/transcript-links.json
 > steno:transcript n_005
 
 Opening transcript for n_005...
-  Session: sess_20251228_143000
-  Command: ch:@api.ts +auth
-
-Opening: ./archive/sess_20251228.html#n_005
+Opening: .steno/transcripts/907d46e0.html#n_005
 ```
 
 **View transcript for bookmark:**
@@ -1646,10 +1669,6 @@ Opening: ./archive/sess_20251228.html#n_005
 > steno:transcript @baseline
 
 Opening transcript for bookmark "baseline" (n_003)...
-  Session: sess_20251228_143000
-  Command: dx:@api.ts ~deep
-
-Opening: ./archive/sess_20251228.html#n_003
 ```
 
 **View current node transcript:**
@@ -1658,174 +1677,23 @@ Opening: ./archive/sess_20251228.html#n_003
 > steno:transcript ^
 
 Opening transcript for last node (n_012)...
-Opening: ./archive/sess_20251228.html#n_012
-```
-
-**Show transcript links status:**
-
-```
-> steno:transcript +status
-
-Transcript configuration:
-  Base URL: ./archive/
-  Sessions linked: 3
-  Nodes linked: 47
-
-Recent links:
-  n_010: sess_20251228.html#n_010
-  n_011: sess_20251228.html#n_011
-  n_012: sess_20251228.html#n_012
-```
-
-**Clear transcript links:**
-
-```
-> steno:transcript +clear
-
-Cleared transcript links.
-  Removed: .steno/transcript-links.json
 ```
 
 ---
 
-#### Automatic Generation (Phase 2)
-
-When claude-code-transcripts is installed, generate transcripts directly:
-
-**Generate current session transcript:**
-
-```
-> steno:transcript +generate
-
-Checking for claude-code-transcripts...
-  ✓ Found: claude-code-transcripts 0.4
-
-Generating transcript for current session...
-  Session: sess_20251228_143000
-  Messages: 47
-
-Adding steno node anchors...
-  ✓ 12 nodes linked
-
-Saved to: .steno/transcripts/sess_20251228_143000.html
-
-View: open .steno/transcripts/sess_20251228_143000.html
-```
-
-**Generate all session transcripts:**
-
-```
-> steno:transcript +all
-
-Checking for claude-code-transcripts...
-  ✓ Found: claude-code-transcripts 0.4
-
-Generating transcripts for all sessions...
-  sess_20251227_091500: 23 messages → sess_20251227_091500.html (8 nodes)
-  sess_20251228_143000: 47 messages → sess_20251228_143000.html (12 nodes)
-
-Creating index page with steno graph...
-  ✓ Index with 2 sessions, 20 total nodes
-
-Saved to: .steno/transcripts/
-  Index: .steno/transcripts/index.html
-  Sessions: 2 HTML files
-```
-
-**Generate with custom output path:**
-
-```
-> steno:transcript +generate .out:./docs/transcripts/
-
-Generating to custom path...
-  Output: ./docs/transcripts/
-
-Saved to: ./docs/transcripts/sess_20251228_143000.html
-```
-
-**Node anchoring behavior:**
-
-When generating transcripts, steno:
-1. Runs `claude-code-transcripts` to generate base HTML
-2. Scans generated HTML for user messages matching steno commands
-3. Injects anchor tags at matching positions: `<a id="n_XXX"></a>`
-4. Updates `.steno/transcript-links.json` with new mappings
-
-**Index page features:**
-
-The generated `index.html` includes:
-- List of all sessions with timestamps
-- Steno graph visualization (ASCII tree)
-- Quick links to each node across sessions
-- Session statistics (message count, node count)
-
-**When tool not installed:**
-
-```
-> steno:transcript +generate
-
-Transcript generation requires claude-code-transcripts.
-
-Install:
-  pip install claude-code-transcripts
-  # or
-  pipx install claude-code-transcripts
-
-Alternative: Link to existing archive:
-  steno:transcript +link <path>
-```
-
----
-
-**Command options:**
+#### Command Reference
 
 | Command | Action |
 |---------|--------|
-| `steno:transcript` | Show status and setup help |
-| `steno:transcript +link <path>` | Link to local archive directory |
-| `steno:transcript +link <url>` | Link to remote archive URL |
+| `steno:transcript` | Show status |
 | `steno:transcript +generate` | Generate current session transcript |
-| `steno:transcript +all` | Generate all session transcripts |
+| `steno:transcript +all` | Generate all session transcripts with index |
 | `steno:transcript +generate .out:<path>` | Generate to custom path |
 | `steno:transcript n_XXX` | Open transcript at specific node |
 | `steno:transcript @bookmark` | Open transcript at bookmarked node |
 | `steno:transcript ^` | Open transcript for last node |
-| `steno:transcript +status` | Show link configuration |
-| `steno:transcript +clear` | Remove transcript links |
-| `steno:transcript +theme` | Apply shadcn theme to generated transcripts |
-
-**Behavior:**
-
-1. Check for transcript configuration in `.steno/transcript-links.json`
-2. For `+link`: Scan archive directory or store base URL
-3. For node references: Look up URL and open in browser
-4. Node anchors use format: `{base}/{session}.html#{node_id}`
-
-**Transcript links file format:**
-
-```json
-{
-  "version": "1.0",
-  "base_url": "./archive/",
-  "type": "local",
-  "linked_at": "2025-12-28T15:30:00Z",
-  "sessions": {
-    "sess_20251228_143000": {
-      "file": "sess_20251228.html",
-      "nodes": ["n_001", "n_002", "n_003"]
-    }
-  }
-}
-```
-
-**Opening transcripts:**
-
-When opening a transcript:
-1. Look up node's session in transcript-links.json
-2. Construct URL: `{base_url}/{session_file}#{node_id}`
-3. Open in default browser (or display URL if browser unavailable)
-
-For local paths, use `open` (macOS), `xdg-open` (Linux), or `start` (Windows).
+| `steno:transcript +status` | Show generation status |
+| `steno:transcript +clear` | Remove generated transcripts |
 
 ---
 

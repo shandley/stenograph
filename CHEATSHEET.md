@@ -147,20 +147,22 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 
 | Command | Action |
 |---------|--------|
-| `steno:transcript` | Show status and setup help |
-| `steno:transcript +link <path>` | Link to local archive |
-| `steno:transcript +link <url>` | Link to remote archive |
-| `steno:transcript +generate` | Generate current session transcript |
-| `steno:transcript +all` | Generate all session transcripts |
-| `steno:transcript n_XXX` | Open transcript at node |
-| `steno:transcript @bookmark` | Open transcript at bookmark |
-| `steno:transcript ^` | Open transcript for last node |
-| `steno:transcript +status` | Show link configuration |
-| `steno:transcript +clear` | Remove transcript links |
-| `steno:transcript +theme` | Apply shadcn theme to transcripts |
+| `steno:transcript` | Show status |
+| `steno:transcript +generate` | Generate current session |
+| `steno:transcript +all` | Generate all sessions |
+| `steno:transcript +open` | Open in browser after generating |
 
-Requires [claude-code-transcripts](https://github.com/simonw/claude-code-transcripts) for generation.
-Theme CSS: `assets/steno-transcript.css` (light/dark mode, OKLch colors).
+**Features:**
+- Full-text search (`/` to focus)
+- Keyboard navigation (`j`/`k` for messages, `?` for help)
+- Copy buttons on code blocks
+- Four color themes + dark mode
+- Session statistics (messages, tools, tokens, duration)
+- Steno node badges with deep links
+- Export: Markdown, JSON, PDF, filtered exports
+
+Output: `.steno/transcripts/*.html`
+See [design/transcript-enhancements.md](design/transcript-enhancements.md) for full feature guide.
 
 ## Parameters
 
