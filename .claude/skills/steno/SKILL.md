@@ -1,6 +1,6 @@
 ---
 name: steno
-description: Execute stenographic shorthand commands for efficient coding. Triggers on verb-colon-target patterns and steno-colon commands for session management.
+description: Execute stenographic shorthand commands for efficient coding. Triggers on verb-colon-target patterns (dx, mk, ch, viz, stat, fork, switch, compare) and steno-colon commands for session management. Branching commands (fork, switch, compare) operate on .steno/graph.json, NOT git.
 ---
 
 # Steno: Stenographic Command Interface
@@ -20,6 +20,9 @@ Execute steno commands when you see this pattern:
 - ?mode topic - like ?plan architecture
 - Commands with precision markers: ~deep ~ ! ?
 - steno:command - session management
+- fork:name - create branch
+- switch:name - switch branch
+- compare:branch-a branch-b - compare branches
 
 ## Core Verbs
 
@@ -34,6 +37,16 @@ Execute steno commands when you see this pattern:
 | `stat` | Statistics | Run statistical test or analysis |
 | `ts` | Test | Run or create tests |
 | `doc` | Document | Generate documentation |
+
+## Branching Verbs
+
+| Verb | Meaning | Action |
+|------|---------|--------|
+| `fork` | Create branch | fork:name - create new branch from current node |
+| `switch` | Switch branch | switch:name - switch to existing branch |
+| `compare` | Compare branches | compare:a b - show differences between branches |
+
+These are NOT git commands. They operate on the steno graph in .steno/graph.json.
 
 ## Modifiers
 
@@ -373,6 +386,43 @@ Show:
 - Node count per branch
 - Parent relationship
 - Status (active, merged, abandoned)
+
+### compare:branch-a branch-b
+
+Compare two branches side by side.
+
+```
+> compare:main experiment
+
+Branch "main" (3 nodes):
+  n_001: dx:@samples.csv
+  n_002: viz:heatmap ^ → heatmap.png
+  n_003: ch:^ +cluster → heatmap_clustered.png
+
+Branch "experiment" (1 node, from n_003):
+  n_004: dx:@samples.csv
+         → 19 samples analysis
+
+Common ancestor: n_003 on main
+
+Differences:
+  - main: Focused on visualization (heatmap, clustering)
+  - experiment: Re-analyzed raw data
+```
+
+**Behavior:**
+1. Read both branches from graph.json
+2. Find nodes on each branch
+3. Look up node details from sessions or current-session
+4. Show outputs and summaries for each
+5. Identify common ancestor (fork point)
+6. Summarize the different approaches
+
+If branches have output files in common, note the differences:
+```
+Files in both branches:
+  - results.csv: main (45 lines) vs experiment (52 lines)
+```
 
 ### Branch-Aware Node Creation
 

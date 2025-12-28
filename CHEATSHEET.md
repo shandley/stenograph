@@ -89,6 +89,7 @@ stat:ttest @a.csv @b.csv  # Statistical test
 | `fork:name` | Create branch from current node |
 | `switch:name` | Switch to branch |
 | `steno:branches` | List all branches |
+| `compare:a b` | Compare two branches |
 
 ## Tips
 
