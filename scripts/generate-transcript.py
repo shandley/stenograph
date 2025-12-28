@@ -1203,7 +1203,7 @@ def generate_html(session_data, css, steno_data=None):
   <footer class="steno-footer">
     <div class="steno-footer-links">
       <a href="index.html">All Sessions</a>
-      <a href="https://github.com/scotthandley/steno-graph">Steno-Graph</a>
+      <a href="https://github.com/shandley/stenograph">Steno-Graph</a>
     </div>
     <div class="steno-footer-meta">
       {len(messages)} messages • Generated {datetime.now().strftime("%Y-%m-%d %H:%M")}
