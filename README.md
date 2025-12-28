@@ -1,5 +1,9 @@
 # Steno-Graph
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/shandley/stenograph/releases)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-blueviolet.svg)](https://claude.com/code)
+
 A stenographic grammar for efficient human-AI coding collaboration.
 
 ## The Idea
@@ -26,6 +30,10 @@ Claude learns the grammar and executes directly.
 - **A skill** — Claude learns and interprets the patterns
 
 Steno-graph is about **how you communicate**, not what Claude can do. Execution depends on Claude's available tools.
+
+## Requirements
+
+- [Claude Code](https://claude.com/code) CLI (Anthropic's official coding assistant)
 
 ## Installation
 
@@ -216,8 +224,20 @@ Steno-graph is a shared language between you and Claude that enables flow state 
 
 ---
 
-See [CHEATSHEET.md](CHEATSHEET.md) for quick reference.
+## Contributing
 
-See [examples/](examples/) for usage vignettes.
+Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Resources
+
+- [CHEATSHEET.md](CHEATSHEET.md) — Quick reference
+- [examples/](examples/) — Usage vignettes
+- [Releases](https://github.com/shandley/stenograph/releases) — Version history
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
 
 *Structure in, intelligence where needed.*
