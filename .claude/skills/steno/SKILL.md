@@ -306,6 +306,107 @@ Use this when starting a new logical unit of work.
 
 ---
 
+## Branching
+
+Branches allow exploring alternative approaches without losing work.
+
+### fork:name
+
+Create a new branch from the current node.
+
+```
+> fork:caching
+
+Created branch "caching" from n_002
+Switched to branch "caching"
+```
+
+**Behavior:**
+1. Read `.steno/graph.json`
+2. Create a new branch object:
+   ```json
+   {
+     "name": "caching",
+     "parentNode": "n_002",
+     "parentBranch": "main",
+     "created": "ISO timestamp",
+     "nodes": [],
+     "status": "active"
+   }
+   ```
+3. Add to `branches` array in graph.json
+4. Set `currentBranch` to the new branch name
+5. Subsequent nodes will be tagged with this branch
+
+### switch:name
+
+Switch to an existing branch.
+
+```
+> switch:main
+
+Switched to branch "main"
+Current node: n_002
+```
+
+**Behavior:**
+1. Verify branch exists in graph.json
+2. Set `currentBranch` to target branch
+3. The `^` reference now resolves to the last node on that branch
+
+### steno:branches
+
+List all branches with their status.
+
+```
+> steno:branches
+
+* caching (current, 2 nodes)
+  └─ from n_002 on main
+  main (3 nodes)
+  memoization (1 node)
+  └─ from n_002 on main
+```
+
+Show:
+- Current branch marked with *
+- Node count per branch
+- Parent relationship
+- Status (active, merged, abandoned)
+
+### Branch-Aware Node Creation
+
+When creating nodes, tag them with the current branch:
+
+```json
+{
+  "id": "n_003",
+  "branch": "caching",
+  "timestamp": "...",
+  "raw": "mk:api +caching",
+  ...
+}
+```
+
+### Reference Resolution with Branches
+
+The `^` reference resolves to the last node **on the current branch**:
+
+```
+# On branch "caching"
+ch:^ +redis    # ^ = last output on "caching" branch
+```
+
+### Initial Branch State
+
+When `.steno/` is first created, initialize with:
+- `branches: [{ name: "main", parentNode: null, parentBranch: null, nodes: [], status: "active" }]`
+- `currentBranch: "main"`
+
+All nodes without an explicit branch are on "main".
+
+---
+
 ## File Structure
 
 ```
@@ -327,11 +428,21 @@ On first steno command, if `.steno/` doesn't exist:
 3. Create `.steno/graph.json`:
    ```json
    {
-     "version": "1.0",
+     "version": "1.1",
      "project": "/path/to/project",
      "nextNodeId": 1,
      "sessions": [],
-     "bookmarks": {}
+     "bookmarks": {},
+     "branches": [
+       {
+         "name": "main",
+         "parentNode": null,
+         "parentBranch": null,
+         "nodes": [],
+         "status": "active"
+       }
+     ],
+     "currentBranch": "main"
    }
    ```
 4. Create `.steno/current-session.json`:

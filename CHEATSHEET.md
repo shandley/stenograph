@@ -82,6 +82,14 @@ stat:ttest @a.csv @b.csv  # Statistical test
 | `steno:new-session` | Archive and start fresh |
 | `steno:clear` | Clear current session |
 
+## Branching
+
+| Command | Action |
+|---------|--------|
+| `fork:name` | Create branch from current node |
+| `switch:name` | Switch to branch |
+| `steno:branches` | List all branches |
+
 ## Tips
 
 - **Be terse**: `dx:@f.csv` not "please analyze f.csv"
