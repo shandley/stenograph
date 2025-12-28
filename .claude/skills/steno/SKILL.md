@@ -50,19 +50,19 @@ Execute steno commands when you see this pattern:
 
 | Marker | Meaning | Your behavior |
 |--------|---------|---------------|
-| `~` | Flexible | Use your judgment |
-| `!` | Exact/literal | Do exactly what's specified |
-| `?` | Clarify | Ask before acting |
-| `~deep` | Extended thinking | Think deeply, consider alternatives |
+| ~ | Flexible | Use your judgment |
+| ! | Exact/literal | Do exactly what's specified |
+| ? | Clarify | Ask before acting |
+| ~deep | Extended thinking | Think deeply, consider alternatives |
 
 ## Modes (prefix with ?)
 
 | Mode | Meaning | Your behavior |
 |------|---------|---------------|
-| `?plan` | Planning | Outline approach before executing |
-| `?sketch` | Sketch | Create rough implementation for review |
-| `?challenge` | Challenge | Critique, find issues, push back |
-| `?explore` | Explore | Investigate options, think aloud |
+| ?plan | Planning | Outline approach before executing |
+| ?sketch | Sketch | Create rough implementation for review |
+| ?challenge | Challenge | Critique, find issues, push back |
+| ?explore | Explore | Investigate options, think aloud |
 
 ---
 
