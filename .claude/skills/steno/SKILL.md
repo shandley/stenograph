@@ -1,6 +1,6 @@
 ---
 name: steno
-description: Execute stenographic shorthand commands for efficient coding. Triggers on verb:target patterns like dx:@file.csv, mk:api, ch:@file, viz:pca, stat:ttest. Also triggers on ?plan or ?sketch prefixes, ~deep suffix, and steno: commands for session management.
+description: Execute stenographic shorthand commands for efficient coding. Triggers on verb-colon-target patterns and steno-colon commands for session management.
 ---
 
 # Steno: Stenographic Command Interface
