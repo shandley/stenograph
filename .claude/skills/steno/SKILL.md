@@ -247,7 +247,8 @@ SESSION:
   steno:stale     - check for stale outputs
   steno:refresh   - re-run stale commands
   steno:bookmark  - save reference
-  steno:new-session - archive and start fresh
+  steno:undo      - undo last command (! for hard)
+  steno:redo      - restore undone command
   steno:reset     - clear all state (requires !)
 ```
 
@@ -338,6 +339,115 @@ Clear current session (start fresh).
 > steno:clear
 
 Current session cleared. Previous sessions preserved in graph.json.
+```
+
+### steno:undo
+
+Undo the last command or a specific node.
+
+**Soft undo (default)** — removes from graph, keeps files:
+
+```
+> steno:undo
+
+Undoing n_005: ch:@data.csv +normalize
+  Removed from session graph.
+  Files kept: normalized.csv
+
+  Dependent nodes (will be orphaned):
+    n_006: viz:pca ^
+
+  Use steno:redo to restore.
+```
+
+**Hard undo** — also reverts file changes:
+
+```
+> steno:undo!
+
+Undoing n_005: ch:@data.csv +normalize
+  Removed from session graph.
+  Deleted: normalized.csv
+  Reverted: data.csv (restored from before edit)
+
+  Dependent nodes removed: n_006
+```
+
+**Undo specific node:**
+
+```
+> steno:undo n_003
+
+Undoing n_003: viz:heatmap @samples.csv
+  Removed from session graph.
+  Files kept: heatmap.png
+```
+
+**Behavior:**
+
+1. Read `.steno/current-session.json`
+2. Find target node (last if none specified)
+3. Check for dependent nodes (nodes that reference this one via `^`)
+4. Soft undo:
+   - Remove node from session
+   - Move to `undone` array (for redo)
+   - List created files (user can delete manually)
+   - Warn about orphaned dependents
+5. Hard undo (`!`):
+   - Remove node and all dependents
+   - Delete created files
+   - Revert modified files (if backup exists)
+
+**File handling:**
+
+For hard undo, steno needs file backups. When a command modifies a file:
+- Before: Save `.steno/backups/{node_id}/{filename}`
+- After: Record in node's `backups` field
+
+```json
+{
+  "id": "n_005",
+  "raw": "ch:@data.csv +normalize",
+  "outputs": ["normalized.csv"],
+  "modified": ["data.csv"],
+  "backups": {
+    "data.csv": ".steno/backups/n_005/data.csv"
+  }
+}
+```
+
+Hard undo restores from backup and deletes outputs.
+
+### steno:redo
+
+Restore the last undone node.
+
+```
+> steno:redo
+
+Restoring n_005: ch:@data.csv +normalize
+  Added back to session graph.
+
+  Note: Files were not deleted, so outputs still exist.
+```
+
+**Behavior:**
+
+1. Check `undone` array in current session
+2. Pop the last undone node
+3. Add it back to the session
+4. Note: Does not re-execute the command, just restores tracking
+
+If files were deleted (hard undo), redo just restores tracking:
+
+```
+> steno:redo
+
+Restoring n_005: ch:@data.csv +normalize
+  Added back to session graph.
+
+  ⚠ Files were deleted. Re-run command to recreate:
+    ch:@data.csv +normalize
 ```
 
 ### steno:status
@@ -813,6 +923,52 @@ When commands fail or are malformed, respond with clear, actionable messages. Ne
 | `merge:done` (already merged) | `⚠ Already merged: "done" was merged at Dec 27, 2025. See steno:graph.` |
 | `abandon:main` | `⚠ Cannot abandon main: main is the base branch and cannot be abandoned.` |
 | `abandon:merged` (already merged) | `⚠ Cannot abandon: "merged" was already merged. Use steno:graph to view history.` |
+
+### Undo/Redo Errors
+
+**Nothing to undo:**
+```
+> steno:undo
+
+⚠ Nothing to undo: No commands in current session.
+  Run some commands first, then undo.
+```
+
+**Node not found:**
+```
+> steno:undo n_999
+
+⚠ Node not found: n_999 doesn't exist.
+  Use steno:history to see available nodes.
+```
+
+**Nothing to redo:**
+```
+> steno:redo
+
+⚠ Nothing to redo: No undone commands.
+  Use steno:undo first, then steno:redo to restore.
+```
+
+**Cannot undo across sessions:**
+```
+> steno:undo n_001
+
+⚠ Cannot undo: n_001 is from a previous session.
+  Only current session commands can be undone.
+  Use steno:history to see session boundaries.
+```
+
+**Backup not found (hard undo):**
+```
+> steno:undo!
+
+⚠ No backup available for data.csv
+  Cannot revert file changes.
+
+  Proceeding with soft undo instead...
+  Files kept: normalized.csv
+```
 
 ### State Recovery
 

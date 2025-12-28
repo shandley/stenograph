@@ -88,6 +88,10 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 | `steno:graph` | Show workflow as ASCII tree |
 | `steno:new-session` | Archive and start fresh |
 | `steno:clear` | Clear current session |
+| `steno:undo` | Undo last command (keeps files) |
+| `steno:undo!` | Hard undo (reverts files too) |
+| `steno:undo n_XXX` | Undo specific node |
+| `steno:redo` | Restore last undone command |
 | `steno:reset!` | Reset all state (destructive) |
 
 ## Branching
@@ -113,6 +117,8 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 | `⚠ Branch not found` | Check steno:branches |
 | `⚠ Node not found` | Wrong node ID? Check steno:graph |
 | `⚠ Branch empty` | Branch has no nodes yet |
+| `⚠ Nothing to undo` | No commands in session |
+| `⚠ Nothing to redo` | No undone commands |
 
 ## Tips
 
