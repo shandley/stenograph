@@ -255,9 +255,11 @@ SESSION:
   steno:reset     - clear all state (requires !)
 
 POWER:
-  steno:alias     - create/list/remove aliases
+  steno:alias     - create/list/remove aliases (supports {params})
   steno:search    - search command history
   steno:replay    - re-run command sequences
+  steno:template  - reusable command workflows
+  steno:diff      - compare nodes/branches/bookmarks
 ```
 
 ### steno:history
@@ -918,6 +920,408 @@ Use steno:replay n_003..n_007 to execute.
 - `steno:replay`: Re-execute from local history
 - `steno:import +replay`: Execute from exported workflow file
 
+### steno:template
+
+Create, list, use, and share reusable command sequences.
+
+**List available templates:**
+
+```
+> steno:template
+
+Built-in templates:
+  react-component  - Create React component with tests
+  api-endpoint     - Create REST endpoint with validation
+  refactor         - Safe refactoring workflow
+
+Custom templates (.steno/templates/):
+  my-setup         - Project initialization
+  deploy-check     - Pre-deployment checklist
+```
+
+**Use a template:**
+
+```
+> steno:template react-component Button
+
+Running template "react-component" with args: Button
+
+  Step 1/4: mk:components/Button.tsx +functional
+            → Created Button.tsx
+
+  Step 2/4: mk:components/Button.test.tsx +jest
+            → Created Button.test.tsx
+
+  Step 3/4: mk:components/Button.css +module
+            → Created Button.css
+
+  Step 4/4: ch:@components/index.ts +export Button
+            → Updated index.ts
+
+Template complete: 4 commands executed.
+```
+
+**Create a custom template:**
+
+```
+> steno:template +create setup
+
+Creating template "setup"...
+Enter commands (empty line to finish):
+
+> dx:@package.json
+> ch:@tsconfig.json +strict
+> ts:@tests/ +coverage
+>
+
+Template "setup" created with 3 commands.
+Saved to: .steno/templates/setup.json
+```
+
+**Template with parameters:**
+
+```
+> steno:template +create component
+
+Creating template "component"...
+Parameters: {name} {type?:functional}
+Enter commands:
+
+> mk:components/{name}.tsx +{type}
+> mk:components/{name}.test.tsx +jest
+> ch:@components/index.ts +export {name}
+>
+
+Template "component" created.
+Usage: steno:template component MyButton type:class
+```
+
+**View template contents:**
+
+```
+> steno:template ?react-component
+
+Template: react-component
+Description: Create React component with tests
+Parameters: {name} (required), {style?:css} (optional, default: css)
+
+Commands:
+  1. mk:components/{name}.tsx +functional
+  2. mk:components/{name}.test.tsx +jest
+  3. mk:components/{name}.{style} +module
+  4. ch:@components/index.ts +export {name}
+```
+
+**Remove a template:**
+
+```
+> steno:template -setup
+
+Template "setup" removed.
+```
+
+**Template options:**
+
+| Command | Action |
+|---------|--------|
+| `steno:template` | List all templates |
+| `steno:template name args...` | Run template |
+| `steno:template ?name` | View template details |
+| `steno:template +create name` | Create new template |
+| `steno:template -name` | Remove template |
+| `steno:template +export name` | Export as shareable JSON |
+| `steno:template +import file` | Import template |
+
+**Behavior:**
+1. Built-in templates defined in SKILL.md
+2. Custom templates stored in `.steno/templates/*.json`
+3. Parameters use `{name}` syntax, optional with `{name?:default}`
+4. Templates execute commands sequentially, stopping on failure
+5. Each command creates a node (full tracking)
+
+**Template file format:**
+
+```json
+{
+  "name": "component",
+  "description": "Create React component with tests",
+  "parameters": [
+    {"name": "name", "required": true},
+    {"name": "style", "required": false, "default": "css"}
+  ],
+  "commands": [
+    "mk:components/{name}.tsx +functional",
+    "mk:components/{name}.test.tsx +jest",
+    "mk:components/{name}.{style} +module",
+    "ch:@components/index.ts +export {name}"
+  ]
+}
+```
+
+**Built-in templates:**
+
+| Template | Description | Parameters |
+|----------|-------------|------------|
+| `react-component` | React component + test + styles | `{name}`, `{style?:css}` |
+| `api-endpoint` | REST endpoint with validation | `{name}`, `{method?:GET}` |
+| `refactor` | Safe refactoring workflow | `{target}` |
+| `test-suite` | Test file with setup | `{name}`, `{framework?:jest}` |
+
+### Parameterized Aliases
+
+Aliases can include parameters using `{1}`, `{2}`, etc. for positional args or `{name}` for named args.
+
+**Create parameterized alias:**
+
+```
+> steno:alias explore "dx:@{1} ~deep && fnd:{2}"
+
+Alias "explore" created with 2 parameters.
+Usage: explore <file> <pattern>
+```
+
+**Use parameterized alias:**
+
+```
+> explore src/api.ts TODO
+
+Running alias "explore" with args: src/api.ts, TODO
+  → dx:@src/api.ts ~deep
+  → fnd:TODO
+```
+
+**Named parameters:**
+
+```
+> steno:alias test "ts:@{file} +{coverage:basic}"
+
+Alias "test" created.
+Usage: test file:<path> [coverage:<level>]
+```
+
+```
+> test file:utils.ts coverage:full
+
+Running alias "test"...
+  → ts:@utils.ts +full
+```
+
+**Default values:**
+
+```
+> steno:alias lint "ch:@{1:src/} +lint"
+
+Alias "lint" created.
+Default for {1}: src/
+```
+
+```
+> lint
+Running: ch:@src/ +lint
+
+> lint lib/
+Running: ch:@lib/ +lint
+```
+
+**Parameter syntax:**
+
+| Syntax | Meaning | Example |
+|--------|---------|---------|
+| `{1}` | First positional arg | `dx:@{1}` |
+| `{2}` | Second positional arg | `stat:compare @{1} @{2}` |
+| `{name}` | Named parameter | `mk:{name}.ts` |
+| `{1:default}` | Positional with default | `dx:@{1:src/}` |
+| `{name:default}` | Named with default | `+{type:functional}` |
+| `{1?}` | Optional (omit if missing) | `ch:@{1} {2?}` |
+
+**Behavior:**
+1. Positional args filled left-to-right
+2. Named args use `name:value` syntax
+3. Missing required args show error
+4. Optional args (`{?}`) omit that part of command if not provided
+5. Defaults used when arg not provided
+
+**Alias introspection:**
+
+```
+> steno:alias ?explore
+
+Alias: explore
+Command: dx:@{1} ~deep && fnd:{2}
+Parameters:
+  {1} - required (file path)
+  {2} - required (search pattern)
+
+Usage: explore <arg1> <arg2>
+Example: explore src/app.ts TODO
+```
+
+### steno:diff
+
+Compare outputs between nodes, branches, or bookmarks.
+
+**Diff two nodes:**
+
+```
+> steno:diff n_003 n_007
+
+Comparing n_003 → n_007
+
+n_003: ch:@data.csv +filter
+  outputs: filtered.csv (45 rows)
+
+n_007: ch:@data.csv +filter +normalize
+  outputs: filtered_norm.csv (45 rows)
+
+File diff (filtered.csv → filtered_norm.csv):
+  - Same row count (45)
+  - Column changes:
+    + normalized_value (new)
+    ~ value → raw_value (renamed)
+  - Value ranges:
+    normalized_value: 0.0 - 1.0
+```
+
+**Diff branches:**
+
+```
+> steno:diff @main @experiment
+
+Branch comparison: main → experiment
+
+Diverged at: n_005 (ch:@data.csv +filter)
+
+main (3 nodes after fork):
+  n_006: stat:ttest @filtered.csv
+  n_007: viz:boxplot ^
+  n_008: doc:@results/
+
+experiment (2 nodes after fork):
+  n_009: stat:wilcoxon @filtered.csv
+  n_010: viz:violin ^
+
+Output comparison:
+  Statistical test:
+    main: t-test (p=0.023)
+    experiment: Wilcoxon (p=0.031)
+
+  Visualizations:
+    main: boxplot.png (800x600)
+    experiment: violin.png (800x600)
+```
+
+**Diff with bookmark:**
+
+```
+> steno:diff @baseline ^
+
+Comparing bookmark "baseline" (n_004) → current (n_012)
+
+Changes since baseline:
+  8 commands executed
+  3 files created
+  2 files modified
+
+Key differences:
+  n_004: data.csv (raw, 100 rows)
+  n_012: data_processed.csv (normalized, 95 rows)
+    - 5 rows filtered
+    - Added columns: norm_value, z_score
+```
+
+**Diff options:**
+
+| Command | Action |
+|---------|--------|
+| `steno:diff n_X n_Y` | Compare two nodes |
+| `steno:diff @branch1 @branch2` | Compare branches |
+| `steno:diff @bookmark ^` | Compare bookmark to current |
+| `steno:diff n_X..n_Y` | Show changes across range |
+| `steno:diff +files` | Include file content diff |
+| `steno:diff +stats` | Focus on statistical differences |
+| `steno:diff .format:json` | Output as JSON |
+
+**Range diff:**
+
+```
+> steno:diff n_003..n_010
+
+Change summary: n_003 → n_010 (8 commands)
+
+Files created: 4
+  - filtered.csv (n_003)
+  - normalized.csv (n_005)
+  - pca_plot.png (n_007)
+  - results.md (n_010)
+
+Files modified: 2
+  - data.csv: 3 modifications
+  - config.json: 1 modification
+
+Command types:
+  ch: 4 (50%)
+  viz: 2 (25%)
+  doc: 1 (12.5%)
+  stat: 1 (12.5%)
+```
+
+**File content diff:**
+
+```
+> steno:diff n_003 n_007 +files
+
+Comparing outputs...
+
+--- n_003: filtered.csv
++++ n_007: filtered_norm.csv
+
+@@ Header @@
+- id,value,category
++ id,raw_value,normalized_value,category
+
+@@ Row 1 @@
+- 1,42.5,A
++ 1,42.5,0.425,A
+
+@@ Summary @@
+  45 rows compared
+  0 rows removed
+  1 column added
+  1 column renamed
+```
+
+**Statistical diff:**
+
+```
+> steno:diff @deseq2:^ @ancombc:^ +stats
+
+Statistical comparison: DESeq2 vs ANCOM-BC
+
+Method comparison:
+  DESeq2: Negative binomial GLM
+  ANCOM-BC: Bias-corrected compositional
+
+Results overlap:
+  Significant in both: 12 features
+  DESeq2 only: 3 features
+  ANCOM-BC only: 5 features
+
+Correlation: r=0.87 (p<0.001)
+
+Top differences:
+  Feature_A: DESeq2 p=0.001, ANCOM-BC p=0.12
+  Feature_B: DESeq2 p=0.08, ANCOM-BC p=0.002
+```
+
+**Behavior:**
+1. Compare node metadata (command, timestamp, status)
+2. Compare outputs (files created/modified)
+3. If files are data files, show structural diff
+4. If files are code, show line diff
+5. For branches, find common ancestor and show divergence
+6. `+files` includes actual content comparison
+7. `+stats` extracts and compares numerical results
+
 ---
 
 ## Branching
@@ -1560,6 +1964,146 @@ Replaying 5 commands...
   Options:
   - Fix the issue and run: steno:replay n_005..n_007
   - Skip failures: steno:replay n_003..n_007 +skip-failed
+```
+
+### Template Errors
+
+**Template not found:**
+```
+> steno:template unknown-template
+
+⚠ Template not found: "unknown-template"
+  Built-in: react-component, api-endpoint, refactor, test-suite
+  Custom: (none)
+
+  Use steno:template to list available templates.
+```
+
+**Missing required parameter:**
+```
+> steno:template react-component
+
+⚠ Missing required parameter: {name}
+  Usage: steno:template react-component <name> [style:<css|scss>]
+  Example: steno:template react-component Button style:scss
+```
+
+**Invalid parameter:**
+```
+> steno:template react-component Button style:invalid
+
+⚠ Invalid parameter value: style must be one of: css, scss, styled
+  Using default: css
+```
+
+**Template already exists:**
+```
+> steno:template +create setup
+
+⚠ Template exists: "setup" already exists.
+  Use steno:template -setup to remove it first.
+  Or choose a different name.
+```
+
+**Cannot remove built-in:**
+```
+> steno:template -react-component
+
+⚠ Cannot remove built-in template: "react-component"
+  Only custom templates can be removed.
+```
+
+**Template execution failed:**
+```
+> steno:template api-endpoint users
+
+Running template "api-endpoint"...
+
+  Step 1/3: mk:routes/users.ts +rest → OK
+  Step 2/3: mk:controllers/users.ts +validation
+
+⚠ Template stopped: Directory controllers/ not found
+  Completed: 1 of 3 commands
+
+  Options:
+  - Create directory: mkdir controllers && steno:template api-endpoint users
+  - Continue from step 2: steno:replay n_XXX..
+```
+
+### Diff Errors
+
+**Node not found:**
+```
+> steno:diff n_003 n_999
+
+⚠ Node not found: n_999
+  Use steno:history to see available nodes.
+```
+
+**Cannot diff same node:**
+```
+> steno:diff n_003 n_003
+
+⚠ Same node: Cannot diff n_003 with itself.
+  Use steno:diff n_003 n_XXX to compare different nodes.
+```
+
+**Branch not found:**
+```
+> steno:diff @main @missing-branch
+
+⚠ Branch not found: "missing-branch"
+  Available branches: main, experiment, feature-x
+
+  Use steno:branches to see all branches.
+```
+
+**No outputs to compare:**
+```
+> steno:diff n_001 n_002
+
+⚠ No outputs to compare:
+  n_001: dx:@data.csv (diagnostic only, no outputs)
+  n_002: ?plan refactor (planning only, no outputs)
+
+  Diff requires nodes with file outputs.
+  Try: steno:diff n_003 n_007 (both have outputs)
+```
+
+**Invalid range:**
+```
+> steno:diff n_010..n_003
+
+⚠ Invalid range: End node (n_003) is before start node (n_010).
+  Use: steno:diff n_003..n_010
+```
+
+### Parameterized Alias Errors
+
+**Missing required argument:**
+```
+> explore
+
+⚠ Missing argument: Alias "explore" requires 2 arguments.
+  Usage: explore <file> <pattern>
+  Example: explore src/app.ts TODO
+```
+
+**Too many arguments:**
+```
+> explore src/app.ts TODO extra-arg
+
+⚠ Too many arguments: Alias "explore" takes 2 arguments, got 3.
+  Usage: explore <file> <pattern>
+```
+
+**Invalid named parameter:**
+```
+> test file:utils.ts unknown:value
+
+⚠ Unknown parameter: "unknown"
+  Valid parameters for "test": file, coverage
+  Usage: test file:<path> [coverage:<level>]
 ```
 
 ### State Recovery

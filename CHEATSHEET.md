@@ -104,6 +104,8 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 |---------|--------|
 | `steno:alias` | List all aliases |
 | `steno:alias name "cmd"` | Create alias |
+| `steno:alias name "cmd {1}"` | Create parameterized alias |
+| `steno:alias ?name` | View alias details |
 | `steno:alias -name` | Remove alias |
 | `steno:search pattern` | Search history by pattern |
 | `steno:search :verb` | Search by verb |
@@ -112,6 +114,40 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 | `steno:replay n_XXX..n_YYY` | Replay range |
 | `steno:replay @bookmark..` | Replay from bookmark |
 | `steno:replay +dry` | Preview without executing |
+
+## Templates
+
+| Command | Action |
+|---------|--------|
+| `steno:template` | List all templates |
+| `steno:template name args` | Run template |
+| `steno:template ?name` | View template details |
+| `steno:template +create name` | Create custom template |
+| `steno:template -name` | Remove custom template |
+| `steno:template +export name` | Export as JSON |
+| `steno:template +import file` | Import template |
+
+**Built-in templates:** `react-component`, `api-endpoint`, `refactor`, `test-suite`
+
+## Diff & Compare
+
+| Command | Action |
+|---------|--------|
+| `steno:diff n_X n_Y` | Compare two nodes |
+| `steno:diff @branch1 @branch2` | Compare branches |
+| `steno:diff @bookmark ^` | Compare bookmark to current |
+| `steno:diff n_X..n_Y` | Show changes across range |
+| `steno:diff +files` | Include file content diff |
+| `steno:diff +stats` | Focus on statistical results |
+
+## Parameters
+
+| Syntax | Meaning |
+|--------|---------|
+| `{1}` | First positional arg |
+| `{name}` | Named parameter |
+| `{1:default}` | With default value |
+| `{name?}` | Optional parameter |
 
 ## Branching
 
