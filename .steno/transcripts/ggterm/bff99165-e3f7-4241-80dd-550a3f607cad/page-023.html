@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 23</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+<link rel="stylesheet" href="../../steno-transcript.css">
+</head>
+<body>
+<button class="theme-toggle" onclick="document.body.classList.toggle('dark')" style="position:fixed;top:1rem;right:1rem;z-index:1000;padding:0.5rem 1rem;border:1px solid #ddd;border-radius:0.5rem;background:#fff;cursor:pointer;font-size:0.875rem;">Toggle Dark Mode</button>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 23/24</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-022.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-022.html">22</a>
+<span class="current">23</span>
+<a href="page-024.html">24</a>
+<a href="page-024.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2025-12-20T01-32-44-645Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-20T01-32-44-645Z" class="timestamp-link"><time datetime="2025-12-20T01:32:44.645Z" data-timestamp="2025-12-20T01:32:44.645Z">2025-12-20T01:32:44.645Z</time></a></div><div class="message-content">
+<div class="user-content"><p>saf</p></div></div></div>
+<div class="message user" id="msg-2025-12-20T01-32-46-159Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-20T01-32-46-159Z" class="timestamp-link"><time datetime="2025-12-20T01:32:46.159Z" data-timestamp="2025-12-20T01:32:46.159Z">2025-12-20T01:32:46.159Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>[Request interrupted by user]</p></div></div></div>
+<div class="message user" id="msg-2025-12-20T01-35-19-278Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-20T01-35-19-278Z" class="timestamp-link"><time datetime="2025-12-20T01:35:19.278Z" data-timestamp="2025-12-20T01:35:19.278Z">2025-12-20T01:35:19.278Z</time></a></div><div class="message-content">
+<div class="user-content"><p>i am logged in</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-20T01-35-23-089Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-20T01-35-23-089Z" class="timestamp-link"><time datetime="2025-12-20T01:35:23.089Z" data-timestamp="2025-12-20T01:35:23.089Z">2025-12-20T01:35:23.089Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user says they are logged in now. Let me try the publish command again.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-20T01-35-24-617Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-20T01-35-24-617Z" class="timestamp-link"><time datetime="2025-12-20T01:35:24.617Z" data-timestamp="2025-12-20T01:35:24.617Z">2025-12-20T01:35:24.617Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01CFktccM5WtktjUoSau3mE1">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Publish @ggterm/core to npm</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/scotthandley/Code/ggterm/packages/core &amp;&amp; npm publish --access public 2&gt;&amp;1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2025-12-20T01-35-25-640Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-20T01-35-25-640Z" class="timestamp-link"><time datetime="2025-12-20T01:35:25.640Z" data-timestamp="2025-12-20T01:35:25.640Z">2025-12-20T01:35:25.640Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Exit code 1
+npm warn publish npm auto-corrected some errors in your package.json when publishing.  Please run &quot;npm pkg fix&quot; to address these errors.
+npm warn publish errors corrected:
+npm warn publish &quot;bin[ggterm]&quot; script name was cleaned
+npm warn publish &quot;repository.url&quot; was normalized to &quot;git+https://github.com/handleylab/ggterm.git&quot;
+npm notice
+npm notice 📦  @ggterm/core@0.2.0
+npm notice Tarball Contents
+npm notice 2.9kB dist/annotations.d.ts
+npm notice 2.4kB dist/annotations.d.ts.map
+npm notice 1.8kB dist/canvas/canvas.d.ts.map
+npm notice 194B dist/canvas/index.d.ts.map
+npm notice 378B dist/cli.d.ts
+npm notice 118B dist/cli.d.ts.map
+npm notice 191.9kB dist/cli.js
+npm notice 3.0kB dist/coords/cartesian.d.ts
+npm notice 1.1kB dist/coords/cartesian.d.ts.map
+npm notice 164B dist/demo.d.ts
+npm notice 113B dist/demo.d.ts.map
+npm notice 5.0kB dist/facets/index.d.ts
+npm notice 3.1kB dist/facets/index.d.ts.map
+npm notice 413B dist/geoms/area.d.ts.map
+npm notice 1.1kB dist/geoms/bar.d.ts
+npm notice 651B dist/geoms/bar.d.ts.map
+npm notice 566B dist/geoms/boxplot.d.ts.map
+npm notice 913B dist/geoms/contour.d.ts
+npm notice 711B dist/geoms/contour.d.ts.map
+npm notice 1.2kB dist/geoms/errorbar.d.ts
+npm notice 820B dist/geoms/errorbar.d.ts.map
+npm notice 574B dist/geoms/histogram.d.ts.map
+npm notice 1.3kB dist/geoms/index.d.ts
+npm notice 1.2kB dist/geoms/index.d.ts.map
+npm notice 742B dist/geoms/line.d.ts.map
+npm notice 1.7kB dist/geoms/path.d.ts
+npm notice 617B dist/geoms/path.d.ts.map
+npm notice 879B dist/geoms/point.d.ts
+npm notice 553B dist/geoms/point.d.ts.map
+npm notice 939B dist/geoms/rect.d.ts
+npm notice 778B dist/geoms/rect.d.ts.map
+npm notice 2.0kB dist/geoms/rug.d.ts
+npm notice 516B dist/geoms/rug.d.ts.map
+npm notice 675B dist/geoms/segment.d.ts.map
+npm notice 1.5kB dist/geoms/smooth.d.ts
+npm notice 715B dist/geoms/smooth.d.ts.map
+npm notice 1.3kB dist/geoms/step.d.ts
+npm notice 539B dist/geoms/step.d.ts.map
+npm notice 586B dist/geoms/text.d.ts.map
+npm notice 787B dist/geoms/tile.d.ts
+npm notice 540B dist/geoms/tile.d.ts.map
+npm notice 878B dist/geoms/violin.d.ts
+npm notice 645B dist/geoms/violin.d.ts.map
+npm notice 1.8kB dist/grammar.d.ts
+npm notice 1.4kB dist/grammar.d.ts.map
+npm notice 6.1kB dist/index.d.ts
+npm notice 4.5kB dist/index.d.ts.map
+npm notice 253.9kB dist/index.js
+npm notice 2.8kB dist/performance/binning.d.ts
+npm notice 2.3kB dist/performance/binning.d.ts.map
+npm notice 2.7kB dist/performance/canvas-diff.d.ts
+npm notice 1.7kB dist/performance/canvas-diff.d.ts.map
+npm notice 820B dist/performance/index.d.ts
+npm notice 591B dist/performance/index.d.ts.map
+npm notice 2.6kB dist/performance/level-of-detail.d.ts
+npm notice 1.7kB dist/performance/level-of-detail.d.ts.map
+npm notice 2.8kB dist/performance/sampling.d.ts
+npm notice 1.9kB dist/performance/sampling.d.ts.map
+npm notice 801B dist/pipeline/index.d.ts
+npm notice 649B dist/pipeline/index.d.ts.map
+npm notice 962B dist/pipeline/pipeline.d.ts.map
+npm notice 3.3kB dist/pipeline/render-axes.d.ts
+npm notice 3.0kB dist/pipeline/render-axes.d.ts.map
+npm notice 5.6kB dist/pipeline/render-geoms.d.ts
+npm notice 3.9kB dist/pipeline/render-geoms.d.ts.map
+npm notice 5.1kB dist/pipeline/scales.d.ts
+npm notice 3.6kB dist/pipeline/scales.d.ts.map
+npm notice 4.2kB dist/positions/index.d.ts
+npm notice 2.0kB dist/positions/index.d.ts.map
+npm notice 168B dist/repl/index.d.ts
+npm notice 223B dist/repl/index.d.ts.map
+npm notice 3.1kB dist/repl/repl.d.ts
+npm notice 1.9kB dist/repl/repl.d.ts.map
+npm notice 1.6kB dist/scales/alpha.d.ts
+npm notice 1.1kB dist/scales/alpha.d.ts.map
+npm notice 8.8kB dist/scales/color.d.ts
+npm notice 5.8kB dist/scales/color.d.ts.map
+npm notice 1.9kB dist/scales/continuous.d.ts
+npm notice 1.5kB dist/scales/continuous.d.ts.map
+npm notice 2.0kB dist/scales/datetime.d.ts
+npm notice 1.4kB dist/scales/datetime.d.ts.map
+npm notice 1.2kB dist/scales/discrete.d.ts
+npm notice 701B dist/scales/discrete.d.ts.map
+npm notice 2.5kB dist/scales/index.d.ts
+npm notice 1.8kB dist/scales/index.d.ts.map
+npm notice 1.2kB dist/scales/shape.d.ts
+npm notice 794B dist/scales/shape.d.ts.map
+npm notice 1.2kB dist/scales/size.d.ts
+npm notice 884B dist/scales/size.d.ts.map
+npm notice 758B dist/stats/bin.d.ts.map
+npm notice 713B dist/stats/boxplot.d.ts.map
+npm notice 1.3kB dist/stats/density.d.ts
+npm notice 843B dist/stats/density.d.ts.map
+npm notice 702B dist/stats/index.d.ts
+npm notice 662B dist/stats/index.d.ts.map
+npm notice 850B dist/stats/smooth.d.ts.map
+npm notice 1.1kB dist/stats/summary.d.ts.map
+npm notice 2.9kB dist/streaming/data-buffer.d.ts
+npm notice 2.0kB dist/streaming/data-buffer.d.ts.map
+npm notice 3.3kB dist/streaming/data-window.d.ts
+npm notice 2.1kB dist/streaming/data-window.d.ts.map
+npm notice 816B dist/streaming/index.d.ts
+npm notice 510B dist/streaming/index.d.ts.map
+npm notice 3.1kB dist/streaming/rolling-aggregator.d.ts
+npm notice 2.1kB dist/streaming/rolling-aggregator.d.ts.map
+npm notice 4.8kB dist/streaming/streaming-plot.d.ts
+npm notice 3.5kB dist/streaming/streaming-plot.d.ts.map
+npm notice 2.4kB dist/terminal/capabilities.d.ts
+npm notice 1.3kB dist/terminal/capabilities.d.ts.map
+npm notice 2.5kB dist/terminal/colors.d.ts
+npm notice 1.5kB dist/terminal/colors.d.ts.map
+npm notice 1.0kB dist/terminal/index.d.ts
+npm notice 767B dist/terminal/index.d.ts.map
+npm notice 3.2kB dist/terminal/renderer-chain.d.ts
+npm notice 1.9kB dist/terminal/renderer-chain.d.ts.map
+npm notice 399B dist/themes/default.d.ts.map
+npm notice 4.5kB dist/types.d.ts
+npm notice 4.9kB dist/types.d.ts.map
+npm notice 1.1kB package.json
+npm notice Tarball Details
+npm notice name: @ggterm/core
+npm notice version: 0.2.0
+npm notice filename: ggterm-core-0.2.0.tgz
+npm notice package size: 134.2 kB
+npm notice unpacked size: 656.4 kB
+npm notice shasum: 1dc834b9883335ce2d17da850f1bac74bba39021
+npm notice integrity: sha512-ZZnxIc2DmFIxn[...]9fGwhldCtRxow==
+npm notice total files: 119
+npm notice
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+npm error code E403
+npm error 403 403 Forbidden - PUT https://registry.npmjs.org/@ggterm%2fcore - Two-factor authentication or granular access token with bypass 2fa enabled is required to publish packages.
+npm error 403 In most cases, you or one of your dependencies are requesting
+npm error 403 a package version that is forbidden by your security policy, or
+npm error 403 on a server you do not have access to.
+npm error A complete log of this run can be found in: /Users/scotthandley/.npm/_logs/2025-12-20T01_35_24_796Z-debug-0.log</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-20T01-35-29-379Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-20T01-35-29-379Z" class="timestamp-link"><time datetime="2025-12-20T01:35:29.379Z" data-timestamp="2025-12-20T01:35:29.379Z">2025-12-20T01:35:29.379Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The error says that two-factor authentication is required. The user needs to either:
+1. Use 2FA when publishing (npm will prompt for a one-time password)
+2. Or use a granular access token with 2FA bypass enabled</p>
+<p>Let me try with the --otp flag, but the user will need to provide their OTP code.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-20T01-35-32-822Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-20T01-35-32-822Z" class="timestamp-link"><time datetime="2025-12-20T01:35:32.822Z" data-timestamp="2025-12-20T01:35:32.822Z">2025-12-20T01:35:32.822Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>npm requires 2FA for publishing. You have two options:</p>
+<p><strong>Option 1:</strong> Provide your 2FA one-time password:</p>
+<pre><code class="language-bash">npm publish --access public --otp=YOUR_CODE
+</code></pre>
+<p><strong>Option 2:</strong> Create a granular access token with "Bypass 2FA" on npmjs.com:
+1. Go to https://www.npmjs.com/settings/tokens
+2. Generate new token → Granular Access Token
+3. Enable "Bypass two-factor authentication for automation"
+4. Use that token: <code>npm config set //registry.npmjs.org/:_authToken=YOUR_TOKEN</code></p>
+<p>Let me know your OTP code and I can run the publish with it, or you can run it directly in your terminal.</p></div></div></div>
+<div class="message user" id="msg-2025-12-20T01-37-21-727Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-20T01-37-21-727Z" class="timestamp-link"><time datetime="2025-12-20T01:37:21.727Z" data-timestamp="2025-12-20T01:37:21.727Z">2025-12-20T01:37:21.727Z</time></a></div><div class="message-content">
+<div class="user-content"><p>ff92b3c381787f304322cd3970b2877293828a1d7238dcd96ebe2d0c9dbe05d7
+b8b133535bc2007410240db4901bb418793d2371ce57c6f29df28ed3e80875c6
+0e9525c7ad09bd464a4cf023f5e00e3b11502cd81a101d62c9d68cab63723043
+bd875e235d4cb93ef5ccb08cc80e5f2c8d4aa7a92ab6946f16ce864587f88590
+d92617600f88b59183a682856149675b1ccc47b28eee828db2e42abb386d1982</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-20T01-37-27-833Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-20T01-37-27-833Z" class="timestamp-link"><time datetime="2025-12-20T01:37:27.833Z" data-timestamp="2025-12-20T01:37:27.833Z">2025-12-20T01:37:27.833Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user has provided what looks like tokens or hashes. These appear to be npm access tokens (they're 64 character hex strings). Let me try using one of these as the auth token and then publish.</p>
+<p>Actually, I should be careful here. These look like sensitive credentials. I should use them to configure npm and then publish, but I should not store or display them unnecessarily.</p>
+<p>Let me try setting the first one as the auth token and then publishing.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-20T01-37-29-934Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-20T01-37-29-934Z" class="timestamp-link"><time datetime="2025-12-20T01:37:29.934Z" data-timestamp="2025-12-20T01:37:29.934Z">2025-12-20T01:37:29.934Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_018oygMP33TSarkaEXSENr4Y">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Publish with token</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">cd /Users/scotthandley/Code/ggterm/packages/core &amp;&amp; NPM_TOKEN=ff92b3c381787f304322cd3970b2877293828a1d7238dcd96ebe2d0c9dbe05d7 npm publish --access public 2&gt;&amp;1</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2025-12-20T01-37-32-069Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-20T01-37-32-069Z" class="timestamp-link"><time datetime="2025-12-20T01:37:32.069Z" data-timestamp="2025-12-20T01:37:32.069Z">2025-12-20T01:37:32.069Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Exit code 1
+npm warn publish npm auto-corrected some errors in your package.json when publishing.  Please run &quot;npm pkg fix&quot; to address these errors.
+npm warn publish errors corrected:
+npm warn publish &quot;bin[ggterm]&quot; script name was cleaned
+npm warn publish &quot;repository.url&quot; was normalized to &quot;git+https://github.com/handleylab/ggterm.git&quot;
+npm notice
+npm notice 📦  @ggterm/core@0.2.0
+npm notice Tarball Contents
+npm notice 2.9kB dist/annotations.d.ts
+npm notice 2.4kB dist/annotations.d.ts.map
+npm notice 1.8kB dist/canvas/canvas.d.ts.map
+npm notice 194B dist/canvas/index.d.ts.map
+npm notice 378B dist/cli.d.ts
+npm notice 118B dist/cli.d.ts.map
+npm notice 191.9kB dist/cli.js
+npm notice 3.0kB dist/coords/cartesian.d.ts
+npm notice 1.1kB dist/coords/cartesian.d.ts.map
+npm notice 164B dist/demo.d.ts
+npm notice 113B dist/demo.d.ts.map
+npm notice 5.0kB dist/facets/index.d.ts
+npm notice 3.1kB dist/facets/index.d.ts.map
+npm notice 413B dist/geoms/area.d.ts.map
+npm notice 1.1kB dist/geoms/bar.d.ts
+npm notice 651B dist/geoms/bar.d.ts.map
+npm notice 566B dist/geoms/boxplot.d.ts.map
+npm notice 913B dist/geoms/contour.d.ts
+npm notice 711B dist/geoms/contour.d.ts.map
+npm notice 1.2kB dist/geoms/errorbar.d.ts
+npm notice 820B dist/geoms/errorbar.d.ts.map
+npm notice 574B dist/geoms/histogram.d.ts.map
+npm notice 1.3kB dist/geoms/index.d.ts
+npm notice 1.2kB dist/geoms/index.d.ts.map
+npm notice 742B dist/geoms/line.d.ts.map
+npm notice 1.7kB dist/geoms/path.d.ts
+npm notice 617B dist/geoms/path.d.ts.map
+npm notice 879B dist/geoms/point.d.ts
+npm notice 553B dist/geoms/point.d.ts.map
+npm notice 939B dist/geoms/rect.d.ts
+npm notice 778B dist/geoms/rect.d.ts.map
+npm notice 2.0kB dist/geoms/rug.d.ts
+npm notice 516B dist/geoms/rug.d.ts.map
+npm notice 675B dist/geoms/segment.d.ts.map
+npm notice 1.5kB dist/geoms/smooth.d.ts
+npm notice 715B dist/geoms/smooth.d.ts.map
+npm notice 1.3kB dist/geoms/step.d.ts
+npm notice 539B dist/geoms/step.d.ts.map
+npm notice 586B dist/geoms/text.d.ts.map
+npm notice 787B dist/geoms/tile.d.ts
+npm notice 540B dist/geoms/tile.d.ts.map
+npm notice 878B dist/geoms/violin.d.ts
+npm notice 645B dist/geoms/violin.d.ts.map
+npm notice 1.8kB dist/grammar.d.ts
+npm notice 1.4kB dist/grammar.d.ts.map
+npm notice 6.1kB dist/index.d.ts
+npm notice 4.5kB dist/index.d.ts.map
+npm notice 253.9kB dist/index.js
+npm notice 2.8kB dist/performance/binning.d.ts
+npm notice 2.3kB dist/performance/binning.d.ts.map
+npm notice 2.7kB dist/performance/canvas-diff.d.ts
+npm notice 1.7kB dist/performance/canvas-diff.d.ts.map
+npm notice 820B dist/performance/index.d.ts
+npm notice 591B dist/performance/index.d.ts.map
+npm notice 2.6kB dist/performance/level-of-detail.d.ts
+npm notice 1.7kB dist/performance/level-of-detail.d.ts.map
+npm notice 2.8kB dist/performance/sampling.d.ts
+npm notice 1.9kB dist/performance/sampling.d.ts.map
+npm notice 801B dist/pipeline/index.d.ts
+npm notice 649B dist/pipeline/index.d.ts.map
+npm notice 962B dist/pipeline/pipeline.d.ts.map
+npm notice 3.3kB dist/pipeline/render-axes.d.ts
+npm notice 3.0kB dist/pipeline/render-axes.d.ts.map
+npm notice 5.6kB dist/pipeline/render-geoms.d.ts
+npm notice 3.9kB dist/pipeline/render-geoms.d.ts.map
+npm notice 5.1kB dist/pipeline/scales.d.ts
+npm notice 3.6kB dist/pipeline/scales.d.ts.map
+npm notice 4.2kB dist/positions/index.d.ts
+npm notice 2.0kB dist/positions/index.d.ts.map
+npm notice 168B dist/repl/index.d.ts
+npm notice 223B dist/repl/index.d.ts.map
+npm notice 3.1kB dist/repl/repl.d.ts
+npm notice 1.9kB dist/repl/repl.d.ts.map
+npm notice 1.6kB dist/scales/alpha.d.ts
+npm notice 1.1kB dist/scales/alpha.d.ts.map
+npm notice 8.8kB dist/scales/color.d.ts
+npm notice 5.8kB dist/scales/color.d.ts.map
+npm notice 1.9kB dist/scales/continuous.d.ts
+npm notice 1.5kB dist/scales/continuous.d.ts.map
+npm notice 2.0kB dist/scales/datetime.d.ts
+npm notice 1.4kB dist/scales/datetime.d.ts.map
+npm notice 1.2kB dist/scales/discrete.d.ts
+npm notice 701B dist/scales/discrete.d.ts.map
+npm notice 2.5kB dist/scales/index.d.ts
+npm notice 1.8kB dist/scales/index.d.ts.map
+npm notice 1.2kB dist/scales/shape.d.ts
+npm notice 794B dist/scales/shape.d.ts.map
+npm notice 1.2kB dist/scales/size.d.ts
+npm notice 884B dist/scales/size.d.ts.map
+npm notice 758B dist/stats/bin.d.ts.map
+npm notice 713B dist/stats/boxplot.d.ts.map
+npm notice 1.3kB dist/stats/density.d.ts
+npm notice 843B dist/stats/density.d.ts.map
+npm notice 702B dist/stats/index.d.ts
+npm notice 662B dist/stats/index.d.ts.map
+npm notice 850B dist/stats/smooth.d.ts.map
+npm notice 1.1kB dist/stats/summary.d.ts.map
+npm notice 2.9kB dist/streaming/data-buffer.d.ts
+npm notice 2.0kB dist/streaming/data-buffer.d.ts.map
+npm notice 3.3kB dist/streaming/data-window.d.ts
+npm notice 2.1kB dist/streaming/data-window.d.ts.map
+npm notice 816B dist/streaming/index.d.ts
+npm notice 510B dist/streaming/index.d.ts.map
+npm notice 3.1kB dist/streaming/rolling-aggregator.d.ts
+npm notice 2.1kB dist/streaming/rolling-aggregator.d.ts.map
+npm notice 4.8kB dist/streaming/streaming-plot.d.ts
+npm notice 3.5kB dist/streaming/streaming-plot.d.ts.map
+npm notice 2.4kB dist/terminal/capabilities.d.ts
+npm notice 1.3kB dist/terminal/capabilities.d.ts.map
+npm notice 2.5kB dist/terminal/colors.d.ts
+npm notice 1.5kB dist/terminal/colors.d.ts.map
+npm notice 1.0kB dist/terminal/index.d.ts
+npm notice 767B dist/terminal/index.d.ts.map
+npm notice 3.2kB dist/terminal/renderer-chain.d.ts
+npm notice 1.9kB dist/terminal/renderer-chain.d.ts.map
+npm notice 399B dist/themes/default.d.ts.map
+npm notice 4.5kB dist/types.d.ts
+npm notice 4.9kB dist/types.d.ts.map
+npm notice 1.1kB package.json
+npm notice Tarball Details
+npm notice name: @ggterm/core
+npm notice version: 0.2.0
+npm notice filename: ggterm-core-0.2.0.tgz
+npm notice package size: 134.2 kB
+npm notice unpacked size: 656.4 kB
+npm notice shasum: 1dc834b9883335ce2d17da850f1bac74bba39021
+npm notice integrity: sha512-ZZnxIc2DmFIxn[...]9fGwhldCtRxow==
+npm notice total files: 119
+npm notice
+npm notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+npm error code EOTP
+npm error This operation requires a one-time password from your authenticator.
+npm error You can provide a one-time password by passing --otp=&lt;code&gt; to the command you ran.
+npm error If you already provided a one-time password then it is likely that you either typoed
+npm error it, or it timed out. Please try again.
+npm error A complete log of this run can be found in: /Users/scotthandley/.npm/_logs/2025-12-20T01_37_31_098Z-debug-0.log</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-20T01-37-35-058Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-20T01-37-35-058Z" class="timestamp-link"><time datetime="2025-12-20T01:37:35.058Z" data-timestamp="2025-12-20T01:37:35.058Z">2025-12-20T01:37:35.058Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Those were tokens, not OTP codes. The user needs to provide a 6-digit OTP code from their authenticator app (like Google Authenticator, Authy, etc). Let me ask for the OTP code.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-20T01-37-36-557Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-20T01-37-36-557Z" class="timestamp-link"><time datetime="2025-12-20T01:37:36.557Z" data-timestamp="2025-12-20T01:37:36.557Z">2025-12-20T01:37:36.557Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Those look like access tokens, but npm needs a <strong>6-digit OTP code</strong> from your authenticator app (Google Authenticator, Authy, etc.).</p>
+<p>Please provide the 6-digit code and I'll publish with it:</p>
+<pre><code class="language-bash">npm publish --access public --otp=123456
+</code></pre></div></div></div>
+<div class="message user" id="msg-2025-12-20T01-39-24-144Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-20T01-39-24-144Z" class="timestamp-link"><time datetime="2025-12-20T01:39:24.144Z" data-timestamp="2025-12-20T01:39:24.144Z">2025-12-20T01:39:24.144Z</time></a></div><div class="message-content">
+<div class="user-content"><p>i do not know how to obtain that</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-20T01-39-29-761Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-20T01-39-29-761Z" class="timestamp-link"><time datetime="2025-12-20T01:39:29.761Z" data-timestamp="2025-12-20T01:39:29.761Z">2025-12-20T01:39:29.761Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user doesn't know how to get the OTP code. They probably set up 2FA on their npm account but may not remember where their authenticator app is or how it was set up.</p>
+<p>Let me explain the options:</p>
+<ol>
+<li>
+<p>If they have an authenticator app (like Google Authenticator, Authy, 1Password, etc.) on their phone that they used when setting up npm 2FA, they need to open that app and find the npm entry to get the 6-digit code.</p>
+</li>
+<li>
+<p>If they don't have access to the authenticator app, they can:</p>
+</li>
+<li>Use recovery codes if they saved them</li>
+<li>
+<p>Create a granular access token on npmjs.com with "bypass 2FA" permission</p>
+</li>
+<li>
+<p>Or they can disable 2FA temporarily (not recommended)</p>
+</li>
+</ol>
+<p>Let me provide clear guidance.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-20T01-39-35-096Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-20T01-39-35-096Z" class="timestamp-link"><time datetime="2025-12-20T01:39:35.096Z" data-timestamp="2025-12-20T01:39:35.096Z">2025-12-20T01:39:35.096Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>No problem. Here are your options:</p>
+<p><strong>Option 1: Find your authenticator app</strong>
+When you enabled 2FA on npm, you linked an authenticator app on your phone (Google Authenticator, Authy, 1Password, Microsoft Authenticator, etc.). Open that app and look for an "npm" entry - it shows a 6-digit code that changes every 30 seconds.</p>
+<p><strong>Option 2: Create a publish token with 2FA bypass</strong> (easiest)
+1. Go to https://www.npmjs.com/settings/tokens
+2. Click "Generate New Token" → "Granular Access Token"
+3. Give it a name like "ggterm-publish"
+4. Under "Packages and scopes" → select "Read and write"
+5. <strong>Important</strong>: Check "Bypass two-factor authentication for automation"
+6. Click "Generate Token"
+7. Copy the token (starts with <code>npm_</code>)</p>
+<p>Then give me that token and I can configure npm to use it.</p>
+<p><strong>Option 3: Disable 2FA temporarily</strong> (not recommended)
+Go to https://www.npmjs.com/settings/security and disable 2FA, publish, then re-enable.</p>
+<p>Which option works best for you?</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-022.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-004.html">4</a>
+<a href="page-005.html">5</a>
+<a href="page-006.html">6</a>
+<a href="page-007.html">7</a>
+<a href="page-008.html">8</a>
+<a href="page-009.html">9</a>
+<a href="page-010.html">10</a>
+<a href="page-011.html">11</a>
+<a href="page-012.html">12</a>
+<a href="page-013.html">13</a>
+<a href="page-014.html">14</a>
+<a href="page-015.html">15</a>
+<a href="page-016.html">16</a>
+<a href="page-017.html">17</a>
+<a href="page-018.html">18</a>
+<a href="page-019.html">19</a>
+<a href="page-020.html">20</a>
+<a href="page-021.html">21</a>
+<a href="page-022.html">22</a>
+<span class="current">23</span>
+<a href="page-024.html">24</a>
+<a href="page-024.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

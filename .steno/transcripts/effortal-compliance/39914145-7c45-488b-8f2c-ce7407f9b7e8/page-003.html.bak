@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 3</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 3/3</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-002.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<span class="current">3</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+        
+<div class="message user" id="msg-2025-12-27T01-16-44-722Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-27T01-16-44-722Z" class="timestamp-link"><time datetime="2025-12-27T01:16:44.722Z" data-timestamp="2025-12-27T01:16:44.722Z">2025-12-27T01:16:44.722Z</time></a></div><div class="message-content">
+<div class="user-content"><p>and some interesting things here: https://www.cdata.com/ai/</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-16-48-803Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-16-48-803Z" class="timestamp-link"><time datetime="2025-12-27T01:16:48.803Z" data-timestamp="2025-12-27T01:16:48.803Z">2025-12-27T01:16:48.803Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user is pointing me to CData's AI page. Let me fetch that to understand what they're offering in the AI space.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-16-50-782Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-16-50-782Z" class="timestamp-link"><time datetime="2025-12-27T01:16:50.782Z" data-timestamp="2025-12-27T01:16:50.782Z">2025-12-27T01:16:50.782Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01XfDEJ3SWX7NrKLse6PPUTh"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://www.cdata.com/ai/&#34;,
+  &#34;prompt&#34;: &#34;Extract all details about CData&#39;s AI offerings: products, how they work, MCP servers, AI agents, integrations with Claude/LLMs, pricing if mentioned, and what problems they solve&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-16-50-933Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-16-50-933Z" class="timestamp-link"><time datetime="2025-12-27T01:16:50.933Z" data-timestamp="2025-12-27T01:16:50.933Z">2025-12-27T01:16:50.933Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Request failed with status code 403</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-16-54-892Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-16-54-892Z" class="timestamp-link"><time datetime="2025-12-27T01:16:54.892Z" data-timestamp="2025-12-27T01:16:54.892Z">2025-12-27T01:16:54.892Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Page is blocked. Let me search for information about CData AI products.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-16-55-759Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-16-55-759Z" class="timestamp-link"><time datetime="2025-12-27T01:16:55.759Z" data-timestamp="2025-12-27T01:16:55.759Z">2025-12-27T01:16:55.759Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01JrB5qMvfQSxpxpXxPDUYFJ"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;CData AI MCP server LLM data connectivity agents 2024 2025&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-16-56-873Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-16-56-873Z" class="timestamp-link"><time datetime="2025-12-27T01:16:56.873Z" data-timestamp="2025-12-27T01:16:56.873Z">2025-12-27T01:16:56.873Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01XwUra3Vfz8FDNdi2HWYrWV"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;\&#34;CData Connect AI\&#34; features pricing LLM enterprise data&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-17-25-019Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-17-25-019Z" class="timestamp-link"><time datetime="2025-12-27T01:17:25.019Z" data-timestamp="2025-12-27T01:17:25.019Z">2025-12-27T01:17:25.019Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;CData AI MCP server LLM data connectivity agents 2024 2025&quot;
+
+Links: [{&quot;title&quot;:&quot;Ask your AI for answers from any data source with CData MCP Servers&quot;,&quot;url&quot;:&quot;https://www.cdata.com/solutions/mcp/&quot;},{&quot;title&quot;:&quot;Introducing CData MCP Servers: AI Access to Enterprise Data&quot;,&quot;url&quot;:&quot;https://www.cdata.com/blog/introducing-cdata-mcp-servers&quot;},{&quot;title&quot;:&quot;Build Real-Time LLM Pipelines with CData Connect AI&quot;,&quot;url&quot;:&quot;https://www.cdata.com/blog/build-real-time-llm-pipelines-with-cdata-connect-ai&quot;},{&quot;title&quot;:&quot;How CData MCP Servers Connect AI to Enterprise Data&quot;,&quot;url&quot;:&quot;https://www.cdata.com/blog/how-cdata-mcp-servers-connect-ai-to-enterprise-data&quot;},{&quot;title&quot;:&quot;Connecting Local LLMs to Real-Time Data with CData MCP Servers&quot;,&quot;url&quot;:&quot;https://www.cdata.com/kb/articles/mcp-lmstudio.rst&quot;},{&quot;title&quot;:&quot;Guide to Real-Time Data Access for LLM Applications&quot;,&quot;url&quot;:&quot;https://www.cdata.com/blog/guide-to-real-time-data-access-for-llm-applications&quot;},{&quot;title&quot;:&quot;Key to Smarter Local LLMs like Llama? Real-Time Data Access&quot;,&quot;url&quot;:&quot;https://www.cdata.com/blog/key-to-smarter-local-llms&quot;},{&quot;title&quot;:&quot;CData AI Connectivity - CData Software&quot;,&quot;url&quot;:&quot;https://www.cdata.com/platform/ai-connectivity/&quot;},{&quot;title&quot;:&quot;CData&#x27;s Year in AI: 2025 Wrapped&quot;,&quot;url&quot;:&quot;https://www.cdata.com/blog/vibe-querying-2025-wrapped&quot;},{&quot;title&quot;:&quot;CData Connect Cloud Remote MCP Server&quot;,&quot;url&quot;:&quot;https://www.cdata.com/cloud/ai/&quot;}]
+
+Here&#x27;s what I found about CData&#x27;s AI MCP servers and LLM data connectivity:
+
+## CData MCP Servers Overview
+
+CData MCP Servers combine the Model Context Protocol (MCP) with CData&#x27;s Connector Library of 350+ sources, giving AI models access to the business data needed to make them really useful at work.
+
+### What Are CData MCP Servers?
+
+CData MCP Servers are an implementation of Anthropic&#x27;s Model Context Protocol, which was introduced to provide AI tools with secure, two-way connections to external data sources and services. While the MCP standard defines how LLMs should communicate with external systems, it&#x27;s the server&#x27;s connectivity that determines what those models can actually do.(no content)Each CData MCP Server turns an enterprise application—be it Salesforce, Jira, or NetSuite—into a tabular SQL-based model. This standardized approach allows AI agents to explore the underlying data, discover available entities and attributes, and run queries just as they would against a traditional relational database. Beyond querying, these servers also support write operations and stored procedures, enabling AI-driven workflows and actions.
+
+### Launch Timeline
+
+On May 1st, 2024, CData launched its first batch of downloadable MCP servers, around the time Anthropic introduced Model Context Protocol in late 2024.(no content)The initial beta release included MCP Servers to 25 enterprise sources and compatibility with Claude Desktop on Windows operating systems.
+
+### Key Products
+
+1. **CData Connect AI**: MCP enables AI models to access real-time data and interact naturally with that information through conversational AI or agent-driven actions. CData Connect AI enables AI clients like Claude, ChatGPT, and Gemini to work with live data from 350+ data sources through a managed MCP platform. This combination gives AI models access to the work data they need to be genuinely useful in business contexts.
+
+2. **Connect Cloud for AI**: Connect Cloud for AI is a headless, cloud-based connectivity platform that connects 270+ enterprise data sources to any AI via Remote Model Context Protocol (MCP). No installs, no pipelines—just secure, real-time data access.
+
+### Use Cases
+
+You can connect one system (e.g., Salesforce, Jira, NetSuite) to an LLM and get instant, live answers with read-only access. MCP Servers or Connect Cloud MCP make it trivial. Great for: Fast Q&amp;A, ad hoc reporting, support assistants.(no content)For advanced use cases, you can deploy governed, multi-system AI agents that can read and write back (e.g., open a case in ServiceNow, post an order to SAP) with full auditability and policy control. Great for: Invoice reconciliation, customer outreach automation, supply chain actions.
+
+### Industry Recognition
+
+CData&#x27;s inclusion as the only new entrant in the 2024 Gartner Magic Quadrant report underscores the growing recognition of their innovative solutions and ability to address evolving demands of modern data integration.(no content)CData&#x27;s Connect AI platform also brings MCP connectivity to Microsoft Copilot Studio and Microsoft Agent 365.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-17-29-545Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-17-29-545Z" class="timestamp-link"><time datetime="2025-12-27T01:17:29.545Z" data-timestamp="2025-12-27T01:17:29.545Z">2025-12-27T01:17:29.545Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;&quot;CData Connect AI&quot; features pricing LLM enterprise data&quot;
+
+Links: [{&quot;title&quot;:&quot;CData Connect AI Pricing&quot;,&quot;url&quot;:&quot;https://www.cdata.com/ai/pricing/&quot;},{&quot;title&quot;:&quot;CData Connect AI for Analytics&quot;,&quot;url&quot;:&quot;https://www.cdata.com/ai/analytics/&quot;},{&quot;title&quot;:&quot;CData Connect AI Pricing 2025&quot;,&quot;url&quot;:&quot;https://www.g2.com/products/cdata-connect-ai/pricing&quot;},{&quot;title&quot;:&quot;CData Connect AI | Enterprise AI that Understands Your Business&quot;,&quot;url&quot;:&quot;https://www.cdata.com/ai/&quot;},{&quot;title&quot;:&quot;CData Connect AI 2025: Benefits, Features &amp; Pricing&quot;,&quot;url&quot;:&quot;https://www.softwareadvice.com/product/450727-CData-Connect-Cloud/&quot;},{&quot;title&quot;:&quot;Connect any AI to your enterprise data—securely, in real time&quot;,&quot;url&quot;:&quot;https://www.cdata.com/platform/ai-connectivity/&quot;},{&quot;title&quot;:&quot;Key to Smarter Local LLMs like Llama? Real-Time Data Access&quot;,&quot;url&quot;:&quot;https://www.cdata.com/blog/key-to-smarter-local-llms&quot;},{&quot;title&quot;:&quot;Automated Continuous Data Replication | CData Software&quot;,&quot;url&quot;:&quot;https://www.cdata.com/sync/pricing/&quot;},{&quot;title&quot;:&quot;Introducing CData MCP Servers: AI Access to Enterprise Data&quot;,&quot;url&quot;:&quot;https://www.cdata.com/blog/introducing-cdata-mcp-servers&quot;},{&quot;title&quot;:&quot;SLMs vs. LLMs: Leaner AI for Real-Time Enterprise Use&quot;,&quot;url&quot;:&quot;https://www.cdata.com/blog/meet-small-language-models-llm-siblings&quot;}]
+
+## CData Connect AI - Overview
+
+**CData Connect AI** is the first managed Model Context Protocol (MCP) platform that enables enterprises to safely connect AI assistants, agents, and automation workflows to live data across 300+ business systems.
+
+### Key Features
+
+**Enterprise Data Connectivity:**
+- Universal access to 350+ enterprise systems with pre-built connectors to key business context across popular platforms and legacy systems, with deep API coverage that reaches every endpoint and relevant object.
+- Dedicated data query engine where joins, filters, and aggregations are executed at the source instead of with brute-force LLM reasoning, enabling live connectivity at analytical performance levels.
+
+**LLM Integration:**
+- Connects enterprise data to LLMs (ChatGPT, Claude, GPT-4o, Ollama), AI copilots and assistants, agentic AI systems, and developer frameworks like LangChain, CrewAI, and the OpenAI Agent SDK—all governed through the same secure CData platform.
+- CData Connectors create a standardized SQL layer on every data source so LLMs can inherently produce richer and faster answers from your source system with CData MCP Servers.
+
+**Security &amp; Governance:**
+- Point-and-click setup, enterprise-grade security (SOC2, GDPR, ISO 27001 certified), and inherited role-based access controls make AI deployments both powerful and compliant.
+- Every AI query or action is governed by the same policies, roles, and permissions that apply to your human users. CData enforces the source system&#x27;s own security model, so LLMs and agents inherit the same user roles and permissions.
+
+### Pricing
+
+Paid plans start at $79/month with no lengthy sales process or enterprise contract required.
+
+**Standard Plan:**
+$79/month (annual) or $99/month, including 1 user and 1 Standard data source with 10 connections. Features include MCP connectivity to AI assistants (Claude, ChatGPT, etc.), live data querying in-place, Data Copilot for querying within Connect AI, fully hosted remote MCP server, and exposed data semantics for AI context.
+
+**Growth Plan:**
+$159/month (annual) or $199/month, including 1 user, 1 Standard or Growth data source with 10 connections, plus access to Growth-tier data sources and database caching for improved query performance.
+
+**Business Plan:**
+Custom pricing with custom user count, premium data source connectors unlocked, AI agents and workflow automation connectivity, custom MCP tools for specialized use cases, Single Sign-On (SSO) integration, per-user authentication and advanced permission controls, and dedicated account management—best for enterprises requiring advanced governance.
+
+**Additional Details:**
+- Annual subscriptions provide 20% savings compared to monthly billing. All plans include a free trial period, and the Spreadsheets offering includes a forever-free tier.
+- There is a monthly limit of 100M records outlined in their fair use policy. For enterprise usage above that limit, contact for a custom plan.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-17-41-252Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-17-41-252Z" class="timestamp-link"><time datetime="2025-12-27T01:17:41.252Z" data-timestamp="2025-12-27T01:17:41.252Z">2025-12-27T01:17:41.252Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>This is interesting. CData has built a managed MCP platform with:
+- 350+ connectors including Workday
+- $79/mo starting price (much more accessible than I expected)
+- SQL layer on top of data sources
+- Security/governance features
+- Works with Claude, ChatGPT, etc.</p>
+<p>This actually changes my analysis. If CData Connect AI provides:
+1. Workday connectivity
+2. MCP server (works with Claude)
+3. $79/mo pricing
+4. Managed infrastructure</p>
+<p>Then the user could potentially use CData as the integration layer for PI Forward, similar to how I recommended Knit earlier.</p>
+<p>Let me think about this:</p>
+<p><strong>Option A: CData Connect AI + PI Forward</strong>
+- Use CData for Workday data access ($79-159/mo)
+- Build PI Forward on top as the application layer
+- CData handles the Workday API complexity</p>
+<p><strong>Pros:</strong>
+- Solves the integration problem
+- Affordable starting point
+- MCP native (works with Claude)
+- 350+ sources (could expand beyond Workday)</p>
+<p><strong>Cons:</strong>
+- Another dependency
+- Need to evaluate if it covers grants/research data in Workday
+- May have limitations for write operations</p>
+<p>This is actually a reasonable path. Let me present this to the user as a potential solution to the Workday API complexity problem.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-18-04-721Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-18-04-721Z" class="timestamp-link"><time datetime="2025-12-27T01:18:04.721Z" data-timestamp="2025-12-27T01:18:04.721Z">2025-12-27T01:18:04.721Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>This is relevant. <a href="https://www.cdata.com/ai/">CData Connect AI</a> significantly changes the equation.</p>
+<h2>CData Connect AI Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>What it is</strong></td>
+<td>Managed MCP platform connecting AI to 350+ enterprise data sources</td>
+</tr>
+<tr>
+<td><strong>Workday support</strong></td>
+<td>Yes, full connector</td>
+</tr>
+<tr>
+<td><strong>Pricing</strong></td>
+<td>$79/mo (Standard), $159/mo (Growth), Custom (Business)</td>
+</tr>
+<tr>
+<td><strong>AI compatibility</strong></td>
+<td>Claude, ChatGPT, GPT-4o, LangChain, CrewAI, OpenAI Agent SDK</td>
+</tr>
+<tr>
+<td><strong>Key capability</strong></td>
+<td>SQL layer on top of data sources—LLMs query via SQL, not raw APIs</td>
+</tr>
+</tbody>
+</table>
+<p>Per <a href="https://www.cdata.com/blog/introducing-cdata-mcp-servers">CData's blog</a>:</p>
+<blockquote>
+<p>"Each CData MCP Server turns an enterprise application—be it Salesforce, Jira, or NetSuite—into a tabular SQL-based model. This standardized approach allows AI agents to explore the underlying data, discover available entities and attributes, and run queries just as they would against a traditional relational database."</p>
+</blockquote>
+<hr />
+<h2>What This Means for PI Forward</h2>
+<p><strong>The integration layer problem may already be solved.</strong></p>
+<pre><code>┌─────────────────────────────────────────┐
+│           PI Forward App                │
+│      (Next.js + Claude SDK)             │
+├─────────────────────────────────────────┤
+│       Your Application Logic            │
+│  (PI experience, grants, burn rates)    │
+├─────────────────────────────────────────┤
+│         CData Connect AI                │
+│    (MCP Server + SQL interface)         │
+│           $79-159/mo                    │
+├─────────────────────────────────────────┤
+│            Workday                      │
+│    (Grants, HR, Finance data)           │
+└─────────────────────────────────────────┘
+</code></pre>
+<p><strong>Instead of:</strong>
+- Building Workday API integration from scratch
+- Managing SOAP/REST dual protocols
+- Handling auth, rate limits, versioning</p>
+<p><strong>You get:</strong>
+- SQL interface to Workday data
+- MCP-native (Claude can query directly)
+- Managed infrastructure
+- $79/mo starting point</p>
+<hr />
+<h2>The Real Question</h2>
+<p>Does CData's Workday connector expose the <strong>grants/research data</strong> you need?</p>
+<p>Workday has many modules:
+- HCM (Human Capital Management) ✓ likely covered
+- Finance (Payroll, GL) ✓ likely covered
+- <strong>Grants Management</strong> ← need to verify
+- <strong>Awards, Projects, Effort</strong> ← need to verify</p>
+<p>If CData exposes grants data, your path is:
+1. Use CData Connect AI for Workday access
+2. Build PI Forward on top
+3. Focus entirely on the PI experience</p>
+<p>If CData only exposes HR/Finance (not grants), you'd need to:
+1. Use CData for what it covers
+2. Build a thin grants-specific integration
+3. Or contact CData about expanding coverage</p>
+<hr />
+<h2>Revised Recommendation</h2>
+<p><strong>Don't build generic Workday tooling.</strong> CData (and Knit, Merge) already did.</p>
+<p><strong>Do:</strong>
+1. <strong>Evaluate CData Connect AI</strong> — Sign up for trial, verify grants data coverage
+2. <strong>If grants data is exposed</strong> — Use CData as your integration layer, build PI Forward on top
+3. <strong>If not</strong> — Contact CData about grants coverage, or build minimal grants-specific integration alongside CData</p>
+<p><strong>Cost comparison:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Monthly Cost</th>
+<th>Development Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Build Workday integration from scratch</td>
+<td>$0 (but months of dev time)</td>
+<td>3-6 months</td>
+</tr>
+<tr>
+<td>CData Connect AI</td>
+<td>$79-159/mo</td>
+<td>Days to prototype</td>
+</tr>
+<tr>
+<td>Knit</td>
+<td>~$50/account/mo</td>
+<td>Days to prototype</td>
+</tr>
+</tbody>
+</table>
+<p>At $79/mo, CData is cheap enough to validate your concept before worrying about integration costs.</p>
+<hr />
+<p>Want me to research whether CData's Workday connector includes grants management data, or update the product vision to reflect using CData as the integration layer?</p></div></div></div>
+<div class="message user" id="msg-2025-12-27T01-19-18-486Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-27T01-19-18-486Z" class="timestamp-link"><time datetime="2025-12-27T01:19:18.486Z" data-timestamp="2025-12-27T01:19:18.486Z">2025-12-27T01:19:18.486Z</time></a></div><div class="message-content">
+<div class="user-content"><p>research if CData covers Workday grants data</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-19-23-814Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-19-23-814Z" class="timestamp-link"><time datetime="2025-12-27T01:19:23.814Z" data-timestamp="2025-12-27T01:19:23.814Z">2025-12-27T01:19:23.814Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants me to research whether CData's Workday connector covers grants management data specifically. Let me search for this information.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-19-24-350Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-19-24-350Z" class="timestamp-link"><time datetime="2025-12-27T01:19:24.350Z" data-timestamp="2025-12-27T01:19:24.350Z">2025-12-27T01:19:24.350Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_012m6uBsJJuRhYNPaSNUWt6Q"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;CData Workday connector grants management awards projects data model&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-19-25-035Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-19-25-035Z" class="timestamp-link"><time datetime="2025-12-27T01:19:25.035Z" data-timestamp="2025-12-27T01:19:25.035Z">2025-12-27T01:19:25.035Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01MFBqDRjKtLgns32EuwJ4hX"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;CData Workday driver tables schema objects available&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-19-25-816Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-19-25-816Z" class="timestamp-link"><time datetime="2025-12-27T01:19:25.816Z" data-timestamp="2025-12-27T01:19:25.816Z">2025-12-27T01:19:25.816Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01U58EhLjdDDAToUp5xuvUs8"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Workday API grants management web services SOAP REST endpoints&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-19-46-728Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-19-46-728Z" class="timestamp-link"><time datetime="2025-12-27T01:19:46.728Z" data-timestamp="2025-12-27T01:19:46.728Z">2025-12-27T01:19:46.728Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;CData Workday connector grants management awards projects data model&quot;
+
+Links: [{&quot;title&quot;:&quot;Workday Connector&quot;,&quot;url&quot;:&quot;https://www.cdata.com/virtuality/connectors/workday/&quot;},{&quot;title&quot;:&quot;Workday Integration - CData Software&quot;,&quot;url&quot;:&quot;https://www.cdata.com/solutions/workday/&quot;},{&quot;title&quot;:&quot;CData Python Connector for Workday - Data Model&quot;,&quot;url&quot;:&quot;https://cdn.cdata.com/help/JWH/py/pg_datamodel.htm&quot;},{&quot;title&quot;:&quot;Workday drivers &amp; connectors for data integration&quot;,&quot;url&quot;:&quot;https://www.cdata.com/drivers/workday/&quot;},{&quot;title&quot;:&quot;CData Power BI Connector for Workday - Data Model&quot;,&quot;url&quot;:&quot;https://cdn.cdata.com/help/JWK/powerbi/pg_datamodel.htm&quot;},{&quot;title&quot;:&quot;Workday - Connect AI&quot;,&quot;url&quot;:&quot;https://cloud.cdata.com/docs/Workday.html&quot;},{&quot;title&quot;:&quot;Workday Integration Guides and Tutorials&quot;,&quot;url&quot;:&quot;https://www.cdata.com/kb/tech/workday-article-list.rst&quot;},{&quot;title&quot;:&quot;Download Workday Drivers &amp; Connectors | CData Software&quot;,&quot;url&quot;:&quot;https://www.cdata.com/drivers/workday/download/&quot;},{&quot;title&quot;:&quot;Workday Data Integration&quot;,&quot;url&quot;:&quot;https://www.cdata.com/data/integration/workday/&quot;},{&quot;title&quot;:&quot;New Workday Connectivity Released (CData Software)&quot;,&quot;url&quot;:&quot;https://www.cdata.com/blog/data_connectivity/20210927-workday-integration&quot;}]
+
+Based on the search results, I found information about the CData Workday connector, but the results don&#x27;t specifically address the **grants management, awards, or projects** data model. Here&#x27;s what I found:
+
+## CData Workday Connector Overview
+
+Workday is a cloud-based software platform that offers a suite of applications for human resources, finance, planning, and analytics. It helps organizations streamline their operations, improve efficiency, and make data-driven decisions. With features like employee management, payroll processing, and reporting tools, Workday is a comprehensive solution for modern businesses.
+
+## Data Model &amp; Connection Types
+
+The CData connector supports multiple connection types:
+- **WQL** — exposes Workday data sources as read-only views using the Workday Query Language (WQL) service
+- **Reports** — exposes Workday reports as views using Reports as a Service (RaaS)
+- **REST** — exposes Workday data as tables and views using the REST API
+- **SOAP** — exposes Workday data as views using the SOAP API
+
+## Data Source Access
+
+The provider does not list all the data sources defined within Workday: The provider only exposes data sources that are accessible to the user you have authenticated as. For example, a user with only HR roles is able to view data sources containing employee records but not data sources about financial assets.(no content)When ConnectionType is set to WQL, the connector models Workday data sources as views. To get a complete list of these data sources, run the Data Sources standard report in Workday. The connector exposes each data source using its WQL Alias, which is shown on the View Data Source page.
+
+---
+
+**Note:** The search results don&#x27;t contain specific information about Workday&#x27;s **Grants Management** module, including awards and projects data models through CData. You may need to:
+1. Check Workday&#x27;s native Grants Management documentation for the specific data model
+2. Contact CData directly to confirm if the Grants Management module is supported
+3. Run the Data Sources report in Workday to see if grants-related data sources are available through the WQL connection
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-19-51-839Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-19-51-839Z" class="timestamp-link"><time datetime="2025-12-27T01:19:51.839Z" data-timestamp="2025-12-27T01:19:51.839Z">2025-12-27T01:19:51.839Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Workday API grants management web services SOAP REST endpoints&quot;
+
+Links: [{&quot;title&quot;:&quot;Workday API Integration Guide (In-Depth)&quot;,&quot;url&quot;:&quot;https://www.getknit.dev/blog/workday-api-integration-in-depth&quot;},{&quot;title&quot;:&quot;How to create a Workday REST API Integration?&quot;,&quot;url&quot;:&quot;https://www.apideck.com/blog/create-a-workday-rest-api-integration&quot;},{&quot;title&quot;:&quot;A Tutorial on Setting Up and Using the Workday SOAP API&quot;,&quot;url&quot;:&quot;https://www.apideck.com/blog/a-comprehensive-tutorial-on-setting-up-and-using-the-workday-api&quot;},{&quot;title&quot;:&quot;Building a SOAP API Integration When You Already Know REST: The Full Walk-Through&quot;,&quot;url&quot;:&quot;https://www.merge.dev/blog/building-a-soap-api-integration-when-you-already-know-rest-the-full-walk-through&quot;},{&quot;title&quot;:&quot;How to authenticate and connect Workday app with Freshservice : Freshservice Support&quot;,&quot;url&quot;:&quot;https://support.freshservice.com/support/solutions/articles/50000009624-how-to-authenticate-and-connect-workday-app-with-freshservice&quot;},{&quot;title&quot;:&quot;Workday Web Services: Everything You Should Know - Surety Systems&quot;,&quot;url&quot;:&quot;https://www.suretysystems.com/insights/workday-web-services-everything-you-should-know/&quot;},{&quot;title&quot;:&quot;Workato connectors - Workday | Workato Docs&quot;,&quot;url&quot;:&quot;https://docs.workato.com/connectors/workday.html&quot;},{&quot;title&quot;:&quot;Workday Web Services (WWS) Directory (v45.1)&quot;,&quot;url&quot;:&quot;https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html&quot;},{&quot;title&quot;:&quot;Workday API Documentation: A Guide to Workday SOAP API Blogs | Klamp.io&quot;,&quot;url&quot;:&quot;https://klamp.io/blog/workday-api-documentation-a-guide-to-workday-soap-api&quot;},{&quot;title&quot;:&quot;SOAP API Reference | Workday Community&quot;,&quot;url&quot;:&quot;https://community.workday.com/api&quot;}]
+
+Based on my search, here&#x27;s what I found about Workday API grants management and web services:
+
+## Workday Web Services Overview
+
+Workday Web Services (WWS) provides public web services that can assist a Workday user with all of their business management needs.(no content)All of Workday&#x27;s integration tools leverage two main APIs: SOAP and REST.
+
+## SOAP vs REST APIs
+
+Workday provides both SOAP and REST APIs, covering a wide range of data domains, HR, recruiting, payroll, compensation, time tracking, and more.
+
+**SOAP API:**
+- The SOAP API provides access to Workday&#x27;s full feature set for enterprise HR integration. Every business object, every workflow, every edge case is available through SOAP endpoints.
+- The official WWS API Documentation (v45.1) provides SOAP-based web services with corresponding WSDL and XML Schemas (XSD&#x27;s).
+
+**REST API:**
+- REST APIs are typically preferred because they are easier to implement, faster, and more developer-friendly.
+- The Workday Web Services is a set of SOAP APIs that enable users to read and write data in and out of Workday. The Workday REST is a set of REST APIs predominantly used to manipulate custom objects.
+
+## Authentication &amp; Grants Management
+
+REST requests use OAuth 2.0. You register an API client in Workday, grant scopes (what the client is allowed to access), and obtain access tokens (and a refresh token) to call endpoints.(no content)Add the name of the ISSG and grant GET, POST, and PUT REST API permissions to it.(no content)Once you have an ISSG with the relevant domain permissions, you can create an ISU to interact for secure and dedicated access to Workday APIs.
+
+## Security Groups &amp; Permissions
+
+Workday offers two types of integration system security groups: Integration System Security Group (Unconstrained): Allows group members to access all data instances secured by the group. Integration System Security Group (Constrained): Grants access to a subset of data instances based on context.
+
+## Key Services
+
+Typical API services included in the Workday system include the primary way to directly connect with Workday, reaching areas like staffing, benefits, and talent management. Business services revolve around Workday events and objectives, and with Workday APIs, data sets can be retrieved from these services in an XML or JSON format.(no content)Reporting Services, also known as Report-as-a-Service (RaaS), produces formulas to build and gather standard Workday reports and custom reports. These reporting services can provide data by either REST API (JSON) or SOAP API-based messages.
+
+For official documentation, you can access the SOAP API Reference at Workday Community, which provides the API Documentation for Preview tenants&#x27; SOAP-based web services with corresponding WSDL and XML schemas (XSDs).
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-19-55-134Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-19-55-134Z" class="timestamp-link"><time datetime="2025-12-27T01:19:55.134Z" data-timestamp="2025-12-27T01:19:55.134Z">2025-12-27T01:19:55.134Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;CData Workday driver tables schema objects available&quot;
+
+Links: [{&quot;title&quot;:&quot;CData JDBC Driver for Workday - Schema Discovery&quot;,&quot;url&quot;:&quot;https://cdn.cdata.com/help/JWG/jdbc/pg_systemtablesintro.htm&quot;},{&quot;title&quot;:&quot;Workday Integrations: Drivers &amp; Connectors for Workday&quot;,&quot;url&quot;:&quot;https://www.cdata.com/drivers/workday/&quot;},{&quot;title&quot;:&quot;Workday Driver Documentation&quot;,&quot;url&quot;:&quot;https://www.cdata.com/drivers/workday/docs/&quot;},{&quot;title&quot;:&quot;Workday JDBC Driver | Easily Connect to Live Workday Data&quot;,&quot;url&quot;:&quot;https://www.cdata.com/drivers/workday/jdbc/&quot;},{&quot;title&quot;:&quot;CData JDBC Driver for Workday - CData JDBC Driver for Workday&quot;,&quot;url&quot;:&quot;https://cdn.cdata.com/help/JWH/jdbc/&quot;},{&quot;title&quot;:&quot;How to create Workday federated tables in MySQL&quot;,&quot;url&quot;:&quot;https://www.cdata.com/kb/tech/workday-odbc-mysql-federated-tables.rst&quot;},{&quot;title&quot;:&quot;CData ODBC Driver for Workday - Workers&quot;,&quot;url&quot;:&quot;https://cdn.cdata.com/help/JWG/odbc/pg_HumanResourcestable-workers.htm&quot;},{&quot;title&quot;:&quot;Download JDBC Driver for Workday | CData Software&quot;,&quot;url&quot;:&quot;https://www.cdata.com/drivers/workday/download/jdbc/&quot;},{&quot;title&quot;:&quot;Workday ODBC Driver | Easily Connect to Live Workday Data&quot;,&quot;url&quot;:&quot;https://www.cdata.com/drivers/workday/odbc/&quot;},{&quot;title&quot;:&quot;Download Workday Drivers &amp; Connectors | CData Software&quot;,&quot;url&quot;:&quot;https://www.cdata.com/drivers/workday/download/&quot;}]
+
+Based on the search results, here&#x27;s what I found about CData Workday driver tables, schema, and objects:
+
+## Schema Discovery
+
+The CData Workday driver supports schema discovery using JDBC classes or using SQL queries to the available system tables. The JDBC classes enable access to schema information, connection property information, and information on the columns returned.(no content)Full support for JDBC DatabaseMetaData provides extensive schema discovery capabilities. You can explore tables, columns, keys, and other data constructs based on user identity.
+
+## Data Access Options
+
+CData Workday drivers provide access to data through multiple methods:
+
+1. **Prism Analytics**: Access the tables and datasets you create in Prism Analytics Data Catalog, working with the native Workday data hub without compromising the fidelity of your Workday system.
+
+2. **Reports-as-a-Service**: Access Workday Reports-as-a-Service to surface data from departmental datasets not available from Prism and datasets larger than Prism allows.
+
+3. **Base Data Objects**: Access base data objects with WQL, REST, or SOAP, getting more granular, detailed access but with the potential need for Workday admins or IT to help craft queries.
+
+## Dynamic Tables
+
+Tables are dynamically determined at runtime based on the Version connection property. The tables presented are examples of what is available, but more may be available due to newer API releases.
+
+## Customization
+
+The data model exposed by CData JDBC Drivers can easily be customized to add or remove tables/columns, change data types, etc. without requiring a new build. These customizations are supported at runtime using human-readable schema files that are easy to edit.
+
+## Additional Resources
+
+You can access schema information through the standard JDBC interfaces. You can also query the System Tables to access additional metadata, such as data source capabilities.
+
+For detailed documentation on specific tables and schemas available, you can visit the official CData documentation at https://cdn.cdata.com/help/JWG/jdbc/pg_systemtablesintro.htm or https://www.cdata.com/drivers/workday/docs/.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-19-59-306Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-19-59-306Z" class="timestamp-link"><time datetime="2025-12-27T01:19:59.306Z" data-timestamp="2025-12-27T01:19:59.306Z">2025-12-27T01:19:59.306Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The search results don't specifically mention Workday Grants Management API. Let me search more specifically for Workday Grants Management API and what data it exposes.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-20-00-140Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-20-00-140Z" class="timestamp-link"><time datetime="2025-12-27T01:20:00.140Z" data-timestamp="2025-12-27T01:20:00.140Z">2025-12-27T01:20:00.140Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01YX9QLhevY2CmohSPMhfhwv"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Workday Grants Management API \&#34;Resource_Management\&#34; web service awards&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-20-00-771Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-20-00-771Z" class="timestamp-link"><time datetime="2025-12-27T01:20:00.771Z" data-timestamp="2025-12-27T01:20:00.771Z">2025-12-27T01:20:00.771Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01UnJEsd7zKNSM6UMc1yyC7x"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Workday \&#34;Grants Management\&#34; module API integration data fields&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-20-11-508Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-20-11-508Z" class="timestamp-link"><time datetime="2025-12-27T01:20:11.508Z" data-timestamp="2025-12-27T01:20:11.508Z">2025-12-27T01:20:11.508Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Workday Grants Management API &quot;Resource_Management&quot; web service awards&quot;
+
+Links: [{&quot;title&quot;:&quot;Resource_Management Service Details&quot;,&quot;url&quot;:&quot;https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v12/Resource_Management.html&quot;}]
+
+Based on my search, I found one relevant result about Workday&#x27;s Resource_Management web service:
+
+The Resource Management Web Service contains operations that expose Workday Financials Resource Management data. It includes data relative to Suppliers, Supplier Accounts, Expenses, Resources and Projects.
+
+The search didn&#x27;t return specific results about Grants Management awards within the Resource_Management web service. The documentation found is for version 12 of the Resource_Management service from Workday&#x27;s community site.
+
+If you need more specific information about Grants Management and awards functionality, I could try a different search query focusing on:
+- Workday Grants Management specifically
+- Workday award web services
+- A different combination of terms
+
+Would you like me to search with different terms?
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-20-32-813Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-20-32-813Z" class="timestamp-link"><time datetime="2025-12-27T01:20:32.813Z" data-timestamp="2025-12-27T01:20:32.813Z">2025-12-27T01:20:32.813Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Workday &quot;Grants Management&quot; module API integration data fields&quot;
+
+Links: [{&quot;title&quot;:&quot;Datasheet Workday Grants Management for Nonprofits&quot;,&quot;url&quot;:&quot;https://www.workday.com/content/dam/web/en-us/documents/datasheets/workday-grants-management-for-nonprofits-datasheet-enus.pdf&quot;},{&quot;title&quot;:&quot;Complete Guide to Workday REST API Integration and Security&quot;,&quot;url&quot;:&quot;https://www.reco.ai/hub/workday-rest-api-integration-security&quot;},{&quot;title&quot;:&quot;Workday API Integration Guide (In-Depth)&quot;,&quot;url&quot;:&quot;https://www.getknit.dev/blog/workday-api-integration-in-depth&quot;},{&quot;title&quot;:&quot;Datasheet Workday Grants Management for Higher Education&quot;,&quot;url&quot;:&quot;https://www.workday.com/content/dam/web/en-us/documents/datasheets/workday-grants-management-for-higher-education-datasheet-enus.pdf&quot;},{&quot;title&quot;:&quot;Grants Management That Handle Admin Requirements&quot;,&quot;url&quot;:&quot;https://dev.mktg.workday.com/content/dam/web/en-us/documents/datasheets/datasheet-grants-management-us.pdf&quot;},{&quot;title&quot;:&quot;Workday API Integration Tutorial&quot;,&quot;url&quot;:&quot;https://cloudfoundation.com/blog/workday-api-integration-tutorial/&quot;},{&quot;title&quot;:&quot;A Tutorial on Setting Up and Using the Workday SOAP API&quot;,&quot;url&quot;:&quot;https://www.apideck.com/blog/a-comprehensive-tutorial-on-setting-up-and-using-the-workday-api&quot;},{&quot;title&quot;:&quot;‍A guide to integrating with Workday’s API&quot;,&quot;url&quot;:&quot;https://www.merge.dev/blog/workday-api-integration&quot;},{&quot;title&quot;:&quot;Workday Grant Functions Quick Reference Guide | Sponsored Projects | University of Nevada, Reno&quot;,&quot;url&quot;:&quot;https://www.unr.edu/sponsored-projects/resources/workday-quick-reference&quot;},{&quot;title&quot;:&quot;How to authenticate and connect Workday app with Freshservice : Freshservice Support&quot;,&quot;url&quot;:&quot;https://support.freshservice.com/support/solutions/articles/50000009624-how-to-authenticate-and-connect-workday-app-with-freshservice&quot;}]
+
+Based on my search, here&#x27;s what I found about Workday&#x27;s Grants Management module and API integration:
+
+## Workday Grants Management Module
+
+The Grants Management module includes configurable fields and reports on the award view, along with salary management solutions with payroll costing that respects grant dates, automatic calculation of salary over the cap, and the ability to record and track committed effort.
+
+### Key Features Include:
+- Expenditure controls for budget, unallowable costs, award date, and statuses
+- Financial solutions with commitment accounting, accounting adjustments, automatic calculation of indirect costs and revenue recognition, and allocations for multiple funding sources
+- A variety of reimbursement scenarios, including cost reimbursable, installments, milestones, pre-payments, and letter of credit draws
+
+## Grant-Related Data Fields in Workday
+
+From a practical grants management perspective, key data fields include:
+- The subaward worktag or GR number, and if you don&#x27;t know the GR number, you can look up the award (AWD number).
+- Workday information such as Grants, Spend Categories, Detail Codes can be looked up. On an award, cost share is set up as its own Award line with a unique Grant worktag number (GRXXXXX).
+
+## API Integration Methods
+
+Workday has three primary types of services for data integration: Workday Web Services (SOAP APIs for reading and writing data), Workday REST APIs (predominantly used to manipulate custom objects), and Report-as-a-Service (RaaS) which allows reading data from all custom reports.
+
+### Authentication:
+- Workday lets you authenticate either through an Integration System User (ISU) or by using OAuth. ISU might be easier to manage and can work well when the data that&#x27;s synced isn&#x27;t sensitive, but in most cases you&#x27;ll want to use OAuth for user-specific permissions and SSO.
+
+### Key API Concepts:
+- Data Model: Structure of Workday data (like fields in a form). Endpoint: Specific URL to access Workday functions.
+- ISU: Special user for integrations (low access, high security). OAuth 2.0: Secure way to get temporary access tokens.
+
+### REST API Details:
+- Workday&#x27;s REST API is easier to use, more efficient, offers faster syncs, and covers a wide range of endpoints—from attachments to budgets to compensation to payroll.
+- The Workday connector supports OAuth 2.0 and basic authentication methods. OAuth 2.0 is required to work with Workday REST API and custom objects.
+
+For specific Grants Management API data fields and schemas, you would typically need to access Workday&#x27;s official API documentation through a developer account or consult with your Workday implementation partner, as detailed field-level API specifications are usually available through Workday&#x27;s developer portal.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-20-37-873Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-20-37-873Z" class="timestamp-link"><time datetime="2025-12-27T01:20:37.873Z" data-timestamp="2025-12-27T01:20:37.873Z">2025-12-27T01:20:37.873Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Let me search for more specific information about whether CData or other connectors expose Workday's grants data, and also look at the Workday WWS directory to understand what web services are available for grants.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-20-39-772Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-20-39-772Z" class="timestamp-link"><time datetime="2025-12-27T01:20:39.772Z" data-timestamp="2025-12-27T01:20:39.772Z">2025-12-27T01:20:39.772Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_013x5j9uPhFc9F2RgPHJfALj"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html&#34;,
+  &#34;prompt&#34;: &#34;List all available Workday Web Services, especially any related to Grants, Awards, Projects, Resource Management, or Financial Management&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-20-40-688Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-20-40-688Z" class="timestamp-link"><time datetime="2025-12-27T01:20:40.688Z" data-timestamp="2025-12-27T01:20:40.688Z">2025-12-27T01:20:40.688Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01VjY2RtUuPrnydA9oKSEe8N"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Workday WQL \&#34;grants\&#34; data source query language worktag&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-20-46-018Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-20-46-018Z" class="timestamp-link"><time datetime="2025-12-27T01:20:46.018Z" data-timestamp="2025-12-27T01:20:46.018Z">2025-12-27T01:20:46.018Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Workday Web Services (v45.1) - Key Services Overview
+
+Based on the WWS Directory, here are the primary services relevant to your areas of interest:
+
+## Financial &amp; Resource Management Services
+
+**Financial Management**
+&quot;The Financial Management Web Service contains operations that expose Workday Financials data. It includes data relative to Accounts, Accounting, Business Plans, Financial Reporting, Tax, Financial Organizations, Basic Worktags and Related Worktags and more.&quot;
+
+**Resource Management**
+&quot;The Resource Management Web Service contains operations that expose Workday Financials Resource Management data. It includes data relative to Suppliers, Supplier Accounts, Expenses, Business Assets and Projects.&quot;
+
+**Professional Services Automation**
+This service exposes PSA systems data for financials business services integration.
+
+**Cash Management**
+Handles banking and cash-related financial operations within Workday Financials.
+
+## Additional Relevant Services
+
+- **Inventory** - Workday Financials inventory data management
+- **Revenue Management** - Customer, prospect, and opportunity data
+- **Financial Aid** - Educational institution financial support operations
+
+## Access Options
+
+Each service includes downloadable WSDL and XSD files for integration purposes. The directory also references an Operations Directory for detailed operation listings and a Version Directory for alternative API versions.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-21-00-862Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-21-00-862Z" class="timestamp-link"><time datetime="2025-12-27T01:21:00.862Z" data-timestamp="2025-12-27T01:21:00.862Z">2025-12-27T01:21:00.862Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Workday WQL &quot;grants&quot; data source query language worktag&quot;
+
+Links: [{&quot;title&quot;:&quot;Workato connectors - Workday | Workato Docs&quot;,&quot;url&quot;:&quot;https://docs.workato.com/connectors/workday.html&quot;},{&quot;title&quot;:&quot;What is a Program Worktag? – My.Environment&quot;,&quot;url&quot;:&quot;https://my.environment.uw.edu/efast/foundation-data-model-fdm/what-is-a-program-worktag/&quot;}]
+
+Based on the search results, here&#x27;s what I found related to Workday WQL, grants, and worktags:
+
+## Workday Query Language (WQL) Overview
+
+WQL is required for working with custom objects and for querying data using Workday Query Language with the Workday REST API.(no content)OAuth 2.0 authentication is required for this method.
+
+## Security and Permissions for WQL
+
+Your Integration System User (ISU) must be assigned the required permissions to create a successful integration. You may receive a 403 error during recipe building if your ISU has insufficient permissions.
+
+Workday offers two security group types:
+- **Integration System Security Group (Unconstrained)**: Allows group members to access all data instances secured by the group.
+- **Integration System Security Group (Constrained)**: Grants access to a subset of data instances based on context.
+
+## Program Worktags and Grants
+
+The Program Worktag should be set up on both stand-alone grants as a related worktag and in sponsored award grant worktags in the Award Setup Process.(no content)Users can extract a list of program worktags by using the Extract FDM – Program R1332 report in Workday.(no content)There are some cases where the program will drive other related worktags. Examples include but are not limited to: Course Fees where each course has a specific course fee program worktag which will drive cost center, Resource for course fees, and function.
+
+---
+
+The search results didn&#x27;t return specific WQL query syntax examples for querying grants data sources directly. You may need to consult Workday&#x27;s official documentation or community forums for specific WQL query examples targeting grants and worktag data sources.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-21-11-816Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-21-11-816Z" class="timestamp-link"><time datetime="2025-12-27T01:21:11.816Z" data-timestamp="2025-12-27T01:21:11.816Z">2025-12-27T01:21:11.816Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Based on my research, I've gathered enough information to provide a comprehensive answer. Let me summarize what I've found:</p>
+<ol>
+<li><strong>Workday Web Services (WWS) v45.1</strong> includes:</li>
+<li>Financial Management (Accounts, Accounting, Worktags)</li>
+<li>Resource Management (Suppliers, Expenses, Projects)</li>
+<li>
+<p>No explicit "Grants Management" web service listed</p>
+</li>
+<li>
+<p><strong>CData Workday Connector</strong> exposes data through:</p>
+</li>
+<li>WQL (Workday Query Language)</li>
+<li>Reports as a Service (RaaS)</li>
+<li>REST API</li>
+<li>SOAP API</li>
+</ol>
+<p>BUT: "The provider only exposes data sources that are accessible to the user you have authenticated as."</p>
+<ol>
+<li><strong>Workday Grants Management</strong> exists as a module:</li>
+<li>Has worktags (GR numbers, AWD numbers)</li>
+<li>Has configurable fields on award view</li>
+<li>Has salary management, effort tracking</li>
+<li>
+<p>But the API access isn't clearly documented publicly</p>
+</li>
+<li>
+<p><strong>The Gap</strong>: I cannot definitively confirm whether CData exposes grants data because:</p>
+</li>
+<li>CData dynamically exposes what the authenticated user can access</li>
+<li>Grants data may be accessible via WQL or RaaS if the user has permissions</li>
+<li>No specific grants tables are documented in CData's public materials</li>
+</ol>
+<p>The bottom line: This needs to be tested directly. The user would need to:
+1. Sign up for CData trial
+2. Connect with a Workday account that has grants access
+3. See what tables/views are exposed</p>
+<p>Let me provide this conclusion to the user.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-21-36-791Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-21-36-791Z" class="timestamp-link"><time datetime="2025-12-27T01:21:36.791Z" data-timestamp="2025-12-27T01:21:36.791Z">2025-12-27T01:21:36.791Z</time></a></div><div class="message-content">
+<div class="assistant-text"><h2>Research Results: CData + Workday Grants Data</h2>
+<p><strong>Bottom line: Inconclusive. Requires direct testing.</strong></p>
+<h3>What I Found</h3>
+<p><strong>Workday's API Structure:</strong></p>
+<p>Per the <a href="https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html">WWS Directory (v45.1)</a>, relevant web services include:</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Financial Management</strong></td>
+<td>Accounts, Accounting, Worktags, Financial Reporting</td>
+</tr>
+<tr>
+<td><strong>Resource Management</strong></td>
+<td>Suppliers, Expenses, Projects</td>
+</tr>
+<tr>
+<td><strong>Financial Aid</strong></td>
+<td>Educational institution support</td>
+</tr>
+</tbody>
+</table>
+<p>There is <strong>no dedicated "Grants Management" web service</strong> listed. Grants data appears to live within Financial Management (worktags) and Resource Management (projects).</p>
+<hr />
+<p><strong>CData's Approach:</strong></p>
+<p>Per <a href="https://cdn.cdata.com/help/JWH/py/pg_datamodel.htm">CData documentation</a>:</p>
+<blockquote>
+<p>"The provider does not list all the data sources defined within Workday: The provider only exposes data sources that are accessible to the user you have authenticated as."</p>
+</blockquote>
+<p>CData dynamically exposes whatever the authenticated user can access via:
+- <strong>WQL</strong> (Workday Query Language) — read-only views
+- <strong>RaaS</strong> (Reports as a Service) — custom reports
+- <strong>REST/SOAP</strong> — direct API access</p>
+<p><strong>This means:</strong> If your Workday account has grants permissions, CData <em>should</em> expose that data. But I can't confirm without testing.</p>
+<hr />
+<p><strong>Workday Grants Data Model:</strong></p>
+<p>From <a href="https://www.workday.com/content/dam/web/en-us/documents/datasheets/workday-grants-management-for-higher-education-datasheet-enus.pdf">Workday's Grants Management datasheet</a>:</p>
+<ul>
+<li><strong>Award view</strong> with configurable fields</li>
+<li><strong>Grant worktags</strong> (GR numbers)</li>
+<li><strong>Award numbers</strong> (AWD numbers)</li>
+<li><strong>Salary management</strong> with payroll costing</li>
+<li><strong>Committed effort</strong> tracking</li>
+<li><strong>Expenditure controls</strong> (budget, unallowable costs, award dates)</li>
+<li><strong>Indirect cost calculations</strong></li>
+</ul>
+<p>This data exists in Workday. The question is whether CData exposes it.</p>
+<hr />
+<h3>The Unknown</h3>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Does CData expose grant worktags (GR/AWD)?</td>
+<td>Unknown</td>
+</tr>
+<tr>
+<td>Does CData expose award balances?</td>
+<td>Unknown</td>
+</tr>
+<tr>
+<td>Does CData expose personnel effort?</td>
+<td>Unknown</td>
+</tr>
+<tr>
+<td>Does CData expose expenditure details?</td>
+<td>Unknown</td>
+</tr>
+<tr>
+<td>Can you query via WQL for grants data?</td>
+<td>Likely, if you have permissions</td>
+</tr>
+<tr>
+<td>Can you pull RaaS reports for grants?</td>
+<td>Yes, if reports exist in your Workday</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>How to Find Out</h3>
+<p><strong>Option 1: CData Trial</strong>
+1. Sign up for <a href="https://www.cdata.com/ai/">CData Connect AI</a> ($79/mo, has trial)
+2. Connect with a WashU Workday account that has grants access
+3. Run <code>workday_get_tables</code> to see what's exposed
+4. Look for tables with "Grant", "Award", "Project", "Worktag"</p>
+<p><strong>Option 2: Ask CData Directly</strong>
+- Email sales/support: "Does your Workday connector expose Grants Management data (awards, grant worktags, budgets, effort)?"
+- They should know this quickly</p>
+<p><strong>Option 3: Check WashU Workday</strong>
+- As a PI, you likely have grants access in Workday
+- Run the "Data Sources" standard report in Workday
+- This shows all WQL-accessible data sources
+- Look for grants-related sources</p>
+<hr />
+<h3>My Assessment</h3>
+<table>
+<thead>
+<tr>
+<th>Likelihood</th>
+<th>Scenario</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>High</strong></td>
+<td>Basic grant/award info is accessible via Financial Management worktags</td>
+</tr>
+<tr>
+<td><strong>Medium</strong></td>
+<td>Detailed award views available via RaaS (custom reports)</td>
+</tr>
+<tr>
+<td><strong>Low</strong></td>
+<td>Real-time budget/burn data available without custom report setup</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Grants data probably isn't plug-and-play.</strong> You'll likely need:
+1. Workday admin to set up RaaS reports exposing grants data
+2. Or WQL queries targeting the right data sources
+3. Proper security permissions on the integration user</p>
+<hr />
+<h3>Recommendation</h3>
+<p>Before committing to CData (or any integration path):</p>
+<ol>
+<li><strong>Talk to WashU IT/Workday admins</strong> — Ask what integration options exist for grants data</li>
+<li><strong>Request a CData demo</strong> — Have them show grants data specifically</li>
+<li><strong>Check existing RaaS reports</strong> — WashU may already have grants reports you can tap</li>
+</ol>
+<p>Want me to draft questions to ask CData or WashU IT?</p></div></div></div>
+<div class="message user" id="msg-2025-12-27T01-21-54-133Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-27T01-21-54-133Z" class="timestamp-link"><time datetime="2025-12-27T01:21:54.133Z" data-timestamp="2025-12-27T01:21:54.133Z">2025-12-27T01:21:54.133Z</time></a></div><div class="message-content">
+<div class="user-content"><p>i honestly dont really like the idea of relying on these corporate platforms. I think working with claude code I could build an API coordination tool that did exactly what I want and then open source it. These sites are so much jargon and unapproachable to scientists that it bothers me. It cant be that difficult to build something de novo and open source it for anyone to use. then i would build a business on my subject matter expertise as a PI and do exactly what I want. I dont want to have to work with CData or WashU IT like this.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-22-06-102Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-22-06-102Z" class="timestamp-link"><time datetime="2025-12-27T01:22:06.102Z" data-timestamp="2025-12-27T01:22:06.102Z">2025-12-27T01:22:06.102Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user is expressing frustration with the enterprise complexity and wants to:
+1. Build their own Workday API integration tool from scratch
+2. Open source it so anyone can use it
+3. Not rely on corporate platforms like CData
+4. Build a business on their subject matter expertise as a PI</p>
+<p>This is a very valid perspective. The enterprise software world is full of jargon, opaque pricing, and gatekeeping. An open-source, developer-friendly Workday integration tool doesn't really exist.</p>
+<p>Let me think about what this would look like:</p>
+<ol>
+<li><strong>Open source Workday client library</strong> - A clean Python/TypeScript library that handles:</li>
+<li>OAuth authentication</li>
+<li>SOAP + REST dual protocol handling</li>
+<li>Rate limiting</li>
+<li>
+<p>Common queries (grants, awards, personnel, budgets)</p>
+</li>
+<li>
+<p><strong>The business model</strong> - Give away the integration tool, charge for:</p>
+</li>
+<li>PI Forward (the application layer)</li>
+<li>Consulting/implementation</li>
+<li>Hosted version</li>
+</ol>
+<p>This is actually the classic open-source business model:
+- Open source the infrastructure/tools
+- Build proprietary applications on top
+- Or offer managed services</p>
+<p>The user is right that it's probably not that hard to build a Workday client if you're willing to read the documentation and iterate. The corporate platforms add value through:
+- Supporting 350+ data sources
+- Enterprise support/SLAs
+- Compliance certifications</p>
+<p>But if you only need Workday, and specifically grants data, you could build exactly what you need.</p>
+<p>Let me encourage this direction and help them think through what an open-source Workday grants library would look like.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-22-34-685Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-22-34-685Z" class="timestamp-link"><time datetime="2025-12-27T01:22:34.685Z" data-timestamp="2025-12-27T01:22:34.685Z">2025-12-27T01:22:34.685Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I respect this. You're right.</p>
+<p>The enterprise integration world is gatekept by jargon, opaque pricing, and complexity that serves vendors—not users. An open-source, scientist-friendly Workday tool doesn't exist because the people who could build it (PIs like you) are too busy doing science, and the people who do build integration tools optimize for enterprise sales.</p>
+<h2>The Open Source Play</h2>
+<p><strong>Give away the integration. Own the application.</strong></p>
+<pre><code>┌─────────────────────────────────────────────────────┐
+│                    PI Forward                        │
+│           (Your product, your expertise)             │
+│                   Proprietary                        │
+├─────────────────────────────────────────────────────┤
+│              workday-grants                          │
+│     Open source Python/TypeScript library            │
+│     MIT License - anyone can use it                  │
+└─────────────────────────────────────────────────────┘
+</code></pre>
+<p><strong>You open source:</strong>
+- Clean Workday API client (auth, SOAP/REST handling)
+- Grants-specific queries (awards, budgets, personnel, effort)
+- Documentation written for scientists, not enterprise architects</p>
+<p><strong>You own:</strong>
+- PI Forward (the application layer)
+- Your expertise as a PI who actually understands the workflow
+- The community that forms around the tools</p>
+<hr />
+<h2>What You'd Actually Build</h2>
+<p><strong><code>workday-grants</code></strong> — An open-source Python library</p>
+<pre><code class="language-python">from workday_grants import WorkdayClient
+
+client = WorkdayClient(
+    tenant=&quot;washu&quot;,
+    client_id=&quot;...&quot;,
+    client_secret=&quot;...&quot;
+)
+
+# Simple, obvious API
+my_grants = client.grants.list()
+r01_balance = client.grants.get(&quot;GR12345&quot;).balance
+personnel = client.grants.get(&quot;GR12345&quot;).personnel
+burn_rate = client.grants.get(&quot;GR12345&quot;).burn_rate(period=&quot;monthly&quot;)
+</code></pre>
+<p><strong>Design principles:</strong>
+- Obvious naming (not enterprise jargon)
+- Typed responses (dataclasses, not raw JSON)
+- Good errors (tell you what went wrong, how to fix it)
+- Works in Jupyter notebooks
+- Documented with examples scientists understand</p>
+<hr />
+<h2>Why This Could Work</h2>
+<p><strong>1. No one has done it</strong></p>
+<p>There's no open-source Workday client library that's actually usable. The ecosystem is:
+- CData (enterprise, paid)
+- Merge/Finch/Knit (unified APIs, paid)
+- Random abandoned GitHub repos</p>
+<p><strong>2. Scientists would use it</strong></p>
+<p>PIs, lab managers, grants admins—people who need data but can't navigate enterprise tools. An MIT-licensed library with good docs would spread.</p>
+<p><strong>3. Community = moat</strong></p>
+<p>If <code>workday-grants</code> becomes the default way scientists interact with Workday:
+- You're the maintainer, the expert
+- PI Forward is the obvious next step
+- Consulting opportunities emerge</p>
+<p><strong>4. It's not that hard</strong></p>
+<p>Workday's API is complex but documented. The hard parts:
+- OAuth flow (solved problem)
+- SOAP handling (libraries exist)
+- Rate limiting (just needs care)
+- Data mapping (your domain expertise)</p>
+<p>With Claude Code, you could have a working prototype in days.</p>
+<hr />
+<h2>The Business Model</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>workday-grants</code> library</td>
+<td>Free, open source (MIT)</td>
+</tr>
+<tr>
+<td>PI Forward (hosted)</td>
+<td>SaaS subscription</td>
+</tr>
+<tr>
+<td>PI Forward (self-hosted)</td>
+<td>Free, open source (AGPL or similar)</td>
+</tr>
+<tr>
+<td>Implementation/consulting</td>
+<td>Paid services</td>
+</tr>
+</tbody>
+</table>
+<p>You build reputation through the open-source work. You monetize through the application and expertise.</p>
+<hr />
+<h2>What Would It Take?</h2>
+<p><strong>Phase 1: Workday API Client (2-4 weeks)</strong>
+- OAuth 2.0 authentication
+- SOAP client for grants/financial data
+- REST client for custom objects
+- Basic error handling, rate limiting</p>
+<p><strong>Phase 2: Grants Data Model (2-4 weeks)</strong>
+- Map Workday grants objects to clean Python classes
+- Awards, budgets, personnel, expenditures
+- Query builders for common operations</p>
+<p><strong>Phase 3: PI Forward MVP (4-8 weeks)</strong>
+- Next.js frontend
+- Claude SDK for conversational interface
+- Basic grant views, burn rates, alerts</p>
+<p><strong>Total: 2-4 months to something usable</strong></p>
+<hr />
+<h2>Want to Start?</h2>
+<p>I can help you:</p>
+<ol>
+<li><strong>Research the Workday API docs</strong> — Figure out exactly which endpoints you need</li>
+<li><strong>Scaffold the library</strong> — Set up the Python package structure, auth flow</li>
+<li><strong>Build incrementally</strong> — Start with one thing (list grants), expand from there</li>
+</ol>
+<p>The first step would be getting Workday API access and understanding what's actually there. Do you have developer/API access to WashU's Workday, or would you need to request it?</p></div></div></div>
+<div class="message user" id="msg-2025-12-27T01-23-48-287Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-27T01-23-48-287Z" class="timestamp-link"><time datetime="2025-12-27T01:23:48.287Z" data-timestamp="2025-12-27T01:23:48.287Z">2025-12-27T01:23:48.287Z</time></a></div><div class="message-content">
+<div class="user-content"><p>yes let's start with researching the Workday API. i want to make sure this is techincally feasible</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-23-55-671Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-23-55-671Z" class="timestamp-link"><time datetime="2025-12-27T01:23:55.671Z" data-timestamp="2025-12-27T01:23:55.671Z">2025-12-27T01:23:55.671Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants to research the Workday API to understand if building an open-source library is technically feasible. Let me do comprehensive research on:</p>
+<ol>
+<li>Workday API documentation and access</li>
+<li>Authentication methods (OAuth, ISU)</li>
+<li>Grants-specific endpoints (SOAP/REST)</li>
+<li>What data is available</li>
+<li>Rate limits and constraints</li>
+<li>What's publicly documented vs. requires customer access</li>
+</ol>
+<p>This is a research task, so I should be thorough and give the user a clear picture of what they're dealing with.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-23-59-483Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-23-59-483Z" class="timestamp-link"><time datetime="2025-12-27T01:23:59.483Z" data-timestamp="2025-12-27T01:23:59.483Z">2025-12-27T01:23:59.483Z</time></a></div><div class="message-content">
+<div class="todo-list" data-tool-id="toolu_01XMTfMk2bk4QJ86xyRGdDhG"><div class="todo-header"><span class="todo-header-icon">☰</span> Task List</div><ul class="todo-items"><li class="todo-item todo-in-progress"><span class="todo-icon">→</span><span class="todo-content">Research Workday API authentication methods (OAuth, ISU)</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Identify grants-related SOAP/REST endpoints</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Document data models for grants, awards, budgets</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Understand rate limits and constraints</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Assess what requires customer access vs public docs</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Summarize technical feasibility</span></li></ul></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-23-59-512Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-23-59-512Z" class="timestamp-link"><time datetime="2025-12-27T01:23:59.512Z" data-timestamp="2025-12-27T01:23:59.512Z">2025-12-27T01:23:59.512Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-24-03-563Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-24-03-563Z" class="timestamp-link"><time datetime="2025-12-27T01:24:03.563Z" data-timestamp="2025-12-27T01:24:03.563Z">2025-12-27T01:24:03.563Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Now let me start researching the Workday API comprehensively.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-24-04-207Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-24-04-207Z" class="timestamp-link"><time datetime="2025-12-27T01:24:04.207Z" data-timestamp="2025-12-27T01:24:04.207Z">2025-12-27T01:24:04.207Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01VF4UaxxdzaCFYGFKbv7vLd"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Workday API authentication OAuth 2.0 setup tutorial Integration System User&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-24-05-164Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-24-05-164Z" class="timestamp-link"><time datetime="2025-12-27T01:24:05.164Z" data-timestamp="2025-12-27T01:24:05.164Z">2025-12-27T01:24:05.164Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01ErVU4nzpHjxiyzTBGsNA1t"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Workday SOAP API WSDL documentation public access developer&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-24-05-745Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-24-05-745Z" class="timestamp-link"><time datetime="2025-12-27T01:24:05.745Z" data-timestamp="2025-12-27T01:24:05.745Z">2025-12-27T01:24:05.745Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_014XKCmAKeT6d8M3VhXyNiXB"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Workday REST API endpoints documentation developer portal&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-24-25-675Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-24-25-675Z" class="timestamp-link"><time datetime="2025-12-27T01:24:25.675Z" data-timestamp="2025-12-27T01:24:25.675Z">2025-12-27T01:24:25.675Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Workday REST API endpoints documentation developer portal&quot;
+
+Links: [{&quot;title&quot;:&quot;REST Directory&quot;,&quot;url&quot;:&quot;https://community.workday.com/sites/default/files/file-hosting/restapi/&quot;},{&quot;title&quot;:&quot;Workday API Docs - Auth, Webhooks, SDKs for Developers | API Refs&quot;,&quot;url&quot;:&quot;https://www.apirefs.com/apps/workday&quot;},{&quot;title&quot;:&quot;Workday API Integration Guide (In-Depth)&quot;,&quot;url&quot;:&quot;https://www.getknit.dev/blog/workday-api-integration-in-depth&quot;},{&quot;title&quot;:&quot;Workday API: Connect &amp; Automate HRIS Workflows Effortlessly&quot;,&quot;url&quot;:&quot;https://www.bindbee.dev/blog/workday-api-a-comprehensive-guide&quot;},{&quot;title&quot;:&quot;Workday API - Developer docs, APIs, SDKs, and auth. | API Tracker&quot;,&quot;url&quot;:&quot;https://apitracker.io/a/workday&quot;},{&quot;title&quot;:&quot;Workday API Documentation: Types, Usage &amp; Challenges&quot;,&quot;url&quot;:&quot;https://www.gocobalt.io/directory/workday-api/&quot;},{&quot;title&quot;:&quot;Workday Strategic Sourcing Documentation Portal&quot;,&quot;url&quot;:&quot;https://apidocs.workdayspend.com/&quot;},{&quot;title&quot;:&quot;Complete Guide to Workday REST API Integration and Security&quot;,&quot;url&quot;:&quot;https://www.reco.ai/hub/workday-rest-api-integration-security&quot;},{&quot;title&quot;:&quot;Workday API Tutorial&quot;,&quot;url&quot;:&quot;https://cloudfoundation.com/blog/workday-api-tutorial/&quot;},{&quot;title&quot;:&quot;Workday API Documentation&quot;,&quot;url&quot;:&quot;https://docs.axway.com/bundle/Amplify_Integration_Builder_allOS_en/page/workday_api_documentation.html&quot;}]
+
+Here are the search results for Workday REST API documentation and developer portal information:
+
+## Official Workday Resources
+
+The **Workday REST Services Directory** is available at the Workday Community site (community.workday.com/sites/default/files/file-hosting/restapi/).
+
+## Key Information About Workday REST APIs
+
+The documentation includes information on REST APIs, webhooks, and rate limits. REST APIs allow developers to access and manipulate data in Workday using HTTP requests.
+
+### API Types &amp; Endpoints
+
+Workday provides both SOAP and REST APIs, covering a wide range of data domains including HR, recruiting, payroll, compensation, time tracking, and more. REST APIs are typically preferred because they are easier to implement, faster, and more developer-friendly.(no content)Workday offers many different endpoints depending on what you need to do: Need to pull a list of employees? Use the Get Workers endpoint. Want to update an employee&#x27;s job title? That&#x27;s Update Workers.
+
+### Authentication
+
+Workday REST APIs require OAuth 2.0 authentication, ensuring secure access using access tokens.(no content)The API uses standard HTTP methods (GET, POST, PUT, DELETE) and JSON responses.
+
+### Getting Started
+
+Head over to the Workday developer portal and sign up for access. You&#x27;ll need these keys to authenticate your requests. Store these credentials securely—exposing them can lead to unauthorised access.(no content)For comprehensive API reference and code samples, visit the Workday Developer Center.
+
+### Workday Strategic Sourcing API Portal
+
+There is also a documentation portal for Workday Strategic Sourcing&#x27;s public APIs which includes all currently supported APIs, as well as deprecated APIs, and comprehensive changelogs for minor, major and patch releases.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-24-29-038Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-24-29-038Z" class="timestamp-link"><time datetime="2025-12-27T01:24:29.038Z" data-timestamp="2025-12-27T01:24:29.038Z">2025-12-27T01:24:29.038Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Workday SOAP API WSDL documentation public access developer&quot;
+
+Links: [{&quot;title&quot;:&quot;SOAP API Reference&quot;,&quot;url&quot;:&quot;https://community-content.workday.com/en-us/public/products/platform-and-product-extensions/soap-api-reference.html&quot;},{&quot;title&quot;:&quot;Workday Web Services (WWS) Directory (v45.1)&quot;,&quot;url&quot;:&quot;https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html&quot;},{&quot;title&quot;:&quot;SOAP API Reference | Workday Community&quot;,&quot;url&quot;:&quot;https://community.workday.com/api&quot;},{&quot;title&quot;:&quot;Workday SOAP API documentation - Workday - API Integrations&quot;,&quot;url&quot;:&quot;https://integrations.discourse.group/t/workday-soap-api-documentation/529&quot;},{&quot;title&quot;:&quot;Workday API Integration Guide (In-Depth)&quot;,&quot;url&quot;:&quot;https://www.getknit.dev/blog/workday-api-integration-in-depth&quot;},{&quot;title&quot;:&quot;A Tutorial on Setting Up and Using the Workday SOAP API&quot;,&quot;url&quot;:&quot;https://www.apideck.com/blog/a-comprehensive-tutorial-on-setting-up-and-using-the-workday-api&quot;},{&quot;title&quot;:&quot;Building a SOAP API Integration When You Already Know REST: The Full Walk-Through&quot;,&quot;url&quot;:&quot;https://www.merge.dev/blog/building-a-soap-api-integration-when-you-already-know-rest-the-full-walk-through&quot;},{&quot;title&quot;:&quot;Workday Web Services: Everything You Should Know - Surety Systems&quot;,&quot;url&quot;:&quot;https://www.suretysystems.com/insights/workday-web-services-everything-you-should-know/&quot;},{&quot;title&quot;:&quot;Workday API Documentation: A Guide to Workday SOAP API Blogs | Klamp.io&quot;,&quot;url&quot;:&quot;https://klamp.io/blog/workday-api-documentation-a-guide-to-workday-soap-api&quot;},{&quot;title&quot;:&quot;Using the Workday API with Python and the suds client library · GitHub&quot;,&quot;url&quot;:&quot;https://gist.github.com/shacker/87908e13c9ee6655ce90&quot;}]
+
+Here&#x27;s what I found about Workday SOAP API WSDL documentation and public access for developers:
+
+## Official Workday SOAP API Documentation
+
+Workday provides API Documentation for their multitenant SOAP-based web services with corresponding WSDL and XML Schemas (XSDs).(no content)They offer an Operation Directory Page for the latest version that lists all public web service operations in alphabetical order.
+
+### Public Access Resources
+
+The WWS API Documentation (currently v45.1) for SOAP-based web services with corresponding WSDL and XML Schemas is available. You can click Version Directory to access other versions and Operation Directory to list all operations.(no content)The only public documentation of the SOAP API is available at https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html. Note that the version may be slightly behind what&#x27;s available in test tenants, but the versions are generally backwards compatible.
+
+### Access Limitations
+
+Workday&#x27;s community, which has docs on their coding environment, is only available to Workday customers and official partners.
+
+## Working with the WSDL
+
+To find the WSDL in Workday, search for &quot;Public Web Services&quot;, open the &quot;Public Web Services Report&quot;, hover over the desired section (like &quot;Human Resources&quot;), click the three dots (ellipses) to open the menu, and select &quot;Web Services&quot; then &quot;View WSDL&quot;.(no content)WSDL is an XML format for calling a web service that describes the available endpoints, the structure of requests, and the responses to expect. WSDL is a standard format for SOAP API documentation or specification, much like OpenAPI is for REST APIs.
+
+## Authentication
+
+Workday APIs use WS-Security for SOAP API authentication. By using the WSDL endpoint to connect directly to the server, you can add a username field and password to obtain access.
+
+## Key URLs
+- **Production API Directory**: https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html
+- **SOAP API Reference**: https://community.workday.com/api
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-24-51-868Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-24-51-868Z" class="timestamp-link"><time datetime="2025-12-27T01:24:51.868Z" data-timestamp="2025-12-27T01:24:51.868Z">2025-12-27T01:24:51.868Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Workday API authentication OAuth 2.0 setup tutorial Integration System User&quot;
+
+Links: [{&quot;title&quot;:&quot;OAuth 2.0 Authentication&quot;,&quot;url&quot;:&quot;https://documentation.sailpoint.com/connectors/workday/help/integrating_workday/oauth_2.0_authentication.html&quot;},{&quot;title&quot;:&quot;A Comprehensive Guide to Integration Service-Workday REST API Authentication&quot;,&quot;url&quot;:&quot;https://upptalk.com/integration-service-workday-rest-api-authentication/&quot;},{&quot;title&quot;:&quot;Workato connectors - Workday | Workato Docs&quot;,&quot;url&quot;:&quot;https://docs.workato.com/connectors/workday.html&quot;},{&quot;title&quot;:&quot;Complete Guide to Workday REST API Integration and Security&quot;,&quot;url&quot;:&quot;https://www.reco.ai/hub/workday-rest-api-integration-security&quot;},{&quot;title&quot;:&quot;Workday API Integration Guide (In-Depth)&quot;,&quot;url&quot;:&quot;https://www.getknit.dev/blog/workday-api-integration-in-depth&quot;},{&quot;title&quot;:&quot;Integration Service - Workday REST authentication&quot;,&quot;url&quot;:&quot;https://docs.uipath.com/integration-service/automation-cloud/latest/user-guide/uipath-workday-workdayrest-authentication&quot;},{&quot;title&quot;:&quot;How to Generate OAuth 2.0 Access Token with SoapUI in workday - UppTalk&quot;,&quot;url&quot;:&quot;https://upptalk.com/how-to-generate-oauth-2-0-access-token-with-soapui/&quot;},{&quot;title&quot;:&quot;How to authenticate and connect Workday app with Freshservice : Freshservice Support&quot;,&quot;url&quot;:&quot;https://support.freshservice.com/support/solutions/articles/50000009624-how-to-authenticate-and-connect-workday-app-with-freshservice&quot;},{&quot;title&quot;:&quot;OAuth 2.0 for Workday&quot;,&quot;url&quot;:&quot;https://help.alteryx.com/aws/en/platform/connections/connection-tasks/configure-connectivity/enable-oauth-2-0-authentication/oauth-2-0-for-workday.html&quot;},{&quot;title&quot;:&quot;Integrate Workday with your Employee Self-Service deployment | Microsoft Learn&quot;,&quot;url&quot;:&quot;https://learn.microsoft.com/en-us/copilot/microsoft-365/employee-self-service/workday&quot;}]
+
+Based on the search results, here&#x27;s a comprehensive overview of setting up OAuth 2.0 authentication for Workday API with Integration System Users:
+
+## Workday API OAuth 2.0 Authentication Setup
+
+### Overview
+Workday employs OAuth 2.0 authentication mechanisms as they guarantee safe, assigned access for external systems that wish to connect to its platform.(no content)Workday REST APIs require OAuth 2.0 authentication, ensuring secure access using access tokens.
+
+### Step 1: Create an Integration System User (ISU)
+Workday recommends using an Integration System User (ISU) for integration using third-party services. All operations performed by the integration will be logged under this worker instead of one dedicated to integration and workflow processes. Furthermore, if this worker&#x27;s security profile changes, or if the worker is terminated, integrations that rely on this worker&#x27;s user account will no longer work.
+
+To create an ISU:
+1. Type &quot;Create Integration System User&quot; into Workday&#x27;s search bar and select the task from the results.
+2. Enter a username and set a password in the Create Integration System User task. Set Session Timeout Minutes to 0 to prevent the ISU from timing out.
+3. Press the &quot;Create Integration System User&quot; button and input an individual username as well as any necessary details. Afterward, make sure this user can access all functional areas required of them.
+
+### Step 2: Register an API Client for Integrations
+To utilize OAuth 2.0, an API client must first be registered in Workday in order to receive an Access Token generated through this client.
+
+1. Log into your Workday tenant. Search for &quot;Register API Client for Integration&quot; using the search bar. Fill out the required details to register your API client.
+2. Enter a name for your API client in the Client Name field. Select the Non-Expiring Refresh Tokens option.
+3. Specify the scope of access for the API client. Ensure to include the Integration scope, which covers essential domain security policies such as Integration Build, Integration Debug, Integration Process, and Integration Event. Including this scope is a minimum requirement for establishing a connection with Workday.
+4. Once you create the new client, copy and save the client ID and client Secret. You will use them when you create a connection.
+
+### Step 3: Save Important Endpoints
+Save the URLs listed in the Token Endpoint and Authorization Endpoint fields. These URLs are required for the OAuth 2.0 connection.(no content)To find your token endpoint URL in Workday, search and select the View API Clients report through the search option. Save the URL listed in the Token Endpoint field. Remember to save the Client ID, Client Secret, Authorization Endpoint, and Token Endpoint. They will be required for the Workday integration connector setup.
+
+### Step 4: Generate Refresh Token
+Use the &quot;Delete or Regenerate Refresh Token&quot; option with &quot;Regenerate New Refresh Token&quot; selected. A new refresh token will now be generated, which is needed to authenticate with OAuth 2.0.(no content)The Workday Account used by the API Client to generate a refresh token must be an integration user, and it must have all the permissions as described in Basic Authentication.
+
+### Step 5: Obtain Access Token
+Open Postman and create a new POST request. Set the URL to: `https://&lt;your_workday_domain&gt;/ccx/oauth2/token`. The Authorization tab shows Basic Auth selected with fields for entering Client ID and Client Secret.(no content)Switch to the Body tab and select x-www-form-urlencoded. Two key-value pairs are entered: &#x27;grant_type&#x27; as &#x27;refresh_token&#x27; and &#x27;refresh_token&#x27; with the generated token value.
+
+### Authentication Methods Comparison
+Workday supports two main authentication methods: ISU (Integration System User) and OAuth 2.0. The choice between them depends on your security needs and integration goals. ISU allows you to create a dedicated system account with specific permissions. It&#x27;s great when you want granular access control based on Workday roles. Every action is tied to this system user, making activity easy to track.(no content)OAuth 2.0 is more flexible and widely used across platforms. It lets you define scopes (what the integration can and cannot do), which reduces risk by limiting access. OAuth is especially useful for REST APIs and when you need user-specific permissions or dynamic access. It&#x27;s also an industry standard, making it easier to integrate with other systems.
+
+### Important Notes
+- OAuth 2.0 authentication is required for working with the Workday REST API and custom objects.
+- Your Integration System User (ISU) must be assigned the required permissions to create a successful integration. You may receive a 403 error during recipe building if your ISU has insufficient permissions.
+- For security reasons, each ISU should be restricted to a single integration system.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-24-56-569Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-24-56-569Z" class="timestamp-link"><time datetime="2025-12-27T01:24:56.569Z" data-timestamp="2025-12-27T01:24:56.569Z">2025-12-27T01:24:56.569Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Good - I'm getting useful information. Let me update the todo and continue researching grants-specific endpoints and the data models.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-01-147Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-01-147Z" class="timestamp-link"><time datetime="2025-12-27T01:25:01.147Z" data-timestamp="2025-12-27T01:25:01.147Z">2025-12-27T01:25:01.147Z</time></a></div><div class="message-content">
+<div class="todo-list" data-tool-id="toolu_01Na7DUihJxzgG5TSKsR7t8t"><div class="todo-header"><span class="todo-header-icon">☰</span> Task List</div><ul class="todo-items"><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Research Workday API authentication methods (OAuth, ISU)</span></li><li class="todo-item todo-in-progress"><span class="todo-icon">→</span><span class="todo-content">Identify grants-related SOAP/REST endpoints</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Document data models for grants, awards, budgets</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Understand rate limits and constraints</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Assess what requires customer access vs public docs</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Summarize technical feasibility</span></li></ul></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-25-01-173Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-25-01-173Z" class="timestamp-link"><time datetime="2025-12-27T01:25:01.173Z" data-timestamp="2025-12-27T01:25:01.173Z">2025-12-27T01:25:01.173Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-05-154Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-05-154Z" class="timestamp-link"><time datetime="2025-12-27T01:25:05.154Z" data-timestamp="2025-12-27T01:25:05.154Z">2025-12-27T01:25:05.154Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Now let me look at the actual Workday API directories to find grants-related endpoints.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-06-987Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-06-987Z" class="timestamp-link"><time datetime="2025-12-27T01:25:06.987Z" data-timestamp="2025-12-27T01:25:06.987Z">2025-12-27T01:25:06.987Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_018rYkkgTn8x2Wp2ZT1ngcfQ"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html&#34;,
+  &#34;prompt&#34;: &#34;List ALL available web services with their descriptions. I need to identify which ones handle grants, awards, projects, financial management, and research-related data&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-08-348Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-08-348Z" class="timestamp-link"><time datetime="2025-12-27T01:25:08.348Z" data-timestamp="2025-12-27T01:25:08.348Z">2025-12-27T01:25:08.348Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01KoGDj7be9JjxwqadTWPtqz"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://community.workday.com/sites/default/files/file-hosting/restapi/&#34;,
+  &#34;prompt&#34;: &#34;List all available REST API endpoints and resources. Identify any related to grants, awards, projects, budgets, or financial management&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-25-10-457Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-25-10-457Z" class="timestamp-link"><time datetime="2025-12-27T01:25:10.457Z" data-timestamp="2025-12-27T01:25:10.457Z">2025-12-27T01:25:10.457Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Based on the provided web page content, I cannot identify any REST API endpoints or resources.
+
+The page contains only a Hotjar analytics script snippet and a message stating &quot;You need to enable JavaScript to run this app.&quot; There is no documentation, endpoint listing, or information about grants, awards, projects, budgets, or financial management resources visible in this content.
+
+To access the REST API directory and identify relevant endpoints, you would need to load the full page with JavaScript enabled or access the complete API documentation directly.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-25-12-486Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-25-12-486Z" class="timestamp-link"><time datetime="2025-12-27T01:25:12.486Z" data-timestamp="2025-12-27T01:25:12.486Z">2025-12-27T01:25:12.486Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Workday Web Services (v45.1) - Relevant to Grants, Awards, Projects &amp; Research
+
+Based on the directory, here are the services most applicable to your needs:
+
+## Primary Services
+
+**Financial Management**
+&quot;contains operations that expose Workday Financials data. It includes data relative to Accounts, Accounting, Business Plans, Financial Reporting, Tax, Financial Organizations, Basic Worktags and Related Worktags&quot;
+
+**Resource Management**
+&quot;contains operations that expose Workday Financials Resource Management data. It includes data relative to Suppliers, Supplier Accounts, Expenses, Business Assets and Projects&quot;
+
+**Professional Services Automation**
+&quot;contains operations that expose Workday Financials Business Services data for integration with Professional Services Automation (PSA) systems&quot;
+
+## Supporting Services
+
+- **Workforce Planning** - workforce planning business services and data
+- **Financial Aid** - financial aid module operations
+- **Compensation** - compensation-related data and management
+- **Human Resources** - employee and organization information
+- **Integrations** - manages all integration operations within Workday
+
+## Note
+
+The directory does not list dedicated web services explicitly labeled for grants, awards, or research-specific functions. These capabilities likely integrate through Financial Management, Resource Management, or Professional Services Automation services combined with custom implementations.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-19-566Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-19-566Z" class="timestamp-link"><time datetime="2025-12-27T01:25:19.566Z" data-timestamp="2025-12-27T01:25:19.566Z">2025-12-27T01:25:19.566Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The REST directory requires JavaScript to load. Let me try searching for specific Financial Management and Resource Management operations that would handle grants data.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-21-242Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-21-242Z" class="timestamp-link"><time datetime="2025-12-27T01:25:21.242Z" data-timestamp="2025-12-27T01:25:21.242Z">2025-12-27T01:25:21.242Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01MnRzfxsXoCYre7bL5CqYLL"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v45.1/Financial_Management.html&#34;,
+  &#34;prompt&#34;: &#34;List all available operations in the Financial Management web service. Look for any operations related to grants, awards, worktags, budgets, or projects&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-22-725Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-22-725Z" class="timestamp-link"><time datetime="2025-12-27T01:25:22.725Z" data-timestamp="2025-12-27T01:25:22.725Z">2025-12-27T01:25:22.725Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_016ZiK6AYDyQKR5UyeCAUS3x"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://community.workday.com/sites/default/files/file-hosting/productionapi/Resource_Management/v45.1/Resource_Management.html&#34;,
+  &#34;prompt&#34;: &#34;List all available operations in the Resource Management web service. Look for any operations related to grants, awards, projects, expenses, or budgets&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-25-28-361Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-25-28-361Z" class="timestamp-link"><time datetime="2025-12-27T01:25:28.361Z" data-timestamp="2025-12-27T01:25:28.361Z">2025-12-27T01:25:28.361Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Resource Management Web Service Operations Summary
+
+The Resource Management web service (v45.1) contains 300+ operations organized around core business areas. Here are the key categories relevant to your inquiry:
+
+## Project-Related Operations
+Operations supporting project management include:
+- Get/Submit Project functions
+- Project Plans, Templates, and Hierarchies
+- Project Portfolios and Assets
+- Project Tasks and Phases
+- Project Worker Roles and Task Resources
+- Project Timesheets and Resource allocation
+
+## Budget &amp; Financial Planning
+- &quot;Project Budget Templates used to define default budget plan lines&quot;
+- Resource Plans and Forecasts
+- Transfer Pricing Rate Sheets
+- Worker Utilization Target Sheets
+
+## Expense Management
+- Expense Reports (workers, applicants, non-workers)
+- Expense Items, Rate Tables, and Policy Groups
+- Credit Card transactions and management
+- Spend Authorizations and Reimbursements
+- Cash Advance and Receivable Repayments
+
+## Procurement &amp; Supplier Management
+- Purchase Orders and Requisitions
+- Supplier Contracts and Invoices
+- Request for Quote (RFQ) operations
+- Receipts and Returns
+- Catalog management
+
+**Note:** The service does not include dedicated &quot;grants&quot; or &quot;awards&quot; operations—Project and Resource operations serve similar planning functions in this financial management context.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-25-29-614Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-25-29-614Z" class="timestamp-link"><time datetime="2025-12-27T01:25:29.614Z" data-timestamp="2025-12-27T01:25:29.614Z">2025-12-27T01:25:29.614Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Financial Management Web Service Operations Summary
+
+## Grant-Related Operations
+- **Get_Grants** - Retrieves non-basic grants and associated information by reference ID or all transactions
+- **Get_Basic_Grants** - Retrieves grants used as worktag values only with Grant ID, name, and inactive status
+- **Put_Grant** - Adds or updates grants including name, ID, Object Class Set, and facilities
+- **Get_Grant_Hierarchies** - Returns grant hierarchies and associated information
+- **Put_Grant_Hierarchy** - Adds or updates grant hierarchies with superior/subordinate relationships
+- **Get_Grant_Draw_Component** - Returns grant draw components and associated information
+- **Put_Grant_Draw_Component** - Adds or updates grant draw components
+- **Get_Proposal_Grants** - Requests references to one or more proposal grants
+- **Put_Proposal_Grant** - Adds or updates proposal grants with name and ID
+
+## Award-Related Operations
+- **Get_Award_Personnel_Responsibilities** - Retrieves award personnel responsibilities from the system
+- **Put_Award_Personnel_Responsibility** - Adds or updates award personnel responsibilities
+
+## Worktag-Related Operations
+- **Get_Related_Worktags_for_Worktags** - Retrieves related worktag configuration including allowed/default values
+- **Put_Related_Worktags_for_Worktag** - Adds, updates, or removes related worktag configuration
+- **Get_Default_Values_for_Worktags** - Retrieves default values for related worktags
+- **Put_Default_Values_for_Worktag** - Adds or changes default worktag sets
+
+## Budget-Related Operations
+- **Get_Budget_Structures** - Retrieves plan structures for specified criteria
+- **Get_Budget_Templates** - Retrieves plan templates
+- **Put_Budget_Template** - Adds or updates plan templates asynchronously
+- **Import_Budget** - Adds or updates budget details asynchronously
+- **Import_Budget_Amendment** - Imports high-volume budget amendments
+- **Get_Position_Budgets** - Retrieves position budgets by company, structure, and fiscal year
+- **Import_Position_Budget** - Adds or updates position budgets
+- **Put_Cancel_Position_Budget_Entry** - Cancels position budget entries and related amendments
+
+## Project-Related Operations
+- **Get_Basic_Projects** - Retrieves projects used as worktag values only
+- **Put_Basic_Project** - Adds or updates basic projects for worktag use
+- **Get_Project_Advanced_Labor_Cost_Calculation_Types** - Retrieves advanced labor cost calculation types
+- **Get_Project_Advanced_Labor_Cost_Definitions** - Retrieves labor cost definitions by reference or effective date
+- **Put_Project_Advanced_Labor_Cost_Definition** - Creates or updates labor cost definitions
+- **Get_Project_Asset_Assignment_Rules** - Retrieves project asset assignment rules
+- **Put_Project_Asset_Assignment_Rule** - Creates or updates asset assignment rules
+- **Get_Project_Cost_Rate_Rules** - Retrieves project cost rate rules
+- **Put_Project_Cost_Rate_Rule** - Adds or updates cost rate rules</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-35-718Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-35-718Z" class="timestamp-link"><time datetime="2025-12-27T01:25:35.718Z" data-timestamp="2025-12-27T01:25:35.718Z">2025-12-27T01:25:35.718Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Excellent! This is very promising. The Financial Management service has explicit grant operations:
+- Get_Grants
+- Get_Basic_Grants
+- Put_Grant
+- Get_Grant_Hierarchies
+- Get_Proposal_Grants
+- Get_Award_Personnel_Responsibilities</p>
+<p>This confirms grants data IS accessible via the SOAP API. Let me now research the specific data structures and also look for Python examples of accessing Workday.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-40-854Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-40-854Z" class="timestamp-link"><time datetime="2025-12-27T01:25:40.854Z" data-timestamp="2025-12-27T01:25:40.854Z">2025-12-27T01:25:40.854Z</time></a></div><div class="message-content">
+<div class="todo-list" data-tool-id="toolu_01CfiomrT8kFGKpH14JEdxxu"><div class="todo-header"><span class="todo-header-icon">☰</span> Task List</div><ul class="todo-items"><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Research Workday API authentication methods (OAuth, ISU)</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Identify grants-related SOAP/REST endpoints</span></li><li class="todo-item todo-in-progress"><span class="todo-icon">→</span><span class="todo-content">Document data models for grants, awards, budgets</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Understand rate limits and constraints</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Assess what requires customer access vs public docs</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Summarize technical feasibility</span></li></ul></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-25-40-879Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-25-40-879Z" class="timestamp-link"><time datetime="2025-12-27T01:25:40.879Z" data-timestamp="2025-12-27T01:25:40.879Z">2025-12-27T01:25:40.879Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-46-216Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-46-216Z" class="timestamp-link"><time datetime="2025-12-27T01:25:46.216Z" data-timestamp="2025-12-27T01:25:46.216Z">2025-12-27T01:25:46.216Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Good progress! Grants endpoints exist in the Financial Management SOAP API. Now let me search for:1. The actual XML/data structure for grants
+2. Python examples for Workday SOAP
+3. Rate limits and constraints</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-46-844Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-46-844Z" class="timestamp-link"><time datetime="2025-12-27T01:25:46.844Z" data-timestamp="2025-12-27T01:25:46.844Z">2025-12-27T01:25:46.844Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_015gKefsX95rCorbteYy15ke"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Workday Get_Grants SOAP operation XML schema request response&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-25-47-694Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-25-47-694Z" class="timestamp-link"><time datetime="2025-12-27T01:25:47.694Z" data-timestamp="2025-12-27T01:25:47.694Z">2025-12-27T01:25:47.694Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01GCAs4ygpawL64rNXsceSe1"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Workday Python SOAP API zeep suds example integration&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-26-01-959Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-26-01-959Z" class="timestamp-link"><time datetime="2025-12-27T01:26:01.959Z" data-timestamp="2025-12-27T01:26:01.959Z">2025-12-27T01:26:01.959Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_017N4udGuC5JMAfK7hKjdug5"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Workday API rate limit throttling calls per second restrictions&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-26-25-431Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-26-25-431Z" class="timestamp-link"><time datetime="2025-12-27T01:26:25.431Z" data-timestamp="2025-12-27T01:26:25.431Z">2025-12-27T01:26:25.431Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Workday API rate limit throttling calls per second restrictions&quot;
+
+Links: [{&quot;title&quot;:&quot;Workday API Essentials&quot;,&quot;url&quot;:&quot;https://rollout.com/integration-guides/workday/api-essentials&quot;},{&quot;title&quot;:&quot;How to create a Workday REST API Integration?&quot;,&quot;url&quot;:&quot;https://www.apideck.com/blog/create-a-workday-rest-api-integration&quot;},{&quot;title&quot;:&quot;Workday Strategic Sourcing Projects v1.0 API Documentation&quot;,&quot;url&quot;:&quot;https://apidocs.workdayspend.com/services/projects/v1.html&quot;},{&quot;title&quot;:&quot;Rate Limiting and Throttling: Protecting Your API - API7.ai&quot;,&quot;url&quot;:&quot;https://api7.ai/learning-center/api-101/rate-limiting-and-throttling&quot;},{&quot;title&quot;:&quot;Workday API Integration Guide (In-Depth)&quot;,&quot;url&quot;:&quot;https://www.getknit.dev/blog/workday-api-integration-in-depth&quot;},{&quot;title&quot;:&quot;Workday API Integration Guide for Beginners&quot;,&quot;url&quot;:&quot;https://upptalk.com/workday-api-integration-guide-for-beginners/&quot;},{&quot;title&quot;:&quot;Rate limiting in Workday Studio • Stephen Gilmore&quot;,&quot;url&quot;:&quot;https://sglmr.com/blog/workday-studio-rate-limits/&quot;},{&quot;title&quot;:&quot;A guide to managing REST API rate limits&quot;,&quot;url&quot;:&quot;https://www.merge.dev/blog/rest-api-rate-limits&quot;},{&quot;title&quot;:&quot;Introducing Workday® Graph API: An Overview — Makse Group&quot;,&quot;url&quot;:&quot;https://www.maksegroup.com/blog/introducing-workday-graph-api-an-overview-5anyx-zfwtw-l9nsk-9z57s-lf2hy-cbjm6&quot;},{&quot;title&quot;:&quot;Article: Workday Integration Guide&quot;,&quot;url&quot;:&quot;https://community.boomi.com/s/article/workdayintegrationguide&quot;}]
+
+Based on the search results, here&#x27;s what I found about Workday API rate limiting:
+
+## Workday API Rate Limits
+
+### General API Limits
+Workday implements rate limiting that can significantly impact integration performance, and the limits are more restrictive than many developers expect. According to implementation partners and developer community discussions, Workday can only handle 10 calls per second and drops any beyond that.(no content)However, this information comes from an implementation partner and may not be official. The official rate limits are not clearly stated in the provided search results.
+
+### Workday Strategic Sourcing API (Documented Limit)
+Rate limit windows are per second and are shared by all API Keys for a company. The rate limit is 5 requests per second. When request submissions exceed the limits, the limit-exceeding requests return 429 Too Many Requests error responses to the client.
+
+### Workday Graph API
+When you make requests to the Workday Graph API, each request counts towards your rate limit. The Workday Graph API limits the number of requests that can be made within a given time period.(no content)If you exceed the rate limit, you will receive a 429 error code. To avoid this error, we recommend that you plan your requests so that you stay within the rate limit. You can also check the headers of each response to see your current rate limit status.
+
+## Best Practices
+
+For bulk data operations, employee onboarding, or real-time synchronization scenarios, this rate limit becomes a significant bottleneck. You&#x27;re forced to implement complex queuing mechanisms, retry logic, and batch processing to work within these constraints.(no content)Some endpoints have documented limits, for example, the Strategic Sourcing Projects API allows up to 5 requests per second. Always design your integration with pagination, retry logic, and throttling to avoid issues.(no content)Workday applies a rate limiting feature which regulates how often API calls can be made within an allotted amount of time, in order to protect performance and guard against abuse.
+
+### Handling Rate Limits in Workday Studio
+Is your Workday Studio integration experiencing API rate limit issues? You can add a short pause to your integration with sleep. However, you should only use this when your integration is at or exceeding a rate limit. Applying it to every request could seriously slow down your integration.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-26-32-181Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-26-32-181Z" class="timestamp-link"><time datetime="2025-12-27T01:26:32.181Z" data-timestamp="2025-12-27T01:26:32.181Z">2025-12-27T01:26:32.181Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Workday Python SOAP API zeep suds example integration&quot;
+
+Links: [{&quot;title&quot;:&quot;Building a SOAP API Integration When You Already Know REST: The Full Walk-Through&quot;,&quot;url&quot;:&quot;https://www.merge.dev/blog/building-a-soap-api-integration-when-you-already-know-rest-the-full-walk-through&quot;},{&quot;title&quot;:&quot;Using the Workday API with Python and the suds client library · GitHub&quot;,&quot;url&quot;:&quot;https://gist.github.com/shacker/87908e13c9ee6655ce90&quot;},{&quot;title&quot;:&quot;Query Workday API using Python and the Zeep package - matthewdavis111&quot;,&quot;url&quot;:&quot;https://matthewdavis111.com/python/query-workday-api-python/&quot;},{&quot;title&quot;:&quot;Using the Workday API with Python and the suds client | scot hacker&#x27;s scripts and utils&quot;,&quot;url&quot;:&quot;http://software.birdhouse.org/2015/06/using-the-workday-api-with-python-and-the-suds-client/&quot;},{&quot;title&quot;:&quot;workday.soap — Workday 0.4.0 documentation&quot;,&quot;url&quot;:&quot;https://workday.readthedocs.io/en/latest/_modules/workday/soap.html&quot;},{&quot;title&quot;:&quot;Understanding Workday SOAP API&quot;,&quot;url&quot;:&quot;https://upptalk.com/workday-soap-api/&quot;},{&quot;title&quot;:&quot;Python SOAP client with Suds&quot;,&quot;url&quot;:&quot;https://webkul.com/blog/python-suds-client/&quot;},{&quot;title&quot;:&quot;Python Zeep SOAP Example Write Up · GitHub&quot;,&quot;url&quot;:&quot;https://gist.github.com/FilBot3/7a80381c92e86f2a3b93a80b1d330710&quot;},{&quot;title&quot;:&quot;Python: Is it possible to retrieve Workday data using SOAP API in Python with JSON output?&quot;,&quot;url&quot;:&quot;https://copyprogramming.com/howto/soap-api-to-fetch-workday-data-in-python-in-json-response&quot;},{&quot;title&quot;:&quot;workday · PyPI&quot;,&quot;url&quot;:&quot;https://pypi.org/project/workday/&quot;}]
+
+Here are the search results for Workday Python SOAP API integration using zeep and suds:
+
+## Key Resources Found
+
+### Using Zeep with Workday
+
+One developer documented spending 2 days attempting and finally succeeding in querying the Workday API for a user by their ID using Python and Zeep.(no content)This approach requires the Zeep package to be installed. Having not used a SOAP based API in a long time, they found the Zeep package and also came across the Workday package, but found that it caused an error and the project is now archived in GitHub.(no content)The Workday URL format is: `https://&lt;hostname&gt;.workday.com/ccx/service/&lt;tenant&gt;/Human_Resources/v36.2?wsdl`(no content)Following along with the Zeep docs on datastructures, you can use the `get_type` method of the client to create a query. &quot;Most of the times you need to pass nested data to the soap client. These Complex types can be retrieved using the client.get_type() method.&quot;
+
+### Using Suds with Workday
+
+To find your WSDL URL, from the Related Actions, choose Web Service -&gt; View WSDL. Scroll ALL THE WAY to the bottom of the resulting WSDL and you will find an XML tag called &quot;soapbind:address&quot; with an attribute called &quot;location&quot;.(no content)In suds you can use the factory to get a type: `request = client.factory.create(&#x27;ns0:Worker_Reference&#x27;)`
+
+### Official Workday Python Package
+
+There is a Python client (2.7 or 3.4+) for communicating with one of the Workday XML/SOAP APIs.(no content)This client facilitates the authentication to a Workday SOAP API (Workday Web Services) and the parsing of data. It supports Anonymous, Basic HTTP and WS-Security (which is the preferred configuration in Workday).
+
+Example usage from PyPI:
+```python
+import workday
+from workday.auth import WsSecurityCredentialAuthentication
+
+client = workday.WorkdayClient(
+    wsdls={&#x27;talent&#x27;: &#x27;https://workday.com/tenant/434$sd.xml&#x27;},
+    authentication=WsSecurityCredentialAuthentication(config[&#x27;user&#x27;], config[&#x27;password&#x27;]),
+)
+print(client.talent.Get_Languages().data)
+```
+
+### Authentication
+
+Workday APIs use WS-Security for SOAP API authentication. By using the WSDL endpoint to connect directly to the server, you can add a username field and password to obtain access.
+
+### Additional Resources
+
+- **GitHub Gist**: https://gist.github.com/shacker/87908e13c9ee6655ce90 - Using the Workday API with Python and suds
+- **Matthew Davis&#x27;s Blog**: https://matthewdavis111.com/python/query-workday-api-python/ - Query Workday API using Python and Zeep
+- **Workday package on PyPI**: https://pypi.org/project/workday/ - Official Python client (though noted as archived)
+- **Workday docs**: https://workday.readthedocs.io/en/latest/ - Documentation for the workday package
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-26-37-896Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-26-37-896Z" class="timestamp-link"><time datetime="2025-12-27T01:26:37.896Z" data-timestamp="2025-12-27T01:26:37.896Z">2025-12-27T01:26:37.896Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Workday Get_Grants SOAP operation XML schema request response&quot;
+
+Links: [{&quot;title&quot;:&quot;Workday Web Services (WWS) Directory (v45.1)&quot;,&quot;url&quot;:&quot;https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html&quot;},{&quot;title&quot;:&quot;How to get data from Workday in SSIS using SOAP/REST API | ZappySys Blog&quot;,&quot;url&quot;:&quot;https://zappysys.com/blog/get-data-from-workday-in-ssis-using-soap-or-rest-api/&quot;},{&quot;title&quot;:&quot;Mastering SOAP API Integration for REST- Developers&quot;,&quot;url&quot;:&quot;https://www.bindbee.dev/blog/soap-api-integration-guide-for-rest-developers&quot;},{&quot;title&quot;:&quot;How to generate Workday SOAP Request XML in SSIS – ZappySys Help Center&quot;,&quot;url&quot;:&quot;https://zappysys.zendesk.com/hc/en-us/articles/360002575234-How-to-generate-Workday-SOAP-Request-XML-in-SSIS&quot;},{&quot;title&quot;:&quot;A Tutorial on Setting Up and Using the Workday SOAP API&quot;,&quot;url&quot;:&quot;https://www.apideck.com/blog/a-comprehensive-tutorial-on-setting-up-and-using-the-workday-api&quot;},{&quot;title&quot;:&quot;SOAP API Reference | Workday Community&quot;,&quot;url&quot;:&quot;https://community.workday.com/api&quot;},{&quot;title&quot;:&quot;Workato connectors - Workday Call operation action | Workato Docs&quot;,&quot;url&quot;:&quot;https://docs.workato.com/connectors/workday/call_operation.html&quot;},{&quot;title&quot;:&quot;Solved: Workday SOAP Request - Alteryx Community&quot;,&quot;url&quot;:&quot;https://community.alteryx.com/t5/Alteryx-Designer-Desktop-Discussions/Workday-SOAP-Request/td-p/556242&quot;},{&quot;title&quot;:&quot;Workday API Integration Guide (In-Depth)&quot;,&quot;url&quot;:&quot;https://www.getknit.dev/blog/workday-api-integration-in-depth&quot;},{&quot;title&quot;:&quot;SOAP API Reference&quot;,&quot;url&quot;:&quot;https://community-content.workday.com/en-us/public/products/platform-and-product-extensions/soap-api-reference.html&quot;}]
+
+The search results provide general information about Workday&#x27;s SOAP API structure, but don&#x27;t specifically show details about the `Get_Grants` operation. Let me search more specifically for that operation.
+
+Links: [{&quot;title&quot;:&quot;Grant Management Software and Reporting | Workday US&quot;,&quot;url&quot;:&quot;https://www.workday.com/en-us/products/financial-management/grants-management.html&quot;},{&quot;title&quot;:&quot;Manage Grants in Workday | Division of Research | Brown University&quot;,&quot;url&quot;:&quot;https://division-research.brown.edu/system-guides/manage-grants-workday&quot;},{&quot;title&quot;:&quot;Workday Grant Functions Quick Reference Guide | Sponsored Projects | University of Nevada, Reno&quot;,&quot;url&quot;:&quot;https://www.unr.edu/sponsored-projects/resources/workday-quick-reference&quot;},{&quot;title&quot;:&quot;Grants Management Quick Demo | Workday US&quot;,&quot;url&quot;:&quot;https://forms.workday.com/en-us/quick-demos/grants-management-solutions/form.html&quot;},{&quot;title&quot;:&quot;Datasheet Workday Grants Management for Nonprofits&quot;,&quot;url&quot;:&quot;https://www.workday.com/content/dam/web/en-us/documents/datasheets/workday-grants-management-for-nonprofits-datasheet-enus.pdf&quot;},{&quot;title&quot;:&quot;Grants Management in Workday | Enterprise Transformation | Georgia Institute of Technology | Atlanta, GA&quot;,&quot;url&quot;:&quot;https://transformation.gatech.edu/financials-transformation/grants&quot;},{&quot;title&quot;:&quot;Grants Management Demo | Workday US&quot;,&quot;url&quot;:&quot;https://forms.workday.com/en-us/quick-demos/grants-management/form.html&quot;},{&quot;title&quot;:&quot;Datasheet Workday Grants Management for Higher Education&quot;,&quot;url&quot;:&quot;https://www.workday.com/content/dam/web/en-us/documents/datasheets/workday-grants-management-for-higher-education-datasheet-enus.pdf&quot;},{&quot;title&quot;:&quot;Grant Management Software and Reporting | Workday CA&quot;,&quot;url&quot;:&quot;https://www.workday.com/en-ca/applications/financial-management/grants-management.html&quot;},{&quot;title&quot;:&quot;Using Workday to Manage Grants&quot;,&quot;url&quot;:&quot;https://www.fgcu.edu/academics/research/workday&quot;}]
+
+Let me search more specifically for the Workday Grants Management web service API documentation.
+
+Links: [{&quot;title&quot;:&quot;Workday Web Services (WWS) Directory (v45.1)&quot;,&quot;url&quot;:&quot;https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html&quot;},{&quot;title&quot;:&quot;SOAP API Reference&quot;,&quot;url&quot;:&quot;https://community-content.workday.com/en-us/public/products/platform-and-product-extensions/soap-api-reference.html&quot;},{&quot;title&quot;:&quot;Workday Finance module | Workday Webservice - Workday Trainings&quot;,&quot;url&quot;:&quot;https://workdaytrainings.com/workday-webservice/&quot;},{&quot;title&quot;:&quot;Workday API Integration Guide (In-Depth)&quot;,&quot;url&quot;:&quot;https://www.getknit.dev/blog/workday-api-integration-in-depth&quot;},{&quot;title&quot;:&quot;Workday Web Services (WWS) Directory (v18)&quot;,&quot;url&quot;:&quot;https://community.workday.com/sites/default/files/file-hosting/productionapi/versions/v18/index.html&quot;},{&quot;title&quot;:&quot;Workday Web Services&quot;,&quot;url&quot;:&quot;https://sparkdatabox.com/tutorials/workday-tutorial/workday-web-services&quot;},{&quot;title&quot;:&quot;A Tutorial on Setting Up and Using the Workday SOAP API&quot;,&quot;url&quot;:&quot;https://www.apideck.com/blog/a-comprehensive-tutorial-on-setting-up-and-using-the-workday-api&quot;},{&quot;title&quot;:&quot;Building a SOAP API Integration When You Already Know REST: The Full Walk-Through&quot;,&quot;url&quot;:&quot;https://www.merge.dev/blog/building-a-soap-api-integration-when-you-already-know-rest-the-full-walk-through&quot;},{&quot;title&quot;:&quot;SOAP API Reference | Workday Community&quot;,&quot;url&quot;:&quot;https://community.workday.com/api&quot;},{&quot;title&quot;:&quot;Workato connectors - Workday | Workato Docs&quot;,&quot;url&quot;:&quot;https://docs.workato.com/connectors/workday.html&quot;}]
+
+Based on my searches, here&#x27;s what I found regarding Workday&#x27;s SOAP API and the Get_Grants operation:
+
+## Workday SOAP API Overview
+
+&quot;Workday offers an open, standards-based SOAP API for programmatic access to our On-Demand Business Management Services. This directory provides the API Documentation for our multitenant SOAP-based web services with corresponding WSDL and XML Schemas (XSDs).&quot;
+
+## Key Resources for Finding Get_Grants
+
+The Workday Web Services (WWS) Directory (v45.1) provides the WWS API Documentation for SOAP-based web services with corresponding WSDL and XML Schemas (XSDs). You can click &quot;Version Directory&quot; to access other versions and &quot;Operation Directory&quot; to list all operations.(no content)You can click on icons to display the Web Service Description Language (WSDL) for a service, or click on the XSD icon to display the XML Schema for a service.
+
+## Where to Find the Get_Grants Schema
+
+The Get_Grants operation would be part of the **Grants Management** or **Financial Management** web service in Workday. To access the specific XML schema request/response:
+
+1. Go to the Workday Community SOAP API Reference, which provides an &quot;Operation Directory Page for Latest Version&quot; with API Documentation for SOAP-based web services with corresponding WSDL and XML schemas (XSDs).
+
+2. The official Workday API documentation is available at:
+   - **https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html** (v45.1)
+   - **https://community.workday.com/api** (SOAP API Reference portal)
+
+## General SOAP Request Structure for Workday
+
+By default Workday API will return only 100 records unless you specify Page/Count in Response_Filter. Regardless it will only send you 999 maximum rows.(no content)Based on the Workday documentation: The maximum number of instances in a web service response is 1 million. Responses with attachments/images have a maximum size of 30MB per attachment/image.
+
+## Access Requirements
+
+The Get_Grants operation XML schema details (request/response structure) are typically available only through:
+1. The official Workday Community portal (requires login)
+2. Downloading the WSDL/XSD files for the Grants Management or Financial Management service
+3. Using tools like SoapUI to import and explore the WSDL
+
+Choose SOAP + ISU if you&#x27;re working with complex, highly structured business processes (e.g., payroll, certain staffing operations) and you need Workday&#x27;s strict WSDL contracts.
+
+Unfortunately, the specific XML schema details for the Get_Grants operation are not publicly indexed in search results - you would need to access the Workday Community documentation directly or import the Financial Management/Grants Management WSDL into a SOAP tool to see the exact request/response structure.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-26-42-515Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-26-42-515Z" class="timestamp-link"><time datetime="2025-12-27T01:26:42.515Z" data-timestamp="2025-12-27T01:26:42.515Z">2025-12-27T01:26:42.515Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Great progress! Let me now look at the existing Python Workday package and see what's there, then check sandbox access requirements.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-26-44-469Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-26-44-469Z" class="timestamp-link"><time datetime="2025-12-27T01:26:44.469Z" data-timestamp="2025-12-27T01:26:44.469Z">2025-12-27T01:26:44.469Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01LuBcdrGByVh3ubQPG2BSM6"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://pypi.org/project/workday/&#34;,
+  &#34;prompt&#34;: &#34;Extract all details about this Python package: features, how it works, authentication methods, example code, and current status (is it maintained?)&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-26-46-011Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-26-46-011Z" class="timestamp-link"><time datetime="2025-12-27T01:26:46.011Z" data-timestamp="2025-12-27T01:26:46.011Z">2025-12-27T01:26:46.011Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_012X7uYcLB3oNKft5pZQ6dyB"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://gist.github.com/shacker/87908e13c9ee6655ce90&#34;,
+  &#34;prompt&#34;: &#34;Extract the complete Python code example for using Workday API with suds, including authentication, making requests, and any gotchas mentioned&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-28-35-486Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-28-35-486Z" class="timestamp-link"><time datetime="2025-12-27T01:28:35.486Z" data-timestamp="2025-12-27T01:28:35.486Z">2025-12-27T01:28:35.486Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Workday API with Python and suds
+
+Here&#x27;s the complete Python example from the gist for interacting with Workday&#x27;s SOAP API:
+
+```python
+import sys
+from suds import client
+from suds.wsse import Security, UsernameToken
+from suds.sax.text import Raw
+from suds.sudsobject import asdict
+from suds import WebFault
+
+# Configuration
+username = &#x27;username@yourtenant&#x27;
+password = &#x27;xxxxxxxxxxxxxxxxxx&#x27;
+wsdl_url = &#x27;https://wd5-impl-services1.workday.com/ccx/service/[yourtenant]/Human_Resources/v24.1?wsdl&#x27;
+Employee_ID = &#x27;123456&#x27;
+
+# Initialize client
+client = client.Client(wsdl_url)
+
+# Setup authentication
+security = Security()
+token = UsernameToken(username, password)
+security.tokens.append(token)
+client.set_options(wsse=security)
+
+# Create request XML
+xmlstring = &#x27;&#x27;&#x27;
+&lt;ns0:Worker_Reference&gt;
+&lt;ns0:ID ns0:type=&quot;Employee_ID&quot;&gt;{id}&lt;/ns0:ID&gt;
+&lt;/ns0:Worker_Reference&gt;
+&#x27;&#x27;&#x27;.format(id=Employee_ID)
+
+xml = Raw(xmlstring)
+
+# Make API call
+try:
+    result = client.service.Get_Workers(xml)
+except WebFault as e:
+    print(e)
+    sys.exit()
+
+# Response parsing utility
+def recursive_asdict(d):
+    &quot;&quot;&quot;Convert Suds object into serializable format.&quot;&quot;&quot;
+    out = {}
+    for k, v in asdict(d).iteritems():
+        if hasattr(v, &#x27;__keylist__&#x27;):
+            out[k] = recursive_asdict(v)
+        elif isinstance(v, list):
+            out[k] = []
+            for item in v:
+                if hasattr(item, &#x27;__keylist__&#x27;):
+                    out[k].append(recursive_asdict(item))
+                else:
+                    out[k].append(item)
+        else:
+            out[k] = v
+    return out
+
+# Extract data
+worker_dict = recursive_asdict(result)
+worker = worker_dict[&#x27;Response_Data&#x27;][&#x27;Worker&#x27;][0][&#x27;Worker_Data&#x27;]
+lname = worker[&#x27;Personal_Data&#x27;][&#x27;Name_Data&#x27;][&#x27;Legal_Name_Data&#x27;][&#x27;Name_Detail_Data&#x27;][&#x27;Last_Name&#x27;]
+print(lname)
+```
+
+## Key Points
+
+- Install via `pip install suds-jurko`
+- Authentication uses WS-Security with username/password tokens
+- Manually construct XML requests using the `Raw()` function
+- Handle responses by converting Suds objects to Python dictionaries</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-28-38-669Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-28-38-669Z" class="timestamp-link"><time datetime="2025-12-27T01:28:38.669Z" data-timestamp="2025-12-27T01:28:38.669Z">2025-12-27T01:28:38.669Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Workday Python Package Analysis
+
+## Overview
+The **workday** package is a Python client (v0.4.0) for communicating with Workday XML/SOAP APIs. It supports Python 2.7 and 3.3+.
+
+## Key Features
+- Authentication to Workday SOAP APIs with data parsing capabilities
+- Multiple authentication methods (Anonymous, Basic HTTP, WS-Security)
+- Support for multiple Workday Web Services endpoints
+- Native paging through Python iterators on all API responses
+
+## How It Works
+The client uses a dictionary-based configuration for WSDL endpoints. Dictionary keys become properties on the client instance, enabling method calls like `client.hcm.Get_Users()`. Responses return `WorkdayResponse` objects containing parsed data, which are iterable for automatic pagination across multiple result pages.
+
+## Authentication Methods
+1. **AnonymousAuthentication** – No credentials required
+2. **WsSecurityCredentialAuthentication** – Username/password via WS-Security
+3. **WsSecurityCertificateAuthentication** – X509 certificates only
+4. **WsSecurityCertificateCredentialAuthentication** – &quot;Recommended by Workday&quot;; combines X509 certificates with signed credentials
+
+## Example Usage
+```python
+import workday
+from workday.auth import WsSecurityCredentialAuthentication
+
+client = workday.WorkdayClient(
+    wsdls={&#x27;talent&#x27;: &#x27;https://workday.com/tenant/434$sd.xml&#x27;},
+    authentication=WsSecurityCredentialAuthentication(&#x27;user@tenant&#x27;, &#x27;password&#x27;)
+)
+
+print(client.talent.Get_Languages().data)
+```
+
+## Maintenance Status
+**Not actively maintained.** The package was last updated June 27, 2018 (six years ago). Development status is marked as &quot;Production/Stable,&quot; but there have been no releases or updates since 2018. The maintainer is Anthony Shaw.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-28-43-444Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-28-43-444Z" class="timestamp-link"><time datetime="2025-12-27T01:28:43.444Z" data-timestamp="2025-12-27T01:28:43.444Z">2025-12-27T01:28:43.444Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Excellent! Now let me check what sandbox access requirements are and what's needed to actually test this.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-28-48-455Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-28-48-455Z" class="timestamp-link"><time datetime="2025-12-27T01:28:48.455Z" data-timestamp="2025-12-27T01:28:48.455Z">2025-12-27T01:28:48.455Z</time></a></div><div class="message-content">
+<div class="todo-list" data-tool-id="toolu_01VEFmvoZTiRbdUzeDh1SEq6"><div class="todo-header"><span class="todo-header-icon">☰</span> Task List</div><ul class="todo-items"><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Research Workday API authentication methods (OAuth, ISU)</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Identify grants-related SOAP/REST endpoints</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Document data models for grants, awards, budgets</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Understand rate limits and constraints</span></li><li class="todo-item todo-in-progress"><span class="todo-icon">→</span><span class="todo-content">Assess what requires customer access vs public docs</span></li><li class="todo-item todo-pending"><span class="todo-icon">○</span><span class="todo-content">Summarize technical feasibility</span></li></ul></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-28-48-486Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-28-48-486Z" class="timestamp-link"><time datetime="2025-12-27T01:28:48.486Z" data-timestamp="2025-12-27T01:28:48.486Z">2025-12-27T01:28:48.486Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-28-52-499Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-28-52-499Z" class="timestamp-link"><time datetime="2025-12-27T01:28:52.499Z" data-timestamp="2025-12-27T01:28:52.499Z">2025-12-27T01:28:52.499Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Let me search for sandbox access requirements.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-28-52-994Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-28-52-994Z" class="timestamp-link"><time datetime="2025-12-27T01:28:52.994Z" data-timestamp="2025-12-27T01:28:52.994Z">2025-12-27T01:28:52.994Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01ERd2xdfM8Nk1JQcnnh95Jv"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Workday API sandbox access developer testing tenant requirements&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-31-03-423Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-31-03-423Z" class="timestamp-link"><time datetime="2025-12-27T01:31:03.423Z" data-timestamp="2025-12-27T01:31:03.423Z">2025-12-27T01:31:03.423Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Workday API sandbox access developer testing tenant requirements&quot;
+
+Links: [{&quot;title&quot;:&quot;Your Guide to Navigating the Workday Sandbox - Surety Systems&quot;,&quot;url&quot;:&quot;https://www.suretysystems.com/insights/your-guide-to-navigating-the-workday-sandbox/&quot;},{&quot;title&quot;:&quot;Workday Proxy Request ticket updated to include Sandbox Tenant | Modernization | Washington State University&quot;,&quot;url&quot;:&quot;https://modernization.wsu.edu/2024/08/02/workday-proxy-request-ticket-updated-to-include-sandbox-tenant/&quot;},{&quot;title&quot;:&quot;Workday Tenant Overview: Key Features and Capabilities - Surety Systems&quot;,&quot;url&quot;:&quot;https://www.suretysystems.com/insights/workday-tenant-overview-key-features-capabilities/&quot;},{&quot;title&quot;:&quot;Datasheet Workday Tenants.&quot;,&quot;url&quot;:&quot;https://www.workday.com/content/dam/web/en-us/documents/datasheets/workday-tenants-datasheet.pdf&quot;},{&quot;title&quot;:&quot;Workday API Integration Guide (In-Depth)&quot;,&quot;url&quot;:&quot;https://www.getknit.dev/blog/workday-api-integration-in-depth&quot;},{&quot;title&quot;:&quot;I am looking for Workday GMS Tenant access? | Sulekha Tech Pulse&quot;,&quot;url&quot;:&quot;https://techjobs.sulekha.com/techpulse/i-am-looking-for-workday-gms-tenant-access_20783&quot;},{&quot;title&quot;:&quot;Workday Developer API Tutorial&quot;,&quot;url&quot;:&quot;https://cloudfoundation.com/blog/workday-developer-api-tutorial/&quot;},{&quot;title&quot;:&quot;Workday Tenant Access – Home&quot;,&quot;url&quot;:&quot;https://workdaytenantaccess.org/&quot;},{&quot;title&quot;:&quot;Workday Tenant - Workday Trainings&quot;,&quot;url&quot;:&quot;https://workdaytrainings.com/workday-tenant/&quot;},{&quot;title&quot;:&quot;Testing Tips Workday 30 | Workday Testing Advice | Kainos WorkSmart&quot;,&quot;url&quot;:&quot;https://www.kainos.com/insights/blogs/6-tips-for-testing-workday-30&quot;}]
+
+Based on the search results, here&#x27;s what I found about Workday API sandbox access and developer testing tenant requirements:
+
+## Workday Sandbox Tenant Overview
+
+A Workday sandbox tenant is designed to help administrators and consultants in any Workday environment develop and test new features, customizations, and configurations before implementing them into the main production tenant.(no content)Data located in the Workday sandbox tenant is typically a copy of the data in the actual production tenant. By making copies of critical data to use in the sandbox tenant, users can test new functions while maintaining data integrity for the data already in production.
+
+## Access Requirements
+
+In order to use Workday Developer API, one of its prerequisites is access to an active Workday tenant – either as a sandbox tenant or production tenant.(no content)Workday provides sandbox environments to its customers for development and testing. If you&#x27;re a software vendor (not a Workday customer), you typically need a partnership agreement with Workday to get access.(no content)Individuals seeking access to the Workday Sandbox tenant may do so by submitting a request using the Workday Tenant Access Request ticket. This request should be used to request access for testing or Proxy for all non-production Workday environments, including Preview, WSU9, and Sandbox.
+
+## Types of Tenants for Testing
+
+Customers are typically provisioned multiple tenants during deployment including GMS tenant (demo data), Prototype tenant, Full dataload tenant, Testing tenant, and Gold tenant. The GMS tenant is a services tenant with fictitious test data for Workday implementation partners to create demos, test upgrades, and try configurations.(no content)The sandbox preview receives new feature updates ahead of the production tenant. It is also refreshed twice per year. This allows customers to see what&#x27;s coming, test new features and verify integrations before those updates go live.
+
+## Key Limitations
+
+It&#x27;s important to note that sandbox tenants aren&#x27;t allowed to be used as implementation or learning tenants.
+
+## Authentication &amp; API Access
+
+Workday API securely authenticates users via OAuth 2.0 protocol for safe access to data and services.(no content)Integration System User (ISU) provides username and password for a dedicated system account, which is easier to manage for non-sensitive integrations. OAuth 2.0 uses modern authentication with tokens, is more secure, supports SSO, and enforces least-privilege access. OAuth 2.0 is recommended for most cases, especially customer-facing integrations.
+
+## Moving to Production
+
+Once your integration has been thoroughly tested in the sandbox, the next step is moving it to the production environment. You need to replace all sandbox details with production values, including updating the URLs to point to your production Workday tenant and switching the ISU credentials to ones created for production use.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-31-06-940Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-31-06-940Z" class="timestamp-link"><time datetime="2025-12-27T01:31:06.940Z" data-timestamp="2025-12-27T01:31:06.940Z">2025-12-27T01:31:06.940Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I now have comprehensive information. Let me compile the final feasibility summary.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-31-12-468Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-31-12-468Z" class="timestamp-link"><time datetime="2025-12-27T01:31:12.468Z" data-timestamp="2025-12-27T01:31:12.468Z">2025-12-27T01:31:12.468Z</time></a></div><div class="message-content">
+<div class="todo-list" data-tool-id="toolu_01LeJ7WLoWekRQDJU4abmBuZ"><div class="todo-header"><span class="todo-header-icon">☰</span> Task List</div><ul class="todo-items"><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Research Workday API authentication methods (OAuth, ISU)</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Identify grants-related SOAP/REST endpoints</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Document data models for grants, awards, budgets</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Understand rate limits and constraints</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Assess what requires customer access vs public docs</span></li><li class="todo-item todo-in-progress"><span class="todo-icon">→</span><span class="todo-content">Summarize technical feasibility</span></li></ul></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-31-12-492Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-31-12-492Z" class="timestamp-link"><time datetime="2025-12-27T01:31:12.492Z" data-timestamp="2025-12-27T01:31:12.492Z">2025-12-27T01:31:12.492Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-31-18-142Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-31-18-142Z" class="timestamp-link"><time datetime="2025-12-27T01:31:18.142Z" data-timestamp="2025-12-27T01:31:18.142Z">2025-12-27T01:31:18.142Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Now let me provide a comprehensive feasibility summary to the user.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-32-32-752Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-32-32-752Z" class="timestamp-link"><time datetime="2025-12-27T01:32:32.752Z" data-timestamp="2025-12-27T01:32:32.752Z">2025-12-27T01:32:32.752Z</time></a></div><div class="message-content">
+<div class="assistant-text"><hr />
+<h2>Workday API Technical Feasibility Report</h2>
+<h3>Executive Summary</h3>
+<p><strong>Verdict: Technically Feasible</strong></p>
+<p>Building an open-source Workday grants library is achievable. The APIs exist, grants endpoints are documented, Python tooling exists (though dated), and the authentication is standard OAuth/WS-Security. The main constraint is <strong>you need access to a Workday tenant</strong> to develop and test.</p>
+<hr />
+<h3>1. Authentication ✅</h3>
+<p>Two supported methods, both well-documented:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Use Case</th>
+<th>Complexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>WS-Security</strong></td>
+<td>SOAP API (grants data)</td>
+<td>Medium - username/password tokens</td>
+</tr>
+<tr>
+<td><strong>OAuth 2.0</strong></td>
+<td>REST API, WQL queries</td>
+<td>Medium - standard OAuth flow</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Setup requires:</strong>
+1. Integration System User (ISU) created in Workday
+2. API Client registered (for OAuth)
+3. Appropriate security group permissions</p>
+<p>Source: <a href="https://upptalk.com/integration-service-workday-rest-api-authentication/">Upptalk guide</a>, <a href="https://www.getknit.dev/blog/workday-api-integration-in-depth">Knit guide</a></p>
+<hr />
+<h3>2. Grants Endpoints ✅</h3>
+<p><strong>Confirmed: Grants-specific operations exist in the Financial Management SOAP API (v45.1)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Get_Grants</code></td>
+<td>Retrieve grants with full details</td>
+</tr>
+<tr>
+<td><code>Get_Basic_Grants</code></td>
+<td>Retrieve grants as worktag values (ID, name, status)</td>
+</tr>
+<tr>
+<td><code>Put_Grant</code></td>
+<td>Create/update grants</td>
+</tr>
+<tr>
+<td><code>Get_Grant_Hierarchies</code></td>
+<td>Get grant hierarchy relationships</td>
+</tr>
+<tr>
+<td><code>Get_Proposal_Grants</code></td>
+<td>Get proposal grants</td>
+</tr>
+<tr>
+<td><code>Get_Award_Personnel_Responsibilities</code></td>
+<td>Get personnel assigned to awards</td>
+</tr>
+<tr>
+<td><code>Get_Budget_Structures</code></td>
+<td>Budget plan structures</td>
+</tr>
+<tr>
+<td><code>Get_Basic_Projects</code></td>
+<td>Projects as worktags</td>
+</tr>
+</tbody>
+</table>
+<p>Source: <a href="https://community.workday.com/sites/default/files/file-hosting/productionapi/Financial_Management/v45.1/Financial_Management.html">Financial Management WSDL</a></p>
+<p><strong>The data you need is there.</strong> Grants, awards, budgets, personnel responsibilities, projects—all exposed via SOAP.</p>
+<hr />
+<h3>3. Python Tooling ✅ (with caveats)</h3>
+<p><strong>Existing options:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Library</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://pypi.org/project/workday/"><code>workday</code></a></td>
+<td>Abandoned (2018)</td>
+<td>Good architecture, needs updating</td>
+</tr>
+<tr>
+<td><a href="https://docs.python-zeep.org/"><code>zeep</code></a></td>
+<td>Active</td>
+<td>Modern SOAP client, works with Workday</td>
+</tr>
+<tr>
+<td><a href="https://pypi.org/project/suds-jurko/"><code>suds-jurko</code></a></td>
+<td>Maintained</td>
+<td>Alternative SOAP client</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Working example</strong> from <a href="https://matthewdavis111.com/python/query-workday-api-python/">Matthew Davis</a>:</p>
+<pre><code class="language-python">from zeep import Client
+from zeep.wsse.username import UsernameToken
+
+wsdl = 'https://wd5.workday.com/ccx/service/tenant/Human_Resources/v36.2?wsdl'
+client = Client(wsdl, wsse=UsernameToken('user@tenant', 'password'))
+
+# Query workers
+result = client.service.Get_Workers()
+</code></pre>
+<p><strong>What you'd build:</strong>
+- Modern Python package (3.10+, type hints)
+- Grants-focused API (not generic Workday)
+- Clean interface hiding SOAP complexity
+- Async support for better performance</p>
+<hr />
+<h3>4. Rate Limits ⚠️</h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>General SOAP/REST</td>
+<td>~10 requests/second (unofficial)</td>
+</tr>
+<tr>
+<td>Strategic Sourcing API</td>
+<td>5 requests/second (documented)</td>
+</tr>
+<tr>
+<td>Response size</td>
+<td>1 million instances max</td>
+</tr>
+<tr>
+<td>Attachments</td>
+<td>30MB per attachment</td>
+</tr>
+</tbody>
+</table>
+<p>Source: <a href="https://www.getknit.dev/blog/workday-api-integration-in-depth">Knit guide</a>, <a href="https://apidocs.workdayspend.com/services/projects/v1.html">Workday Strategic Sourcing docs</a></p>
+<p><strong>Mitigation:</strong> Build in retry logic, pagination handling, and request queuing. Not a blocker.</p>
+<hr />
+<h3>5. Access Requirements ⚠️</h3>
+<p><strong>This is the main constraint.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>How to Get It</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Workday tenant access</td>
+<td>You need to be at an institution with Workday</td>
+</tr>
+<tr>
+<td>Sandbox environment</td>
+<td>Request from WashU IT/Workday admin</td>
+</tr>
+<tr>
+<td>ISU account</td>
+<td>Created by Workday admin</td>
+</tr>
+<tr>
+<td>API permissions</td>
+<td>Granted via security groups</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Good news:</strong> As a WashU PI, you're at an institution with Workday. You'd need to:
+1. Request sandbox access from WashU IT
+2. Get an ISU created with grants permissions
+3. Register an API client for OAuth</p>
+<p>This is a conversation with IT, not a technical blocker.</p>
+<hr />
+<h3>6. Public vs. Customer-Only Documentation</h3>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Access</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WSDL/XSD files</td>
+<td><strong>Public</strong> - <a href="https://community.workday.com/sites/default/files/file-hosting/productionapi/index.html">WWS Directory</a></td>
+</tr>
+<tr>
+<td>Operation list</td>
+<td><strong>Public</strong> - all endpoints documented</td>
+</tr>
+<tr>
+<td>Detailed field schemas</td>
+<td><strong>Customer</strong> - need to download WSDL</td>
+</tr>
+<tr>
+<td>Workday Community forums</td>
+<td><strong>Customer</strong> - login required</td>
+</tr>
+<tr>
+<td>Example implementations</td>
+<td><strong>Public</strong> - GitHub, blogs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Bottom line:</strong> You can see what operations exist publicly. The detailed request/response schemas require downloading the WSDL (which is public) and parsing it locally.</p>
+<hr />
+<h3>Technical Architecture</h3>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│                   workday-grants                         │
+│              (Your open-source library)                  │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐      │
+│  │   Auth      │  │   Grants    │  │   Models    │      │
+│  │  (OAuth,    │  │  (Get,Put,  │  │  (Grant,    │      │
+│  │  WS-Sec)    │  │   Query)    │  │   Award,    │      │
+│  └──────┬──────┘  └──────┬──────┘  │   Budget)   │      │
+│         │                │         └─────────────┘      │
+│         └────────┬───────┘                              │
+│                  ▼                                       │
+│         ┌─────────────────┐                             │
+│         │   SOAP Client   │                             │
+│         │    (zeep)       │                             │
+│         └────────┬────────┘                             │
+│                  │                                       │
+└──────────────────┼───────────────────────────────────────┘
+                   │
+                   ▼
+          ┌─────────────────┐
+          │ Workday SOAP API │
+          │ (Financial Mgmt) │
+          └─────────────────┘
+</code></pre>
+<hr />
+<h3>What You'd Build (Phase 1)</h3>
+<pre><code class="language-python"># Simple, clean interface for PIs
+from workday_grants import GrantsClient
+
+client = GrantsClient(
+    tenant=&quot;washu&quot;,
+    username=&quot;integration_user&quot;,
+    password=&quot;...&quot;
+)
+
+# List all grants for the authenticated user
+grants = client.grants.list()
+
+# Get specific grant details
+r01 = client.grants.get(&quot;GR12345&quot;)
+print(r01.balance)
+print(r01.burn_rate)
+print(r01.personnel)
+
+# Query by PI
+my_grants = client.grants.where(pi=&quot;Scott Handley&quot;)
+</code></pre>
+<hr />
+<h3>Next Steps</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Action</th>
+<th>Difficulty</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Request sandbox access from WashU IT</td>
+<td>Easy (email/ticket)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Download Financial Management WSDL</td>
+<td>Easy (public URL)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Parse WSDL to understand Grant object schema</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Build minimal client with <code>zeep</code></td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Test <code>Get_Grants</code> against sandbox</td>
+<td>Easy once access granted</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Iterate on data model based on real responses</td>
+<td>Medium</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Feasibility Verdict</h3>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Grants API exists</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>Public documentation</td>
+<td>✅ Sufficient</td>
+</tr>
+<tr>
+<td>Python tooling</td>
+<td>✅ Zeep works</td>
+</tr>
+<tr>
+<td>Authentication</td>
+<td>✅ Standard OAuth/WS-Security</td>
+</tr>
+<tr>
+<td>Rate limits</td>
+<td>⚠️ Manageable with care</td>
+</tr>
+<tr>
+<td>Sandbox access</td>
+<td>⚠️ Requires IT request</td>
+</tr>
+<tr>
+<td>Build complexity</td>
+<td>Medium - 2-4 weeks for core</td>
+</tr>
+</tbody>
+</table>
+<p><strong>This is buildable.</strong> The main action item is getting sandbox access from WashU to start experimenting.</p>
+<hr /></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-33-05-940Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-33-05-940Z" class="timestamp-link"><time datetime="2025-12-27T01:33:05.940Z" data-timestamp="2025-12-27T01:33:05.940Z">2025-12-27T01:33:05.940Z</time></a></div><div class="message-content">
+<div class="todo-list" data-tool-id="toolu_01HsTEm8mWsvDFM8TUputE7E"><div class="todo-header"><span class="todo-header-icon">☰</span> Task List</div><ul class="todo-items"><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Research Workday API authentication methods (OAuth, ISU)</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Identify grants-related SOAP/REST endpoints</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Document data models for grants, awards, budgets</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Understand rate limits and constraints</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Assess what requires customer access vs public docs</span></li><li class="todo-item todo-completed"><span class="todo-icon">✓</span><span class="todo-content">Summarize technical feasibility</span></li></ul></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-27T01-33-05-973Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-27T01-33-05-973Z" class="timestamp-link"><time datetime="2025-12-27T01:33:05.973Z" data-timestamp="2025-12-27T01:33:05.973Z">2025-12-27T01:33:05.973Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Todos have been modified successfully. Ensure that you continue to use the todo list to track your progress. Please proceed with the current tasks if applicable</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-33-09-586Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-33-09-586Z" class="timestamp-link"><time datetime="2025-12-27T01:33:09.586Z" data-timestamp="2025-12-27T01:33:09.586Z">2025-12-27T01:33:09.586Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I've completed my research. Let me summarize for the user what they should do next.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-27T01-33-10-865Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-27T01-33-10-865Z" class="timestamp-link"><time datetime="2025-12-27T01:33:10.865Z" data-timestamp="2025-12-27T01:33:10.865Z">2025-12-27T01:33:10.865Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Want me to:
+1. Draft an email to WashU IT requesting sandbox access?
+2. Download and parse the Financial Management WSDL to document the exact Grant object schema?
+3. Scaffold the initial Python package structure?</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-002.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<span class="current">3</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

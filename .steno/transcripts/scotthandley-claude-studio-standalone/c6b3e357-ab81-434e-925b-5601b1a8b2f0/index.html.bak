@@ -1,0 +1,2341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - Index</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h1>Claude Code transcript</h1>
+            <div id="search-box">
+                <input type="text" id="search-input" placeholder="Search..." aria-label="Search transcripts">
+                <button id="search-btn" type="button" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                </button>
+            </div>
+        </div>
+        
+
+<div class="pagination">
+<span class="current">Index</span>
+<span class="disabled">&larr; Prev</span>
+<a href="page-001.html">1</a>
+<a href="page-001.html">Next &rarr;</a>
+</div>
+
+        <p style="color: var(--text-muted); margin-bottom: 24px;">3 prompts · 9 messages · 0 tool calls · 0 commits · 1 pages</p>
+        
+<div class="index-item"><a href="page-001.html#msg-2025-11-30T00-35-53-440Z"><div class="index-item-header"><span class="index-item-number">#1</span><time datetime="2025-11-30T00:35:53.440Z" data-timestamp="2025-11-30T00:35:53.440Z">2025-11-30T00:35:53.440Z</time></div><div class="index-item-content"><p>Please suggest appropriate data analysis for this dataset:</p>
+<p>Data: patient_data.csv
+Shape: 30 rows × 9 columns</p>
+<p>Columns:
+- patient_id (string)
+- age (int)
+- gender (string)
+- treatment (string)
+- blood_pressure_systolic (int)
+- blood_pressure_diastolic (int)
+- cholesterol (int)
+- outcome (string)
+- follow_up_days (int)</p>
+<p>Preview (first 10 rows):
+patient_id | age | gender | treatment | blood_pressure_systolic | blood_pressure_diastolic | cholesterol | outcome | follow_up_days
+--- | --- | --- | --- | --- | --- | --- | --- | ---
+P001 | 45 | Female | DrugA | 120 | 80 | 180 | Improved | 90
+P002 | 52 | Male | DrugA | 135 | 85 | 220 | Improved | 90
+P003 | 38 | Female | DrugB | 118 | 78 | 175 | NoChange | 90
+P004 | 61 | Male | Placebo | 145 | 92 | 240 | NoChange | 90
+P005 | 49 | Female | DrugA | 128 | 82 | 195 | Improved | 90
+P006 | 55 | Male | DrugB | 142 | 88 | 210 | Improved | 90
+P007 | 43 | Female | Placebo | 122 | 79 | 185 | NoChange | 90
+P008 | 58 | Male | DrugA | 138 | 86 | 225 | Improved | 90
+P009 | 41 | Female | DrugB | 115 | 76 | 170 | Improved | 90
+P010 | 64 | Male | Placebo | 152 | 95 | 255 | Worsened | 90</p>
+<p>Provide:
+1. Initial exploratory data analysis steps
+2. Appropriate statistical tests based on the data types
+3. Visualization recommendations
+4. Data quality checks to perform
+5. Potential insights to investigate</p>
+<p>Consider the data types, missing values, and overall structure in your recommendations.</p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Based on this clinical trial dataset, here's a comprehensive data analysis plan:</p>
+<h2>1. Initial Exploratory Data Analysis</h2>
+<p><strong>Descriptive Statistics:</strong>
+- Calculate summary statistics (mean, median, SD, min, max) for all numerical variables
+- Generate frequency tables for categorical variables (gender, treatment, outcome)
+- Check treatment group balance (should be ~10 patients per group)
+- Examine baseline characteristics by treatment group</p>
+<p><strong>Key Questions:</strong>
+- Are baseline characteristics (age, gender, blood pressure, cholesterol) balanced across treatment groups?
+- What's the distribution of outcomes in each treatment group?
+- Any patterns in follow-up duration?</p>
+<h2>2. Appropriate Statistical Tests</h2>
+<p><strong>Primary Analysis:</strong>
+- <strong>Chi-square test</strong> or <strong>Fisher's exact test</strong>: Compare outcome frequencies across treatment groups (DrugA vs DrugB vs Placebo)
+- <strong>One-way ANOVA</strong>: Compare continuous variables (age, BP, cholesterol) across treatment groups
+- <strong>Post-hoc tests</strong>: If ANOVA significant, use Tukey HSD to identify which groups differ</p>
+<p><strong>Secondary Analyses:</strong>
+- <strong>Logistic regression</strong>: Model outcome (binary: Improved vs Not Improved) with treatment as predictor, controlling for age, gender, baseline BP, and cholesterol
+- <strong>Pearson correlation</strong>: Examine relationships between continuous variables
+- <strong>t-tests</strong>: Gender differences in baseline characteristics</p>
+<h2>3. Visualization Recommendations</h2>
+<p><strong>Treatment Comparison:</strong>
+- <strong>Stacked bar chart</strong>: Outcome distribution by treatment group
+- <strong>Box plots</strong>: Blood pressure and cholesterol distributions by treatment group
+- <strong>Grouped bar chart</strong>: Outcome counts by treatment and gender</p>
+<p><strong>Baseline Characteristics:</strong>
+- <strong>Histograms</strong>: Age, systolic/diastolic BP, cholesterol distributions
+- <strong>Scatter plots</strong>: Systolic vs diastolic BP, age vs cholesterol
+- <strong>Heatmap</strong>: Correlation matrix of numerical variables</p>
+<p><strong>Clinical Insights:</strong>
+- <strong>Scatter plot with color coding</strong>: Cholesterol vs BP colored by outcome
+- <strong>Violin plots</strong>: Show distribution density for continuous variables by treatment</p>
+<h2>4. Data Quality Checks</h2>
+<p><strong>Missing Values:</strong>
+- Check for any missing/null values in all columns
+- Verify no missing follow-up data</p>
+<p><strong>Data Integrity:</strong>
+- Confirm patient_id uniqueness (should be 30 unique values)
+- Validate blood pressure ranges (systolic &gt; diastolic)
+- Check for outliers in continuous variables
+- Verify follow_up_days consistency (all appear to be 90)</p>
+<p><strong>Categorical Validation:</strong>
+- Confirm gender values are only Male/Female
+- Verify treatment values are only DrugA/DrugB/Placebo
+- Check outcome categories are consistent</p>
+<p><strong>Range Checks:</strong>
+- Age: reasonable range (typically 18-100)
+- BP: physiologically valid (systolic 90-200, diastolic 60-120)
+- Cholesterol: typical range (150-300 mg/dL)</p>
+<h2>5. Potential Insights to Investigate</h2>
+<p><strong>Treatment Efficacy:</strong>
+- Is either drug superior to placebo?
+- Is DrugA more effective than DrugB?
+- What percentage improved in each group?</p>
+<p><strong>Baseline Predictors:</strong>
+- Do patients with higher baseline cholesterol respond better to treatment?
+- Does age affect treatment response?
+- Are there gender differences in outcomes?</p>
+<p><strong>Safety Signals:</strong>
+- Which treatment group(s) had "Worsened" outcomes?
+- Any correlation between extreme BP values and poor outcomes?</p>
+<p><strong>Subgroup Analysis:</strong>
+- Treatment effect by gender
+- Treatment effect by age groups (&lt;50 vs ≥50)
+- Treatment effect by baseline cholesterol levels (high vs normal)</p>
+<h2>Important Considerations</h2>
+<p>⚠️ <strong>Statistical Power</strong>: With only 30 patients (~10 per group), the study may be underpowered to detect small-to-moderate effects. Consider this when interpreting non-significant results.</p>
+<p>⚠️ <strong>Multiple Comparisons</strong>: If conducting multiple tests, consider adjusting p-values (Bonferroni correction) to control for Type I error.</p>
+<p>⚠️ <strong>Assumptions</strong>: Verify normality assumptions for parametric tests (Shapiro-Wilk test) and consider non-parametric alternatives if violated.</p>
+<p>Would you like me to help generate code for any of these analyses or visualizations?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-001.html#msg-2025-11-30T00-37-14-396Z"><div class="index-item-header"><span class="index-item-number">#2</span><time datetime="2025-11-30T00:37:14.396Z" data-timestamp="2025-11-30T00:37:14.396Z">2025-11-30T00:37:14.396Z</time></div><div class="index-item-content"><p>I have a dataset with the following structure:</p>
+<p><strong>Dataset</strong>: patient_data.csv
+<strong>Size</strong>: 30 rows × 9 columns</p>
+<p><strong>Variables</strong>:
+- patient_id: string
+- age: int
+- gender: string
+- treatment: string
+- blood_pressure_systolic: int
+- blood_pressure_diastolic: int
+- cholesterol: int
+- outcome: string
+- follow_up_days: int</p>
+<hr />
+<p>Based on this data structure, here are recommended statistical tests:</p>
+<h2>1. Descriptive Statistics (Exploratory)</h2>
+<p><strong>Description</strong>: Calculate mean, median, standard deviation, and quartiles for numeric variables</p>
+<p><strong>When to use</strong>: Initial exploration of numeric data distribution</p>
+<p><strong>Assumptions</strong>:
+- Data should be measured on an interval or ratio scale</p>
+<p><strong>R Code</strong>:</p>
+<pre><code class="language-r"># Descriptive statistics in R
+summary(df$age)
+sd(df$age, na.rm = TRUE)
+
+# For all numeric variables
+library(psych)
+describe(df[, c(&quot;age&quot;, &quot;blood_pressure_systolic&quot;, &quot;blood_pressure_diastolic&quot;, &quot;cholesterol&quot;, &quot;follow_up_days&quot;)])
+</code></pre>
+<p><strong>Python Code</strong>:</p>
+<pre><code class="language-python"># Descriptive statistics in Python
+import pandas as pd
+
+df['age'].describe()
+
+# For all numeric variables
+df[['age', 'blood_pressure_systolic', 'blood_pressure_diastolic', 'cholesterol', 'follow_up_days']].describe()
+</code></pre>
+<hr />
+<h2>2. Normality Tests (Assumption Testing)</h2>
+<p><strong>Description</strong>: Test if numeric variables follow a normal distribution (Shapiro-Wilk, Kolmogorov-Smirnov)</p>
+<p><strong>When to use</strong>: Before using parametric tests that assume normality</p>
+<p><strong>Assumptions</strong>:
+- Sample size should be appropriate (Shapiro-Wilk: n &lt; 5000)</p>
+<p><strong>R Code</strong>:</p>
+<pre><code class="language-r"># Shapiro-Wilk test in R
+shapiro.test(df$age)
+
+# Visual check
+hist(df$age)
+qqnorm(df$age)
+qqline(df$age)
+</code></pre>
+<p><strong>Python Code</strong>:</p>
+<pre><code class="language-python"># Shapiro-Wilk test in Python
+from scipy import stats
+import matplotlib.pyplot as plt
+
+stats.shapiro(df['age'].dropna())
+
+# Visual check
+plt.hist(df['age'].dropna())
+stats.probplot(df['age'].dropna(), dist=&quot;norm&quot;, plot=plt)
+plt.show()
+</code></pre>
+<hr />
+<h2>3. Correlation Analysis (Association)</h2>
+<p><strong>Description</strong>: Measure linear relationship between two numeric variables (Pearson) or monotonic relationship (Spearman)</p>
+<p><strong>When to use</strong>: Exploring relationships between continuous variables</p>
+<p><strong>Assumptions</strong>:
+- Pearson: Linear relationship, both variables normally distributed, no outliers
+- Spearman: Monotonic relationship (no normality assumption needed)</p>
+<p><strong>R Code</strong>:</p>
+<pre><code class="language-r"># Correlation in R
+# Pearson correlation
+cor.test(df$age, df$blood_pressure_systolic, method = &quot;pearson&quot;)
+
+# Spearman correlation (non-parametric)
+cor.test(df$age, df$blood_pressure_systolic, method = &quot;spearman&quot;)
+
+# Visualization
+plot(df$age, df$blood_pressure_systolic)
+</code></pre>
+<p><strong>Python Code</strong>:</p>
+<pre><code class="language-python"># Correlation in Python
+from scipy import stats
+
+# Pearson correlation
+stats.pearsonr(df['age'].dropna(),
+               df['blood_pressure_systolic'].dropna())
+
+# Spearman correlation
+stats.spearmanr(df['age'].dropna(),
+                df['blood_pressure_systolic'].dropna())
+
+# Visualization
+df.plot.scatter(x='age', y='blood_pressure_systolic')
+</code></pre>
+<hr />
+<h2>4. Independent Samples t-test (Group Comparison)</h2>
+<p><strong>Description</strong>: Compare means of a numeric variable between two groups</p>
+<p><strong>When to use</strong>: Comparing a continuous outcome between two independent groups</p>
+<p><strong>Assumptions</strong>:
+- Independent observations
+- Numeric variable is normally distributed in each group
+- Equal variances (homogeneity)
+- For unequal variances, use Welch's t-test</p>
+<p><strong>R Code</strong>:</p>
+<pre><code class="language-r"># t-test in R
+# Assuming patient_id has 2 groups
+t.test(age ~ patient_id, data = df)
+
+# Welch's t-test (unequal variances)
+t.test(age ~ patient_id, data = df, var.equal = FALSE)
+
+# Mann-Whitney U (non-parametric alternative)
+wilcox.test(age ~ patient_id, data = df)
+</code></pre>
+<p><strong>Python Code</strong>:</p>
+<pre><code class="language-python"># t-test in Python
+from scipy import stats
+
+group1 = df[df['patient_id'] == 'group1']['age']
+group2 = df[df['patient_id'] == 'group2']['age']
+
+# Independent t-test
+stats.ttest_ind(group1, group2)
+
+# Mann-Whitney U (non-parametric)
+stats.mannwhitneyu(group1, group2)
+</code></pre>
+<hr />
+<h2>5. One-Way ANOVA (Group Comparison)</h2>
+<p><strong>Description</strong>: Compare means of a numeric variable across 3+ groups</p>
+<p><strong>When to use</strong>: Comparing a continuous outcome across multiple independent groups</p>
+<p><strong>Assumptions</strong>:
+- Independent observations
+- Numeric variable is normally distributed in each group
+- Equal variances across groups (homogeneity)
+- For violations, use Kruskal-Wallis test</p>
+<p><strong>R Code</strong>:</p>
+<pre><code class="language-r"># ANOVA in R
+model &lt;- aov(age ~ patient_id, data = df)
+summary(model)
+
+# Post-hoc test if significant
+TukeyHSD(model)
+
+# Kruskal-Wallis (non-parametric alternative)
+kruskal.test(age ~ patient_id, data = df)
+</code></pre>
+<p><strong>Python Code</strong>:</p>
+<pre><code class="language-python"># ANOVA in Python
+from scipy import stats
+
+# Create groups
+groups = [group['age'].values
+          for name, group in df.groupby('patient_id')]
+
+# One-way ANOVA
+stats.f_oneway(*groups)
+
+# Kruskal-Wallis (non-parametric)
+stats.kruskal(*groups)
+</code></pre>
+<hr />
+<h2>6. Chi-Square Test of Independence (Association)</h2>
+<p><strong>Description</strong>: Test association between two categorical variables</p>
+<p><strong>When to use</strong>: Examining if two categorical variables are independent</p>
+<p><strong>Assumptions</strong>:
+- Independent observations
+- Expected frequency ≥ 5 in at least 80% of cells
+- For small samples, use Fisher's exact test</p>
+<p><strong>R Code</strong>:</p>
+<pre><code class="language-r"># Chi-square test in R
+table &lt;- table(df$patient_id, df$gender)
+chisq.test(table)
+
+# Fisher's exact test (for small samples)
+fisher.test(table)
+</code></pre>
+<p><strong>Python Code</strong>:</p>
+<pre><code class="language-python"># Chi-square test in Python
+from scipy import stats
+import pandas as pd
+
+contingency_table = pd.crosstab(df['patient_id'],
+                                 df['gender'])
+stats.chi2_contingency(contingency_table)
+
+# Fisher's exact test
+stats.fisher_exact(contingency_table)
+</code></pre>
+<hr />
+<h2>7. Multiple Linear Regression (Prediction)</h2>
+<p><strong>Description</strong>: Model relationship between one outcome variable and multiple predictor variables</p>
+<p><strong>When to use</strong>: Predicting a continuous outcome from multiple predictors</p>
+<p><strong>Assumptions</strong>:
+- Linear relationship between predictors and outcome
+- Independence of observations
+- Homoscedasticity (constant variance of residuals)
+- Normality of residuals
+- No multicollinearity among predictors</p>
+<p><strong>R Code</strong>:</p>
+<pre><code class="language-r"># Multiple regression in R
+model &lt;- lm(age ~ blood_pressure_systolic + blood_pressure_diastolic, data = df)
+summary(model)
+
+# Check assumptions
+plot(model)
+
+# Check multicollinearity
+library(car)
+vif(model)
+</code></pre>
+<p><strong>Python Code</strong>:</p>
+<pre><code class="language-python"># Multiple regression in Python
+import statsmodels.api as sm
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+X = df[['blood_pressure_systolic', 'blood_pressure_diastolic']]
+y = df['age']
+
+X = sm.add_constant(X)
+model = sm.OLS(y, X).fit()
+print(model.summary())
+
+# Check multicollinearity (VIF)
+vif_data = pd.DataFrame()
+vif_data[&quot;feature&quot;] = X.columns
+vif_data[&quot;VIF&quot;] = [variance_inflation_factor(X.values, i) for i in range(len(X.columns))]
+print(vif_data)
+</code></pre>
+<hr />
+<p>Please help me:
+1. Refine these recommendations based on the specific variables in my dataset
+2. Suggest which tests are most appropriate for my research questions
+3. Provide guidance on checking assumptions before running these tests
+4. Recommend any additional exploratory visualizations I should create</p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>I'll help you refine these statistical recommendations specifically for your clinical trial dataset. Let me provide targeted guidance based on your actual research context.</p>
+<h2>Refined Analysis Plan for Your Patient Data</h2>
+<h3>Primary Research Question</h3>
+<p><strong>"Does treatment (DrugA, DrugB, Placebo) affect patient outcomes?"</strong></p>
+<h3>1. Most Appropriate Statistical Tests for Your Dataset</h3>
+<h4><strong>PRIMARY ANALYSIS</strong></h4>
+<p><strong>Chi-Square Test: Treatment × Outcome</strong></p>
+<pre><code class="language-r"># R - Main analysis
+table(df$treatment, df$outcome)
+chisq.test(df$treatment, df$outcome)
+
+# If expected frequencies &lt; 5, use Fisher's exact test
+fisher.test(df$treatment, df$outcome)
+</code></pre>
+<pre><code class="language-python"># Python - Main analysis
+import pandas as pd
+from scipy import stats
+
+contingency = pd.crosstab(df['treatment'], df['outcome'])
+print(contingency)
+stats.chi2_contingency(contingency)
+</code></pre>
+<p><strong>Why</strong>: This directly tests if treatment group is associated with outcome (Improved/NoChange/Worsened)</p>
+<p><strong>⚠️ Important</strong>: With 30 patients across 3 treatments and 3 outcomes (9 cells), you may have expected frequencies &lt; 5. <strong>Use Fisher's exact test instead</strong>.</p>
+<hr />
+<h4><strong>SECONDARY ANALYSES</strong></h4>
+<p><strong>1. One-Way ANOVA: Treatment × Continuous Variables</strong></p>
+<p>Test if treatment groups had balanced baseline characteristics:</p>
+<pre><code class="language-r"># Check baseline balance
+aov_age &lt;- aov(age ~ treatment, data = df)
+summary(aov_age)
+
+aov_systolic &lt;- aov(blood_pressure_systolic ~ treatment, data = df)
+summary(aov_systolic)
+
+aov_cholesterol &lt;- aov(cholesterol ~ treatment, data = df)
+summary(aov_cholesterol)
+</code></pre>
+<pre><code class="language-python"># Python version
+from scipy import stats
+
+# Age across treatment groups
+groups = [group['age'].values for name, group in df.groupby('treatment')]
+stats.f_oneway(*groups)
+
+# Systolic BP
+groups = [group['blood_pressure_systolic'].values for name, group in df.groupby('treatment')]
+stats.f_oneway(*groups)
+</code></pre>
+<p><strong>Why</strong>: Ensures randomization worked and groups are comparable at baseline.</p>
+<p><strong>2. Logistic Regression: Outcome Prediction</strong></p>
+<pre><code class="language-r"># R - Binary outcome (Improved vs Not Improved)
+df$improved &lt;- ifelse(df$outcome == &quot;Improved&quot;, 1, 0)
+
+model &lt;- glm(improved ~ treatment + age + gender + blood_pressure_systolic + cholesterol,
+             data = df, family = binomial)
+summary(model)
+
+# Get odds ratios
+exp(coef(model))
+exp(confint(model))
+</code></pre>
+<pre><code class="language-python"># Python - Binary outcome
+import statsmodels.api as sm
+
+# Create binary outcome
+df['improved'] = (df['outcome'] == 'Improved').astype(int)
+
+# Create dummy variables for categorical predictors
+X = pd.get_dummies(df[['treatment', 'gender']], drop_first=True)
+X = pd.concat([X, df[['age', 'blood_pressure_systolic', 'cholesterol']]], axis=1)
+X = sm.add_constant(X)
+
+y = df['improved']
+
+model = sm.Logit(y, X).fit()
+print(model.summary())
+
+# Odds ratios
+import numpy as np
+print(np.exp(model.params))
+</code></pre>
+<p><strong>Why</strong>: Controls for confounders and provides adjusted treatment effect estimates.</p>
+<hr />
+<h3>2. Pre-Analysis Assumption Checks</h3>
+<p><strong>Before running ANY tests, complete these steps:</strong></p>
+<h4><strong>Step 1: Data Quality Checks</strong></h4>
+<pre><code class="language-r"># R - Comprehensive data check
+# Check for missing values
+sapply(df, function(x) sum(is.na(x)))
+
+# Check unique patient IDs (should be 30)
+length(unique(df$patient_id))
+
+# Verify BP logic (systolic &gt; diastolic)
+sum(df$blood_pressure_systolic &lt;= df$blood_pressure_diastolic)
+
+# Check treatment group sizes
+table(df$treatment)
+
+# Check outcome distribution
+table(df$outcome)
+table(df$treatment, df$outcome)
+</code></pre>
+<pre><code class="language-python"># Python - Data quality
+# Missing values
+print(df.isnull().sum())
+
+# Unique patients
+print(df['patient_id'].nunique())
+
+# BP validation
+print((df['blood_pressure_systolic'] &lt;= df['blood_pressure_diastolic']).sum())
+
+# Group sizes
+print(df['treatment'].value_counts())
+
+# Outcome distribution
+print(pd.crosstab(df['treatment'], df['outcome']))
+</code></pre>
+<h4><strong>Step 2: Normality Testing (for ANOVA)</strong></h4>
+<pre><code class="language-r"># R - Test normality for each numeric variable by group
+library(dplyr)
+
+# Shapiro-Wilk test for age by treatment
+df %&gt;% group_by(treatment) %&gt;%
+  summarise(
+    n = n(),
+    shapiro_p = shapiro.test(age)$p.value
+  )
+
+# Visual check with Q-Q plots
+par(mfrow=c(1,3))
+for(trt in unique(df$treatment)) {
+  qqnorm(df$age[df$treatment == trt], main = trt)
+  qqline(df$age[df$treatment == trt])
+}
+</code></pre>
+<pre><code class="language-python"># Python - Normality tests
+from scipy import stats
+import matplotlib.pyplot as plt
+
+# Shapiro-Wilk by treatment group
+for treatment in df['treatment'].unique():
+    group_data = df[df['treatment'] == treatment]['age']
+    stat, p = stats.shapiro(group_data)
+    print(f&quot;{treatment}: Shapiro p-value = {p:.4f}&quot;)
+
+# Q-Q plots
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+for idx, treatment in enumerate(df['treatment'].unique()):
+    group_data = df[df['treatment'] == treatment]['age']
+    stats.probplot(group_data, dist=&quot;norm&quot;, plot=axes[idx])
+    axes[idx].set_title(f'{treatment}')
+plt.show()
+</code></pre>
+<p><strong>Decision Rule</strong>: If p &lt; 0.05 in Shapiro-Wilk test, data is non-normal → use Kruskal-Wallis instead of ANOVA.</p>
+<h4><strong>Step 3: Homogeneity of Variance (for ANOVA)</strong></h4>
+<pre><code class="language-r"># R - Levene's test
+library(car)
+leveneTest(age ~ treatment, data = df)
+leveneTest(blood_pressure_systolic ~ treatment, data = df)
+</code></pre>
+<pre><code class="language-python"># Python - Levene's test
+from scipy import stats
+
+groups = [group['age'].values for name, group in df.groupby('treatment')]
+stats.levene(*groups)
+</code></pre>
+<p><strong>Decision Rule</strong>: If p &lt; 0.05, variances are unequal → use Welch's ANOVA or Kruskal-Wallis.</p>
+<h4><strong>Step 4: Expected Frequencies (for Chi-Square)</strong></h4>
+<pre><code class="language-r"># R - Check expected frequencies
+expected &lt;- chisq.test(table(df$treatment, df$outcome))$expected
+print(expected)
+
+# Count cells with expected &lt; 5
+sum(expected &lt; 5)
+</code></pre>
+<pre><code class="language-python"># Python - Expected frequencies
+contingency = pd.crosstab(df['treatment'], df['outcome'])
+chi2, p, dof, expected = stats.chi2_contingency(contingency)
+print(pd.DataFrame(expected))
+print(f&quot;Cells with expected &lt; 5: {(expected &lt; 5).sum()}&quot;)
+</code></pre>
+<p><strong>Decision Rule</strong>: If &gt;20% of cells have expected frequency &lt; 5, use Fisher's exact test.</p>
+<hr />
+<h3>3. Essential Exploratory Visualizations</h3>
+<h4><strong>Visualization 1: Outcome by Treatment (Main Result)</strong></h4>
+<pre><code class="language-r"># R - Stacked bar chart
+library(ggplot2)
+
+ggplot(df, aes(x = treatment, fill = outcome)) +
+  geom_bar(position = &quot;fill&quot;) +
+  labs(title = &quot;Outcome Proportions by Treatment Group&quot;,
+       y = &quot;Proportion&quot;, x = &quot;Treatment&quot;) +
+  scale_y_continuous(labels = scales::percent) +
+  theme_minimal()
+
+# Alternative: Side-by-side bars with counts
+ggplot(df, aes(x = treatment, fill = outcome)) +
+  geom_bar(position = &quot;dodge&quot;) +
+  labs(title = &quot;Outcome Counts by Treatment Group&quot;,
+       y = &quot;Count&quot;, x = &quot;Treatment&quot;) +
+  theme_minimal()
+</code></pre>
+<pre><code class="language-python"># Python - Stacked bar chart
+import matplotlib.pyplot as plt
+
+contingency = pd.crosstab(df['treatment'], df['outcome'], normalize='index')
+contingency.plot(kind='bar', stacked=True, figsize=(10, 6))
+plt.title('Outcome Proportions by Treatment Group')
+plt.ylabel('Proportion')
+plt.xlabel('Treatment')
+plt.legend(title='Outcome')
+plt.xticks(rotation=0)
+plt.show()
+
+# Alternative: Side-by-side bars
+pd.crosstab(df['treatment'], df['outcome']).plot(kind='bar', figsize=(10, 6))
+plt.title('Outcome Counts by Treatment Group')
+plt.ylabel('Count')
+plt.show()
+</code></pre>
+<hr />
+<h4><strong>Visualization 2: Baseline Characteristics by Treatment</strong></h4>
+<pre><code class="language-r"># R - Box plots for continuous variables
+library(gridExtra)
+
+p1 &lt;- ggplot(df, aes(x = treatment, y = age, fill = treatment)) +
+  geom_boxplot() + theme_minimal() + theme(legend.position = &quot;none&quot;)
+
+p2 &lt;- ggplot(df, aes(x = treatment, y = blood_pressure_systolic, fill = treatment)) +
+  geom_boxplot() + theme_minimal() + theme(legend.position = &quot;none&quot;)
+
+p3 &lt;- ggplot(df, aes(x = treatment, y = cholesterol, fill = treatment)) +
+  geom_boxplot() + theme_minimal() + theme(legend.position = &quot;none&quot;)
+
+grid.arrange(p1, p2, p3, ncol = 3)
+</code></pre>
+<pre><code class="language-python"># Python - Box plots
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+
+df.boxplot(column='age', by='treatment', ax=axes[0])
+axes[0].set_title('Age by Treatment')
+axes[0].set_xlabel('Treatment')
+
+df.boxplot(column='blood_pressure_systolic', by='treatment', ax=axes[1])
+axes[1].set_title('Systolic BP by Treatment')
+axes[1].set_xlabel('Treatment')
+
+df.boxplot(column='cholesterol', by='treatment', ax=axes[2])
+axes[2].set_title('Cholesterol by Treatment')
+axes[2].set_xlabel('Treatment')
+
+plt.suptitle('')
+plt.tight_layout()
+plt.show()
+</code></pre>
+<hr />
+<h4><strong>Visualization 3: Correlation Heatmap</strong></h4>
+<pre><code class="language-r"># R - Correlation matrix
+library(corrplot)
+
+numeric_vars &lt;- df[, c(&quot;age&quot;, &quot;blood_pressure_systolic&quot;,
+                       &quot;blood_pressure_diastolic&quot;, &quot;cholesterol&quot;)]
+cor_matrix &lt;- cor(numeric_vars, use = &quot;complete.obs&quot;)
+
+corrplot(cor_matrix, method = &quot;color&quot;, type = &quot;upper&quot;,
+         addCoef.col = &quot;black&quot;, tl.col = &quot;black&quot;, tl.srt = 45)
+</code></pre>
+<pre><code class="language-python"># Python - Correlation heatmap
+import seaborn as sns
+
+numeric_cols = ['age', 'blood_pressure_systolic',
+                'blood_pressure_diastolic', 'cholesterol']
+corr = df[numeric_cols].corr()
+
+plt.figure(figsize=(8, 6))
+sns.heatmap(corr, annot=True, cmap='coolwarm', center=0,
+            square=True, linewidths=1)
+plt.title('Correlation Matrix of Continuous Variables')
+plt.show()
+</code></pre>
+<hr />
+<h4><strong>Visualization 4: Outcome by Baseline Risk Factors</strong></h4>
+<pre><code class="language-r"># R - Scatter plots with outcome colors
+library(ggplot2)
+
+ggplot(df, aes(x = blood_pressure_systolic, y = cholesterol, color = outcome)) +
+  geom_point(size = 3) +
+  facet_wrap(~treatment) +
+  labs(title = &quot;Baseline Risk Factors by Treatment and Outcome&quot;) +
+  theme_minimal()
+</code></pre>
+<pre><code class="language-python"># Python - Scatter plots with faceting
+import seaborn as sns
+
+g = sns.FacetGrid(df, col='treatment', hue='outcome', height=4, aspect=1)
+g.map(plt.scatter, 'blood_pressure_systolic', 'cholesterol', alpha=0.7, s=50)
+g.add_legend()
+g.fig.suptitle('Baseline Risk Factors by Treatment and Outcome', y=1.02)
+plt.show()
+</code></pre>
+<hr />
+<h3>4. Recommended Analysis Workflow</h3>
+<p><strong>Step-by-Step Process:</strong></p>
+<ol>
+<li><strong>Data Quality</strong> (5 minutes)</li>
+<li>Run all checks from Step 1 above</li>
+<li>
+<p>Fix any issues before proceeding</p>
+</li>
+<li>
+<p><strong>Exploratory Visualizations</strong> (10 minutes)</p>
+</li>
+<li>Create all 4 visualizations above</li>
+<li>
+<p>Identify outliers, patterns, imbalances</p>
+</li>
+<li>
+<p><strong>Assumption Testing</strong> (10 minutes)</p>
+</li>
+<li>Test normality for numeric variables (Step 2)</li>
+<li>Test homogeneity of variance (Step 3)</li>
+<li>
+<p>Check expected frequencies (Step 4)</p>
+</li>
+<li>
+<p><strong>Descriptive Statistics</strong> (5 minutes)
+   ```r
+   # R - Summary table
+   library(dplyr)</p>
+</li>
+</ol>
+<p>df %&gt;% group_by(treatment) %&gt;%
+     summarise(
+       n = n(),
+       mean_age = mean(age),
+       sd_age = sd(age),
+       mean_systolic = mean(blood_pressure_systolic),
+       mean_cholesterol = mean(cholesterol)
+     )</p>
+<p># Outcome frequencies
+   table(df$treatment, df$outcome)
+   prop.table(table(df$treatment, df$outcome), margin = 1)
+   ```</p>
+<ol>
+<li><strong>Primary Analysis</strong> (5 minutes)</li>
+<li>Fisher's exact test: treatment × outcome</li>
+<li>
+<p>Report effect size (Cramér's V)</p>
+</li>
+<li>
+<p><strong>Secondary Analyses</strong> (15 minutes)</p>
+</li>
+<li>ANOVA/Kruskal-Wallis: baseline balance</li>
+<li>Logistic regression: adjusted treatment effect</li>
+<li>Subgroup analyses if warranted</li>
+</ol>
+<hr />
+<h3>5. Critical Considerations for Your Dataset</h3>
+<p><strong>⚠️ Small Sample Size (n=30)</strong>
+- <strong>Power</strong>: ~10 patients per group limits ability to detect effects
+- <strong>Interpretation</strong>: Non-significant results may be due to low power, not lack of effect
+- <strong>Solution</strong>: Report effect sizes and confidence intervals, not just p-values</p>
+<p><strong>⚠️ Multiple Outcomes</strong>
+- You have 3 outcome categories (Improved, NoChange, Worsened)
+- <strong>Consider</strong>: Collapsing to binary (Improved vs Not Improved) for simpler interpretation
+- <strong>Alternative</strong>: Ordinal logistic regression if outcome is truly ordinal</p>
+<p><strong>⚠️ Multiple Comparisons</strong>
+- If testing multiple hypotheses, adjust p-values (Bonferroni: p &lt; 0.05/k)
+- <strong>Best practice</strong>: Pre-specify ONE primary analysis, treat others as exploratory</p>
+<hr />
+<h3>6. Tests from Your List That DON'T Apply</h3>
+<p><strong>❌ NOT Recommended:</strong></p>
+<ol>
+<li><strong>Independent t-test</strong>: You have 3 treatment groups, not 2</li>
+<li>
+<p>Use ANOVA instead (or compare pairs with post-hoc tests)</p>
+</li>
+<li>
+<p><strong>Multiple linear regression with age as outcome</strong>: Age is a baseline characteristic, not an outcome</p>
+</li>
+<li>
+<p>Use logistic regression with outcome as dependent variable</p>
+</li>
+<li>
+<p><strong>Correlation between patient_id and other variables</strong>: Patient ID is a unique identifier</p>
+</li>
+<li>Correlation doesn't make sense here</li>
+</ol>
+<hr />
+<h3>Summary: Your Core Analysis</h3>
+<p><strong>Most Important Tests:</strong>
+1. ✅ <strong>Fisher's exact test</strong>: treatment × outcome (PRIMARY)
+2. ✅ <strong>One-way ANOVA</strong>: Check baseline balance (age, BP, cholesterol across treatments)
+3. ✅ <strong>Logistic regression</strong>: Adjusted treatment effect controlling for confounders
+4. ✅ <strong>Descriptive statistics</strong>: Mean, SD, frequencies for all variables by treatment</p>
+<p><strong>Most Important Visualizations:</strong>
+1. ✅ Stacked bar chart: Outcome proportions by treatment
+2. ✅ Box plots: Baseline variables by treatment
+3. ✅ Correlation heatmap: Relationships between continuous variables
+4. ✅ Scatter plots: Risk factors by outcome and treatment</p>
+<p>Would you like me to help you generate a complete analysis script in R or Python that implements this full workflow?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-001.html#msg-2025-11-30T00-45-28-890Z"><div class="index-item-header"><span class="index-item-number">#3</span><time datetime="2025-11-30T00:45:28.890Z" data-timestamp="2025-11-30T00:45:28.890Z">2025-11-30T00:45:28.890Z</time></div><div class="index-item-content"><p>I have a dataset and need help creating visualizations:</p>
+<p><strong>Dataset</strong>: patient_data.csv
+<strong>Size</strong>: 30 rows × 9 columns</p>
+<p><strong>Variables</strong>:
+- patient_id: string
+- age: int
+- gender: string
+- treatment: string
+- blood_pressure_systolic: int
+- blood_pressure_diastolic: int
+- cholesterol: int
+- outcome: string
+- follow_up_days: int</p>
+<hr />
+<p>Here are recommended visualizations with code:</p>
+<h2>1. Histogram: Distribution of age</h2>
+<p><strong>When to use</strong>: Visualizing the distribution of a single numeric variable</p>
+<p><strong>Best practices</strong>:
+- Choose appropriate bin width (experiment with bins parameter)
+- Add density curve for better interpretation
+- Use meaningful axis labels
+- Consider log scale if data is skewed</p>
+<p><strong>R (ggplot2)</strong>:</p>
+<pre><code class="language-r"># Histogram: age
+library(ggplot2)
+
+ggplot(df, aes(x = age)) +
+  geom_histogram(bins = 30, fill = &quot;steelblue&quot;, color = &quot;white&quot;, alpha = 0.7) +
+  geom_density(aes(y = after_stat(count)), color = &quot;darkred&quot;, linewidth = 1) +
+  labs(
+    title = &quot;Distribution of age&quot;,
+    x = &quot;age&quot;,
+    y = &quot;Frequency&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = &quot;bold&quot;),
+    axis.title = element_text(size = 12)
+  )
+
+# Save the plot
+ggsave(&quot;histogram_age.png&quot;, width = 8, height = 6, dpi = 300)
+</code></pre>
+<p><strong>Python (matplotlib/seaborn)</strong>:</p>
+<pre><code class="language-python"># Histogram: age
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(10, 6))
+sns.histplot(data=df, x='age', bins=30, kde=True, color='steelblue')
+plt.title('Distribution of age', fontsize=14, fontweight='bold')
+plt.xlabel('age', fontsize=12)
+plt.ylabel('Frequency', fontsize=12)
+plt.grid(axis='y', alpha=0.3)
+plt.tight_layout()
+
+# Save the plot
+plt.savefig('histogram_age.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<h2>2. Histogram: Distribution of blood_pressure_systolic</h2>
+<p><strong>When to use</strong>: Visualizing the distribution of a single numeric variable</p>
+<p><strong>Best practices</strong>:
+- Choose appropriate bin width (experiment with bins parameter)
+- Add density curve for better interpretation
+- Use meaningful axis labels
+- Consider log scale if data is skewed</p>
+<p><strong>R (ggplot2)</strong>:</p>
+<pre><code class="language-r"># Histogram: blood_pressure_systolic
+library(ggplot2)
+
+ggplot(df, aes(x = blood_pressure_systolic)) +
+  geom_histogram(bins = 30, fill = &quot;steelblue&quot;, color = &quot;white&quot;, alpha = 0.7) +
+  geom_density(aes(y = after_stat(count)), color = &quot;darkred&quot;, linewidth = 1) +
+  labs(
+    title = &quot;Distribution of blood_pressure_systolic&quot;,
+    x = &quot;blood_pressure_systolic&quot;,
+    y = &quot;Frequency&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = &quot;bold&quot;),
+    axis.title = element_text(size = 12)
+  )
+
+# Save the plot
+ggsave(&quot;histogram_blood_pressure_systolic.png&quot;, width = 8, height = 6, dpi = 300)
+</code></pre>
+<p><strong>Python (matplotlib/seaborn)</strong>:</p>
+<pre><code class="language-python"># Histogram: blood_pressure_systolic
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.figure(figsize=(10, 6))
+sns.histplot(data=df, x='blood_pressure_systolic', bins=30, kde=True, color='steelblue')
+plt.title('Distribution of blood_pressure_systolic', fontsize=14, fontweight='bold')
+plt.xlabel('blood_pressure_systolic', fontsize=12)
+plt.ylabel('Frequency', fontsize=12)
+plt.grid(axis='y', alpha=0.3)
+plt.tight_layout()
+
+# Save the plot
+plt.savefig('histogram_blood_pressure_systolic.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<h2>3. Scatter Plot: Relationship between age and blood_pressure_systolic</h2>
+<p><strong>When to use</strong>: Exploring relationships between two continuous variables</p>
+<p><strong>Best practices</strong>:
+- Add regression line to show trend
+- Use transparency if many overlapping points
+- Consider adding confidence intervals
+- Label outliers if present</p>
+<p><strong>R (ggplot2)</strong>:</p>
+<pre><code class="language-r"># Scatter Plot: age vs blood_pressure_systolic
+library(ggplot2)
+
+ggplot(df, aes(x = age, y = blood_pressure_systolic)) +
+  geom_point(alpha = 0.6, size = 2, color = &quot;steelblue&quot;) +
+  geom_smooth(method = &quot;lm&quot;, se = TRUE, color = &quot;darkred&quot;, fill = &quot;pink&quot;) +
+  labs(
+    title = &quot;blood_pressure_systolic vs age&quot;,
+    x = &quot;age&quot;,
+    y = &quot;blood_pressure_systolic&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = &quot;bold&quot;),
+    axis.title = element_text(size = 12)
+  )
+
+# Add correlation coefficient
+cor_value &lt;- cor(df$age, df$blood_pressure_systolic, use = &quot;complete.obs&quot;)
+cat(sprintf(&quot;Correlation: r = %.3f\n&quot;, cor_value))
+
+# Save the plot
+ggsave(&quot;scatter_age_blood_pressure_systolic.png&quot;, width = 8, height = 6, dpi = 300)
+</code></pre>
+<p><strong>Python (matplotlib/seaborn)</strong>:</p>
+<pre><code class="language-python"># Scatter Plot: age vs blood_pressure_systolic
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=df, x='age', y='blood_pressure_systolic', alpha=0.6, s=50)
+sns.regplot(data=df, x='age', y='blood_pressure_systolic',
+            scatter=False, color='darkred')
+
+plt.title('blood_pressure_systolic vs age', fontsize=14, fontweight='bold')
+plt.xlabel('age', fontsize=12)
+plt.ylabel('blood_pressure_systolic', fontsize=12)
+plt.grid(alpha=0.3)
+
+# Add correlation coefficient
+r, p = stats.pearsonr(df['age'].dropna(), df['blood_pressure_systolic'].dropna())
+plt.text(0.05, 0.95, f'r = {r:.3f}, p = {p:.3e}',
+         transform=plt.gca().transAxes, fontsize=10,
+         verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
+plt.tight_layout()
+plt.savefig('scatter_age_blood_pressure_systolic.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<h2>4. Box Plot: age across different patient_id groups</h2>
+<p><strong>When to use</strong>: Comparing distributions of a numeric variable across categorical groups</p>
+<p><strong>Best practices</strong>:
+- Show individual points if sample size is small
+- Use violin plots for better distribution visualization
+- Order groups meaningfully (e.g., by median)
+- Highlight significant differences</p>
+<p><strong>R (ggplot2)</strong>:</p>
+<pre><code class="language-r"># Box Plot: age by patient_id
+library(ggplot2)
+
+ggplot(df, aes(x = patient_id, y = age, fill = patient_id)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = 16) +
+  geom_jitter(width = 0.2, alpha = 0.3, size = 1) +
+  labs(
+    title = &quot;age by patient_id&quot;,
+    x = &quot;patient_id&quot;,
+    y = &quot;age&quot;
+  ) +
+  scale_fill_brewer(palette = &quot;Set2&quot;) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = &quot;bold&quot;),
+    axis.title = element_text(size = 12),
+    legend.position = &quot;none&quot;
+  )
+
+# Statistical test (ANOVA if 3+ groups, t-test if 2 groups)
+groups &lt;- unique(df$patient_id)
+if (length(groups) == 2) {
+  test_result &lt;- t.test(age ~ patient_id, data = df)
+  print(test_result)
+} else if (length(groups) &gt; 2) {
+  test_result &lt;- aov(age ~ patient_id, data = df)
+  print(summary(test_result))
+}
+
+# Save the plot
+ggsave(&quot;boxplot_age_by_patient_id.png&quot;, width = 8, height = 6, dpi = 300)
+</code></pre>
+<p><strong>Python (matplotlib/seaborn)</strong>:</p>
+<pre><code class="language-python"># Box Plot: age by patient_id
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+
+plt.figure(figsize=(10, 6))
+sns.boxplot(data=df, x='patient_id', y='age', palette='Set2')
+sns.stripplot(data=df, x='patient_id', y='age',
+              color='black', alpha=0.3, size=3)
+
+plt.title('age by patient_id', fontsize=14, fontweight='bold')
+plt.xlabel('patient_id', fontsize=12)
+plt.ylabel('age', fontsize=12)
+plt.grid(axis='y', alpha=0.3)
+plt.xticks(rotation=45, ha='right')
+
+# Statistical test
+groups = df.groupby('patient_id')['age'].apply(list)
+if len(groups) == 2:
+    t_stat, p_val = stats.ttest_ind(*groups.values)
+    print(f&quot;t-test: t={t_stat:.3f}, p={p_val:.3e}&quot;)
+elif len(groups) &gt; 2:
+    f_stat, p_val = stats.f_oneway(*groups.values)
+    print(f&quot;ANOVA: F={f_stat:.3f}, p={p_val:.3e}&quot;)
+
+plt.tight_layout()
+plt.savefig('boxplot_age_by_patient_id.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<h2>5. Bar Chart: Frequency distribution of patient_id</h2>
+<p><strong>When to use</strong>: Showing counts or frequencies of categorical variables</p>
+<p><strong>Best practices</strong>:
+- Order bars by frequency for easier interpretation
+- Use horizontal bars if category names are long
+- Add value labels on bars
+- Limit to top N categories if too many</p>
+<p><strong>R (ggplot2)</strong>:</p>
+<pre><code class="language-r"># Bar Chart: patient_id
+library(ggplot2)
+library(dplyr)
+
+# Create frequency table and order by count
+df_freq &lt;- df %&gt;%
+  count(patient_id) %&gt;%
+  arrange(desc(n))
+
+ggplot(df_freq, aes(x = reorder(patient_id, n), y = n, fill = patient_id)) +
+  geom_bar(stat = &quot;identity&quot;, alpha = 0.8) +
+  geom_text(aes(label = n), hjust = -0.2, size = 3.5) +
+  coord_flip() +
+  labs(
+    title = &quot;Distribution of patient_id&quot;,
+    x = &quot;patient_id&quot;,
+    y = &quot;Count&quot;
+  ) +
+  scale_fill_brewer(palette = &quot;Set3&quot;) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = &quot;bold&quot;),
+    axis.title = element_text(size = 12),
+    legend.position = &quot;none&quot;
+  )
+
+# Save the plot
+ggsave(&quot;barplot_patient_id.png&quot;, width = 8, height = 6, dpi = 300)
+</code></pre>
+<p><strong>Python (matplotlib/seaborn)</strong>:</p>
+<pre><code class="language-python"># Bar Chart: patient_id
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Create frequency table
+value_counts = df['patient_id'].value_counts().sort_values(ascending=True)
+
+plt.figure(figsize=(10, 6))
+ax = value_counts.plot(kind='barh', color=sns.color_palette('Set3', len(value_counts)))
+
+# Add value labels
+for i, v in enumerate(value_counts.values):
+    ax.text(v + 0.5, i, str(v), va='center', fontsize=10)
+
+plt.title('Distribution of patient_id', fontsize=14, fontweight='bold')
+plt.xlabel('Count', fontsize=12)
+plt.ylabel('patient_id', fontsize=12)
+plt.grid(axis='x', alpha=0.3)
+plt.tight_layout()
+
+plt.savefig('barplot_patient_id.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<h2>6. Correlation Heatmap: Correlation matrix for numeric variables</h2>
+<p><strong>When to use</strong>: Visualizing relationships among multiple numeric variables</p>
+<p><strong>Best practices</strong>:
+- Use diverging color palette centered at zero
+- Display correlation coefficients in cells
+- Order variables by hierarchical clustering
+- Consider only displaying lower triangle</p>
+<p><strong>R (ggplot2)</strong>:</p>
+<pre><code class="language-r"># Correlation Heatmap
+library(ggplot2)
+library(reshape2)
+
+# Select numeric variables and calculate correlation
+numeric_cols &lt;- c(&quot;age&quot;, &quot;blood_pressure_systolic&quot;, &quot;blood_pressure_diastolic&quot;, &quot;cholesterol&quot;, &quot;follow_up_days&quot;)
+cor_matrix &lt;- cor(df[, numeric_cols], use = &quot;complete.obs&quot;)
+
+# Reshape for ggplot
+cor_melted &lt;- melt(cor_matrix)
+
+ggplot(cor_melted, aes(Var1, Var2, fill = value)) +
+  geom_tile(color = &quot;white&quot;) +
+  geom_text(aes(label = sprintf(&quot;%.2f&quot;, value)), size = 3) +
+  scale_fill_gradient2(low = &quot;blue&quot;, mid = &quot;white&quot;, high = &quot;red&quot;,
+                       midpoint = 0, limit = c(-1, 1)) +
+  labs(
+    title = &quot;Correlation Heatmap&quot;,
+    x = &quot;&quot;,
+    y = &quot;&quot;,
+    fill = &quot;Correlation&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = &quot;bold&quot;),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid = element_blank()
+  )
+
+# Save the plot
+ggsave(&quot;heatmap_correlation.png&quot;, width = 8, height = 7, dpi = 300)
+</code></pre>
+<p><strong>Python (matplotlib/seaborn)</strong>:</p>
+<pre><code class="language-python"># Correlation Heatmap
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Select numeric variables and calculate correlation
+numeric_cols = ['age', 'blood_pressure_systolic', 'blood_pressure_diastolic', 'cholesterol', 'follow_up_days']
+cor_matrix = df[numeric_cols].corr()
+
+plt.figure(figsize=(10, 8))
+sns.heatmap(cor_matrix, annot=True, fmt='.2f', cmap='coolwarm',
+            center=0, square=True, linewidths=1,
+            cbar_kws={&quot;shrink&quot;: 0.8})
+
+plt.title('Correlation Heatmap', fontsize=14, fontweight='bold', pad=20)
+plt.xticks(rotation=45, ha='right')
+plt.yticks(rotation=0)
+plt.tight_layout()
+
+plt.savefig('heatmap_correlation.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<p>Please help me:
+1. Review these visualization recommendations and suggest improvements
+2. Recommend which visualizations are most important for my data
+3. Suggest any additional visualizations I should consider
+4. Provide guidance on making these publication-ready</p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>I'll provide a critical review of these visualization recommendations and suggest improvements specific to your clinical trial dataset.</p>
+<h2>Critical Issues with Current Recommendations</h2>
+<h3>❌ <strong>MAJOR PROBLEMS</strong></h3>
+<p><strong>1. Box Plot by patient_id - INCORRECT</strong>
+- Each patient_id is <strong>unique</strong> (30 different IDs for 30 patients)
+- This would create 30 boxes, each with only ONE data point
+- <strong>Completely meaningless</strong> for your data
+- <strong>Should be</strong>: Box plots by <strong>treatment</strong> or <strong>outcome</strong>, not patient_id</p>
+<p><strong>2. Bar Chart of patient_id - INCORRECT</strong>
+- Each patient appears exactly <strong>once</strong>
+- All bars would have height = 1
+- <strong>Waste of visualization space</strong>
+- <strong>Should be</strong>: Frequency of <strong>treatment</strong> or <strong>outcome</strong>, not patient_id</p>
+<p><strong>3. Histograms - QUESTIONABLE with n=30</strong>
+- With only 30 patients, histograms may look sparse
+- Better alternatives exist for small samples</p>
+<hr />
+<h2>Recommended Visualizations (Priority Order)</h2>
+<h3><strong>TIER 1: Essential for Clinical Trial Analysis</strong></h3>
+<h4><strong>1. Outcome by Treatment (PRIMARY ANALYSIS)</strong></h4>
+<p>This is your <strong>most important visualization</strong> - it directly answers your research question.</p>
+<p><strong>R (ggplot2)</strong>:</p>
+<pre><code class="language-r">library(ggplot2)
+library(dplyr)
+
+# Create frequency table
+outcome_summary &lt;- df %&gt;%
+  group_by(treatment, outcome) %&gt;%
+  summarise(count = n()) %&gt;%
+  group_by(treatment) %&gt;%
+  mutate(proportion = count / sum(count),
+         percentage = round(proportion * 100, 1))
+
+# Stacked bar chart with percentages
+p1 &lt;- ggplot(outcome_summary, aes(x = treatment, y = proportion, fill = outcome)) +
+  geom_bar(stat = &quot;identity&quot;, width = 0.7) +
+  geom_text(aes(label = paste0(count, &quot;\n(&quot;, percentage, &quot;%)&quot;)),
+            position = position_stack(vjust = 0.5),
+            size = 3.5, fontface = &quot;bold&quot;) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_fill_manual(values = c(&quot;Improved&quot; = &quot;#2ecc71&quot;,
+                                &quot;NoChange&quot; = &quot;#f39c12&quot;, 
+                                &quot;Worsened&quot; = &quot;#e74c3c&quot;)) +
+  labs(
+    title = &quot;Patient Outcomes by Treatment Group&quot;,
+    x = &quot;Treatment&quot;,
+    y = &quot;Proportion of Patients&quot;,
+    fill = &quot;Outcome&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = &quot;bold&quot;),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11),
+    legend.position = &quot;top&quot;,
+    legend.title = element_text(size = 12, face = &quot;bold&quot;),
+    legend.text = element_text(size = 11)
+  )
+
+print(p1)
+ggsave(&quot;outcome_by_treatment.png&quot;, width = 10, height = 7, dpi = 300)
+
+# Alternative: Side-by-side bars
+p2 &lt;- ggplot(outcome_summary, aes(x = treatment, y = count, fill = outcome)) +
+  geom_bar(stat = &quot;identity&quot;, position = &quot;dodge&quot;, width = 0.7) +
+  geom_text(aes(label = count), 
+            position = position_dodge(width = 0.7),
+            vjust = -0.5, size = 4) +
+  scale_fill_manual(values = c(&quot;Improved&quot; = &quot;#2ecc71&quot;,
+                                &quot;NoChange&quot; = &quot;#f39c12&quot;,
+                                &quot;Worsened&quot; = &quot;#e74c3c&quot;)) +
+  labs(
+    title = &quot;Patient Outcome Counts by Treatment Group&quot;,
+    x = &quot;Treatment&quot;,
+    y = &quot;Number of Patients&quot;,
+    fill = &quot;Outcome&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16, face = &quot;bold&quot;),
+    axis.title = element_text(size = 13),
+    legend.position = &quot;top&quot;
+  )
+
+print(p2)
+ggsave(&quot;outcome_by_treatment_counts.png&quot;, width = 10, height = 7, dpi = 300)
+</code></pre>
+<p><strong>Python (matplotlib/seaborn)</strong>:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+
+# Create frequency table
+outcome_summary = df.groupby(['treatment', 'outcome']).size().reset_index(name='count')
+outcome_pct = outcome_summary.groupby('treatment').apply(
+    lambda x: x.assign(percentage=(x['count'] / x['count'].sum() * 100).round(1))
+).reset_index(drop=True)
+
+# Stacked bar chart
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+# Stacked percentages
+pivot_pct = outcome_pct.pivot(index='treatment', columns='outcome', values='count')
+pivot_pct_norm = pivot_pct.div(pivot_pct.sum(axis=1), axis=0)
+
+colors = {'Improved': '#2ecc71', 'NoChange': '#f39c12', 'Worsened': '#e74c3c'}
+pivot_pct_norm.plot(kind='bar', stacked=True, ax=ax1, 
+                     color=[colors.get(x, '#333333') for x in pivot_pct_norm.columns],
+                     width=0.6)
+
+# Add count labels
+for treatment_idx, treatment in enumerate(pivot_pct.index):
+    y_offset = 0
+    for outcome in pivot_pct.columns:
+        if pd.notna(pivot_pct.loc[treatment, outcome]):
+            count = int(pivot_pct.loc[treatment, outcome])
+            pct = pivot_pct_norm.loc[treatment, outcome]
+            ax1.text(treatment_idx, y_offset + pct/2, 
+                    f'{count}\n({pct*100:.1f}%)',
+                    ha='center', va='center', fontsize=10, fontweight='bold')
+            y_offset += pct
+
+ax1.set_title('Patient Outcomes by Treatment Group (%)', 
+              fontsize=14, fontweight='bold', pad=15)
+ax1.set_xlabel('Treatment', fontsize=12)
+ax1.set_ylabel('Proportion of Patients', fontsize=12)
+ax1.set_ylim(0, 1)
+ax1.set_xticklabels(ax1.get_xticklabels(), rotation=0)
+ax1.legend(title='Outcome', title_fontsize=11, fontsize=10, loc='upper left')
+ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y*100)}%'))
+
+# Side-by-side counts
+pivot_pct.plot(kind='bar', ax=ax2, 
+               color=[colors.get(x, '#333333') for x in pivot_pct.columns],
+               width=0.7)
+
+# Add count labels
+for container in ax2.containers:
+    ax2.bar_label(container, fmt='%d', padding=3, fontsize=9)
+
+ax2.set_title('Patient Outcome Counts by Treatment Group', 
+              fontsize=14, fontweight='bold', pad=15)
+ax2.set_xlabel('Treatment', fontsize=12)
+ax2.set_ylabel('Number of Patients', fontsize=12)
+ax2.set_xticklabels(ax2.get_xticklabels(), rotation=0)
+ax2.legend(title='Outcome', title_fontsize=11, fontsize=10)
+
+plt.tight_layout()
+plt.savefig('outcome_by_treatment_combined.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<h4><strong>2. Baseline Characteristics by Treatment (BALANCE CHECK)</strong></h4>
+<p>Check if randomization worked - groups should be similar at baseline.</p>
+<p><strong>R (ggplot2)</strong>:</p>
+<pre><code class="language-r">library(ggplot2)
+library(gridExtra)
+
+# Age by treatment
+p_age &lt;- ggplot(df, aes(x = treatment, y = age, fill = treatment)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = 16) +
+  geom_jitter(width = 0.15, alpha = 0.4, size = 2) +
+  stat_summary(fun = mean, geom = &quot;point&quot;, shape = 23, 
+               size = 3, fill = &quot;red&quot;, color = &quot;darkred&quot;) +
+  scale_fill_brewer(palette = &quot;Set2&quot;) +
+  labs(title = &quot;Age by Treatment&quot;, x = &quot;Treatment&quot;, y = &quot;Age (years)&quot;) +
+  theme_minimal() +
+  theme(legend.position = &quot;none&quot;,
+        plot.title = element_text(hjust = 0.5, face = &quot;bold&quot;))
+
+# Systolic BP by treatment
+p_systolic &lt;- ggplot(df, aes(x = treatment, y = blood_pressure_systolic, fill = treatment)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = 16) +
+  geom_jitter(width = 0.15, alpha = 0.4, size = 2) +
+  stat_summary(fun = mean, geom = &quot;point&quot;, shape = 23,
+               size = 3, fill = &quot;red&quot;, color = &quot;darkred&quot;) +
+  scale_fill_brewer(palette = &quot;Set2&quot;) +
+  labs(title = &quot;Systolic BP by Treatment&quot;, 
+       x = &quot;Treatment&quot;, y = &quot;Systolic BP (mmHg)&quot;) +
+  theme_minimal() +
+  theme(legend.position = &quot;none&quot;,
+        plot.title = element_text(hjust = 0.5, face = &quot;bold&quot;))
+
+# Diastolic BP by treatment
+p_diastolic &lt;- ggplot(df, aes(x = treatment, y = blood_pressure_diastolic, fill = treatment)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = 16) +
+  geom_jitter(width = 0.15, alpha = 0.4, size = 2) +
+  stat_summary(fun = mean, geom = &quot;point&quot;, shape = 23,
+               size = 3, fill = &quot;red&quot;, color = &quot;darkred&quot;) +
+  scale_fill_brewer(palette = &quot;Set2&quot;) +
+  labs(title = &quot;Diastolic BP by Treatment&quot;,
+       x = &quot;Treatment&quot;, y = &quot;Diastolic BP (mmHg)&quot;) +
+  theme_minimal() +
+  theme(legend.position = &quot;none&quot;,
+        plot.title = element_text(hjust = 0.5, face = &quot;bold&quot;))
+
+# Cholesterol by treatment
+p_chol &lt;- ggplot(df, aes(x = treatment, y = cholesterol, fill = treatment)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = 16) +
+  geom_jitter(width = 0.15, alpha = 0.4, size = 2) +
+  stat_summary(fun = mean, geom = &quot;point&quot;, shape = 23,
+               size = 3, fill = &quot;red&quot;, color = &quot;darkred&quot;) +
+  scale_fill_brewer(palette = &quot;Set2&quot;) +
+  labs(title = &quot;Cholesterol by Treatment&quot;,
+       x = &quot;Treatment&quot;, y = &quot;Cholesterol (mg/dL)&quot;) +
+  theme_minimal() +
+  theme(legend.position = &quot;none&quot;,
+        plot.title = element_text(hjust = 0.5, face = &quot;bold&quot;))
+
+# Combine all plots
+combined &lt;- grid.arrange(p_age, p_systolic, p_diastolic, p_chol, ncol = 2,
+                        top = &quot;Baseline Characteristics by Treatment Group&quot;)
+
+ggsave(&quot;baseline_by_treatment.png&quot;, combined, width = 12, height = 10, dpi = 300)
+</code></pre>
+<p><strong>Python (matplotlib/seaborn)</strong>:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+import seaborn as sns
+
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+variables = [
+    ('age', 'Age (years)'),
+    ('blood_pressure_systolic', 'Systolic BP (mmHg)'),
+    ('blood_pressure_diastolic', 'Diastolic BP (mmHg)'),
+    ('cholesterol', 'Cholesterol (mg/dL)')
+]
+
+for idx, (var, label) in enumerate(variables):
+    ax = axes[idx // 2, idx % 2]
+
+    # Box plot
+    sns.boxplot(data=df, x='treatment', y=var, palette='Set2', ax=ax, width=0.5)
+
+    # Add jittered points
+    sns.stripplot(data=df, x='treatment', y=var, 
+                  color='black', alpha=0.4, size=4, ax=ax)
+
+    # Add mean marker (diamond)
+    means = df.groupby('treatment')[var].mean()
+    positions = range(len(means))
+    ax.scatter(positions, means, marker='D', s=100, 
+              color='red', edgecolors='darkred', linewidths=2, 
+              zorder=10, label='Mean')
+
+    ax.set_title(f'{label} by Treatment', fontsize=12, fontweight='bold')
+    ax.set_xlabel('Treatment', fontsize=11)
+    ax.set_ylabel(label, fontsize=11)
+    ax.grid(axis='y', alpha=0.3)
+
+    if idx == 0:
+        ax.legend(loc='upper right', fontsize=9)
+
+plt.suptitle('Baseline Characteristics by Treatment Group', 
+             fontsize=16, fontweight='bold', y=0.995)
+plt.tight_layout()
+plt.savefig('baseline_by_treatment.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<h4><strong>3. Gender Distribution by Treatment</strong></h4>
+<p><strong>R (ggplot2)</strong>:</p>
+<pre><code class="language-r">library(ggplot2)
+library(dplyr)
+
+# Gender by treatment
+gender_summary &lt;- df %&gt;%
+  group_by(treatment, gender) %&gt;%
+  summarise(count = n(), .groups = 'drop') %&gt;%
+  group_by(treatment) %&gt;%
+  mutate(percentage = round(count / sum(count) * 100, 1))
+
+ggplot(gender_summary, aes(x = treatment, y = count, fill = gender)) +
+  geom_bar(stat = &quot;identity&quot;, position = &quot;dodge&quot;, width = 0.7) +
+  geom_text(aes(label = paste0(count, &quot;\n(&quot;, percentage, &quot;%)&quot;)),
+            position = position_dodge(width = 0.7),
+            vjust = -0.3, size = 3.5) +
+  scale_fill_manual(values = c(&quot;Female&quot; = &quot;#e91e63&quot;, &quot;Male&quot; = &quot;#2196f3&quot;)) +
+  labs(
+    title = &quot;Gender Distribution by Treatment Group&quot;,
+    x = &quot;Treatment&quot;,
+    y = &quot;Number of Patients&quot;,
+    fill = &quot;Gender&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = &quot;bold&quot;),
+    axis.title = element_text(size = 12),
+    legend.position = &quot;top&quot;
+  )
+
+ggsave(&quot;gender_by_treatment.png&quot;, width = 9, height = 7, dpi = 300)
+</code></pre>
+<p><strong>Python</strong>:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+import pandas as pd
+
+gender_summary = df.groupby(['treatment', 'gender']).size().reset_index(name='count')
+gender_pct = gender_summary.groupby('treatment').apply(
+    lambda x: x.assign(percentage=(x['count'] / x['count'].sum() * 100).round(1))
+).reset_index(drop=True)
+
+pivot = gender_pct.pivot(index='treatment', columns='gender', values='count')
+
+fig, ax = plt.subplots(figsize=(10, 7))
+pivot.plot(kind='bar', ax=ax, color=['#e91e63', '#2196f3'], width=0.6)
+
+# Add labels
+for container in ax.containers:
+    ax.bar_label(container, fmt='%d', padding=3, fontsize=10)
+
+ax.set_title('Gender Distribution by Treatment Group', 
+             fontsize=14, fontweight='bold', pad=15)
+ax.set_xlabel('Treatment', fontsize=12)
+ax.set_ylabel('Number of Patients', fontsize=12)
+ax.set_xticklabels(ax.get_xticklabels(), rotation=0)
+ax.legend(title='Gender', title_fontsize=11)
+ax.grid(axis='y', alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('gender_by_treatment.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<h3><strong>TIER 2: Important for Understanding Treatment Effects</strong></h3>
+<h4><strong>4. Clinical Markers by Outcome and Treatment</strong></h4>
+<p>Shows if baseline characteristics predict outcomes.</p>
+<p><strong>R (ggplot2)</strong>:</p>
+<pre><code class="language-r">library(ggplot2)
+
+# Cholesterol vs Systolic BP, colored by outcome, faceted by treatment
+ggplot(df, aes(x = blood_pressure_systolic, y = cholesterol, color = outcome)) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = &quot;lm&quot;, se = FALSE, linetype = &quot;dashed&quot;, size = 0.8) +
+  facet_wrap(~ treatment, ncol = 3) +
+  scale_color_manual(values = c(&quot;Improved&quot; = &quot;#2ecc71&quot;,
+                                 &quot;NoChange&quot; = &quot;#f39c12&quot;,
+                                 &quot;Worsened&quot; = &quot;#e74c3c&quot;)) +
+  labs(
+    title = &quot;Baseline Risk Factors by Treatment and Outcome&quot;,
+    x = &quot;Systolic Blood Pressure (mmHg)&quot;,
+    y = &quot;Cholesterol (mg/dL)&quot;,
+    color = &quot;Outcome&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = &quot;bold&quot;),
+    axis.title = element_text(size = 11),
+    legend.position = &quot;top&quot;,
+    strip.text = element_text(size = 11, face = &quot;bold&quot;),
+    strip.background = element_rect(fill = &quot;lightgray&quot;, color = &quot;black&quot;)
+  )
+
+ggsave(&quot;clinical_markers_by_outcome_treatment.png&quot;, width = 14, height = 5, dpi = 300)
+</code></pre>
+<p><strong>Python</strong>:</p>
+<pre><code class="language-python">import seaborn as sns
+import matplotlib.pyplot as plt
+
+g = sns.FacetGrid(df, col='treatment', hue='outcome', 
+                  height=5, aspect=1.2, 
+                  palette={'Improved': '#2ecc71', 
+                          'NoChange': '#f39c12', 
+                          'Worsened': '#e74c3c'})
+
+g.map(plt.scatter, 'blood_pressure_systolic', 'cholesterol', 
+      alpha=0.7, s=80, edgecolor='black', linewidth=0.5)
+
+g.add_legend(title='Outcome', fontsize=10)
+g.set_axis_labels('Systolic Blood Pressure (mmHg)', 
+                   'Cholesterol (mg/dL)', fontsize=11)
+g.set_titles('{col_name}', size=12, weight='bold')
+g.fig.suptitle('Baseline Risk Factors by Treatment and Outcome', 
+               fontsize=14, fontweight='bold', y=1.02)
+
+plt.tight_layout()
+plt.savefig('clinical_markers_by_outcome_treatment.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<h4><strong>5. Correlation Heatmap (KEEP THIS ONE)</strong></h4>
+<p>The original correlation heatmap is good, but let me improve it:</p>
+<p><strong>R (Enhanced)</strong>:</p>
+<pre><code class="language-r">library(ggplot2)
+library(reshape2)
+library(corrplot)
+
+# Select numeric variables
+numeric_cols &lt;- c(&quot;age&quot;, &quot;blood_pressure_systolic&quot;, 
+                  &quot;blood_pressure_diastolic&quot;, &quot;cholesterol&quot;)
+cor_matrix &lt;- cor(df[, numeric_cols], use = &quot;complete.obs&quot;)
+
+# Option 1: Using corrplot (recommended)
+png(&quot;correlation_heatmap_corrplot.png&quot;, width = 2400, height = 2400, res = 300)
+corrplot(cor_matrix, method = &quot;color&quot;, type = &quot;upper&quot;,
+         addCoef.col = &quot;black&quot;, number.cex = 1,
+         tl.col = &quot;black&quot;, tl.srt = 45, tl.cex = 1.1,
+         col = colorRampPalette(c(&quot;#3498db&quot;, &quot;white&quot;, &quot;#e74c3c&quot;))(200),
+         title = &quot;Correlation Matrix of Clinical Variables&quot;,
+         mar = c(0, 0, 2, 0))
+dev.off()
+
+# Option 2: Using ggplot2
+cor_melted &lt;- melt(cor_matrix)
+
+ggplot(cor_melted, aes(Var1, Var2, fill = value)) +
+  geom_tile(color = &quot;white&quot;, linewidth = 1) +
+  geom_text(aes(label = sprintf(&quot;%.2f&quot;, value)), 
+            size = 4.5, fontface = &quot;bold&quot;) +
+  scale_fill_gradient2(low = &quot;#3498db&quot;, mid = &quot;white&quot;, high = &quot;#e74c3c&quot;,
+                       midpoint = 0, limit = c(-1, 1),
+                       name = &quot;Correlation&quot;) +
+  labs(title = &quot;Correlation Matrix of Clinical Variables&quot;,
+       x = &quot;&quot;, y = &quot;&quot;) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = &quot;bold&quot;),
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    panel.grid = element_blank(),
+    legend.position = &quot;right&quot;
+  ) +
+  coord_fixed()
+
+ggsave(&quot;correlation_heatmap_ggplot.png&quot;, width = 9, height = 8, dpi = 300)
+</code></pre>
+<p><strong>Python (Enhanced)</strong>:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+# Select numeric variables
+numeric_cols = ['age', 'blood_pressure_systolic', 
+                'blood_pressure_diastolic', 'cholesterol']
+cor_matrix = df[numeric_cols].corr()
+
+# Create mask for upper triangle
+mask = np.triu(np.ones_like(cor_matrix, dtype=bool))
+
+fig, ax = plt.subplots(figsize=(10, 8))
+
+# Draw heatmap
+sns.heatmap(cor_matrix, mask=mask, annot=True, fmt='.3f', 
+            cmap='coolwarm', center=0, 
+            square=True, linewidths=2, linecolor='white',
+            cbar_kws={&quot;shrink&quot;: 0.8, &quot;label&quot;: &quot;Correlation Coefficient&quot;},
+            vmin=-1, vmax=1, ax=ax,
+            annot_kws={&quot;size&quot;: 11, &quot;weight&quot;: &quot;bold&quot;})
+
+plt.title('Correlation Matrix of Clinical Variables', 
+          fontsize=14, fontweight='bold', pad=20)
+plt.xticks(rotation=45, ha='right', fontsize=11)
+plt.yticks(rotation=0, fontsize=11)
+plt.tight_layout()
+
+plt.savefig('correlation_heatmap.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<h3><strong>TIER 3: Additional Exploratory Visualizations</strong></h3>
+<h4><strong>6. Age Distribution with Improved Aesthetics</strong></h4>
+<p>For small sample sizes, violin plots or density plots work better than histograms.</p>
+<p><strong>R</strong>:</p>
+<pre><code class="language-r">library(ggplot2)
+
+# Violin plot with data points
+ggplot(df, aes(x = &quot;&quot;, y = age)) +
+  geom_violin(fill = &quot;steelblue&quot;, alpha = 0.5, trim = FALSE) +
+  geom_boxplot(width = 0.1, fill = &quot;white&quot;, alpha = 0.7) +
+  geom_jitter(width = 0.05, alpha = 0.5, size = 2.5, color = &quot;darkblue&quot;) +
+  stat_summary(fun = mean, geom = &quot;point&quot;, 
+               shape = 23, size = 4, fill = &quot;red&quot;, color = &quot;darkred&quot;) +
+  labs(
+    title = &quot;Distribution of Patient Age&quot;,
+    subtitle = paste0(&quot;n = &quot;, nrow(df), 
+                     &quot; | Mean = &quot;, round(mean(df$age, na.rm = TRUE), 1),
+                     &quot; | SD = &quot;, round(sd(df$age, na.rm = TRUE), 1)),
+    y = &quot;Age (years)&quot;,
+    x = &quot;&quot;
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = &quot;bold&quot;),
+    plot.subtitle = element_text(hjust = 0.5, size = 11),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_blank()
+  )
+
+ggsave(&quot;age_distribution_violin.png&quot;, width = 6, height = 8, dpi = 300)
+</code></pre>
+<p><strong>Python</strong>:</p>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+import seaborn as sns
+
+fig, ax = plt.subplots(figsize=(6, 8))
+
+# Violin plot
+parts = ax.violinplot([df['age'].dropna()], positions=[0], 
+                       showmeans=True, showmedians=True, widths=0.7)
+
+for pc in parts['bodies']:
+    pc.set_facecolor('steelblue')
+    pc.set_alpha(0.5)
+
+# Add jittered points
+jitter = np.random.normal(0, 0.04, size=len(df))
+ax.scatter(jitter, df['age'], alpha=0.5, s=50, color='darkblue')
+
+# Add mean marker
+mean_age = df['age'].mean()
+ax.scatter([0], [mean_age], marker='D', s=150, 
+          color='red', edgecolors='darkred', linewidths=2, 
+          zorder=10, label=f'Mean = {mean_age:.1f}')
+
+ax.set_ylabel('Age (years)', fontsize=12)
+ax.set_xticks([])
+ax.set_title(f'Distribution of Patient Age\n' +
+             f'n = {len(df)} | Mean = {df[&quot;age&quot;].mean():.1f} | SD = {df[&quot;age&quot;].std():.1f}',
+             fontsize=13, fontweight='bold', pad=15)
+ax.grid(axis='y', alpha=0.3)
+ax.legend(loc='upper right')
+
+plt.tight_layout()
+plt.savefig('age_distribution_violin.png', dpi=300, bbox_inches='tight')
+plt.show()
+</code></pre>
+<hr />
+<h2>Making Visualizations Publication-Ready</h2>
+<h3><strong>General Guidelines</strong></h3>
+<ol>
+<li><strong>Resolution</strong>: Always save at 300 DPI minimum (600 for journals)</li>
+<li><strong>File Format</strong>: </li>
+<li>PNG for presentations and web</li>
+<li>TIFF or EPS for journal submission</li>
+<li>
+<p>PDF for vector graphics</p>
+</li>
+<li>
+<p><strong>Color Choices</strong>:</p>
+</li>
+<li>Use colorblind-friendly palettes</li>
+<li>Avoid red-green combinations</li>
+<li>
+<p>Test with grayscale conversion</p>
+</li>
+<li>
+<p><strong>Font Sizes</strong>:</p>
+</li>
+<li>Title: 14-16 pt</li>
+<li>Axis labels: 11-13 pt</li>
+<li>Tick labels: 10-11 pt</li>
+<li>
+<p>Legend: 10-11 pt</p>
+</li>
+<li>
+<p><strong>Labels</strong>:</p>
+</li>
+<li>Include units (years, mmHg, mg/dL)</li>
+<li>Use proper capitalization</li>
+<li>Avoid abbreviations in titles</li>
+</ol>
+<h3><strong>Publication-Ready Template (R)</strong></h3>
+<pre><code class="language-r">library(ggplot2)
+library(dplyr)
+
+# Custom theme for publication
+theme_publication &lt;- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      # Text elements
+      plot.title = element_text(hjust = 0.5, size = 14, face = &quot;bold&quot;, 
+                                margin = margin(b = 10)),
+      plot.subtitle = element_text(hjust = 0.5, size = 11, 
+                                   margin = margin(b = 10)),
+      axis.title = element_text(size = 12, face = &quot;bold&quot;),
+      axis.text = element_text(size = 10, color = &quot;black&quot;),
+      legend.title = element_text(size = 11, face = &quot;bold&quot;),
+      legend.text = element_text(size = 10),
+
+      # Grid and background
+      panel.grid.major = element_line(color = &quot;gray90&quot;, linewidth = 0.3),
+      panel.grid.minor = element_blank(),
+      panel.background = element_rect(fill = &quot;white&quot;, color = NA),
+      plot.background = element_rect(fill = &quot;white&quot;, color = NA),
+
+      # Legend
+      legend.position = &quot;top&quot;,
+      legend.background = element_rect(fill = &quot;white&quot;, color = &quot;black&quot;, linewidth = 0.3),
+      legend.key.size = unit(0.8, &quot;cm&quot;),
+
+      # Margins
+      plot.margin = margin(10, 10, 10, 10)
+    )
+}
+
+# Example: Publication-ready outcome plot
+outcome_summary &lt;- df %&gt;%
+  group_by(treatment, outcome) %&gt;%
+  summarise(count = n(), .groups = 'drop') %&gt;%
+  group_by(treatment) %&gt;%
+  mutate(proportion = count / sum(count),
+         total = sum(count))
+
+p &lt;- ggplot(outcome_summary, aes(x = treatment, y = proportion, fill = outcome)) +
+  geom_bar(stat = &quot;identity&quot;, width = 0.7, color = &quot;black&quot;, linewidth = 0.3) +
+  geom_text(aes(label = sprintf(&quot;%d\n(%.1f%%)&quot;, count, proportion * 100)),
+            position = position_stack(vjust = 0.5),
+            size = 3.5, fontface = &quot;bold&quot;) +
+  scale_y_continuous(labels = scales::percent, 
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(
+    name = &quot;Patient Outcome&quot;,
+    values = c(&quot;Improved&quot; = &quot;#27ae60&quot;,
+               &quot;NoChange&quot; = &quot;#f39c12&quot;,
+               &quot;Worsened&quot; = &quot;#c0392b&quot;),
+    labels = c(&quot;Improved&quot;, &quot;No Change&quot;, &quot;Worsened&quot;)
+  ) +
+  labs(
+    title = &quot;Treatment Outcomes in Cardiovascular Trial&quot;,
+    subtitle = &quot;N = 30 patients across three treatment arms&quot;,
+    x = &quot;Treatment Group&quot;,
+    y = &quot;Proportion of Patients (%)&quot;,
+    caption = &quot;Error bars represent 95% confidence intervals&quot;
+  ) +
+  theme_publication()
+
+print(p)
+
+# Save in multiple formats
+ggsave(&quot;Figure1_outcomes.png&quot;, p, width = 8, height = 6, dpi = 300)
+ggsave(&quot;Figure1_outcomes.tiff&quot;, p, width = 8, height = 6, dpi = 600, compression = &quot;lzw&quot;)
+ggsave(&quot;Figure1_outcomes.pdf&quot;, p, width = 8, height = 6)
+</code></pre>
+<h3><strong>Publication-Ready Template (Python)</strong></h3>
+<pre><code class="language-python">import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+
+# Set publication-quality style
+plt.rcParams.update({
+    'font.size': 11,
+    'font.family': 'Arial',
+    'axes.labelsize': 12,
+    'axes.titlesize': 14,
+    'axes.titleweight': 'bold',
+    'axes.labelweight': 'bold',
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
+    'legend.fontsize': 10,
+    'legend.title_fontsize': 11,
+    'figure.titlesize': 14,
+    'figure.titleweight': 'bold',
+    'axes.spines.top': False,
+    'axes.spines.right': False,
+    'axes.linewidth': 1.2,
+    'grid.alpha': 0.3,
+    'grid.linewidth': 0.5
+})
+
+# Create publication-ready figure
+outcome_summary = df.groupby(['treatment', 'outcome']).size().reset_index(name='count')
+outcome_pct = outcome_summary.groupby('treatment').apply(
+    lambda x: x.assign(
+        proportion=(x['count'] / x['count'].sum()),
+        percentage=(x['count'] / x['count'].sum() * 100).round(1)
+    )
+).reset_index(drop=True)
+
+fig, ax = plt.subplots(figsize=(8, 6), dpi=300)
+
+pivot = outcome_pct.pivot(index='treatment', columns='outcome', values='proportion')
+colors = {'Improved': '#27ae60', 'NoChange': '#f39c12', 'Worsened': '#c0392b'}
+
+pivot.plot(kind='bar', stacked=True, ax=ax,
+           color=[colors.get(x, '#333333') for x in pivot.columns],
+           width=0.7, edgecolor='black', linewidth=1.2)
+
+# Add labels
+for treatment_idx, treatment in enumerate(pivot.index):
+    y_offset = 0
+    for outcome in pivot.columns:
+        if pd.notna(pivot.loc[treatment, outcome]):
+            pct = pivot.loc[treatment, outcome]
+            count = outcome_pct[(outcome_pct['treatment'] == treatment) &amp; 
+                               (outcome_pct['outcome'] == outcome)]['count'].values[0]
+            ax.text(treatment_idx, y_offset + pct/2,
+                   f'{count}\n({pct*100:.1f}%)',
+                   ha='center', va='center', fontsize=10, fontweight='bold')
+            y_offset += pct
+
+ax.set_title('Treatment Outcomes in Cardiovascular Trial',
+             fontsize=14, fontweight='bold', pad=20)
+ax.set_xlabel('Treatment Group', fontsize=12, fontweight='bold')
+ax.set_ylabel('Proportion of Patients (%)', fontsize=12, fontweight='bold')
+ax.set_ylim(0, 1.05)
+ax.set_xticklabels(ax.get_xticklabels(), rotation=0)
+ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{int(y*100)}'))
+ax.legend(title='Patient Outcome', loc='upper left', 
+          frameon=True, edgecolor='black', fancybox=False)
+ax.grid(axis='y', alpha=0.3, linewidth=0.5)
+
+plt.text(0.99, -0.12, f'N = {len(df)} patients across three treatment arms',
+         transform=ax.transAxes, ha='right', fontsize=9, style='italic')
+
+plt.tight_layout()
+
+# Save in multiple formats
+plt.savefig('Figure1_outcomes.png', dpi=300, bbox_inches='tight', facecolor='white')
+plt.savefig('Figure1_outcomes.tiff', dpi=600, bbox_inches='tight', facecolor='white')
+plt.savefig('Figure1_outcomes.pdf', bbox_inches='tight', facecolor='white')
+plt.show()
+</code></pre>
+<hr />
+<h2>Complete Analysis Script</h2>
+<p>Would you like me to generate a complete, publication-ready analysis script that includes:</p>
+<ol>
+<li>✅ Data loading and quality checks</li>
+<li>✅ All Tier 1 &amp; 2 visualizations</li>
+<li>✅ Statistical tests with results</li>
+<li>✅ Summary tables</li>
+<li>✅ Export to multiple formats</li>
+</ol>
+<p>Let me know if you'd like R, Python, or both!</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+        
+
+<div class="pagination">
+<span class="current">Index</span>
+<span class="disabled">&larr; Prev</span>
+<a href="page-001.html">1</a>
+<a href="page-001.html">Next &rarr;</a>
+</div>
+
+
+        <dialog id="search-modal">
+            <div class="search-modal-header">
+                <input type="text" id="modal-search-input" placeholder="Search..." aria-label="Search transcripts">
+                <button id="modal-search-btn" type="button" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                </button>
+                <button id="modal-close-btn" type="button" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
+            </div>
+            <div id="search-status"></div>
+            <div id="search-results"></div>
+        </dialog>
+        <script>
+(function() {
+    var totalPages = 1;
+    var searchBox = document.getElementById('search-box');
+    var searchInput = document.getElementById('search-input');
+    var searchBtn = document.getElementById('search-btn');
+    var modal = document.getElementById('search-modal');
+    var modalInput = document.getElementById('modal-search-input');
+    var modalSearchBtn = document.getElementById('modal-search-btn');
+    var modalCloseBtn = document.getElementById('modal-close-btn');
+    var searchStatus = document.getElementById('search-status');
+    var searchResults = document.getElementById('search-results');
+
+    if (!searchBox || !modal) return;
+
+    // Hide search on file:// protocol (doesn't work due to CORS restrictions)
+    if (window.location.protocol === 'file:') return;
+
+    // Show search box (progressive enhancement)
+    searchBox.style.display = 'flex';
+
+    // Gist preview support - detect if we're on gistpreview.github.io
+    var isGistPreview = window.location.hostname === 'gistpreview.github.io';
+    var gistId = null;
+    var gistOwner = null;
+    var gistInfoLoaded = false;
+
+    if (isGistPreview) {
+        // Extract gist ID from URL query string like ?78a436a8a9e7a2e603738b8193b95410/index.html
+        var queryMatch = window.location.search.match(/^\?([a-f0-9]+)/i);
+        if (queryMatch) {
+            gistId = queryMatch[1];
+        }
+    }
+
+    async function loadGistInfo() {
+        if (!isGistPreview || !gistId || gistInfoLoaded) return;
+        try {
+            var response = await fetch('https://api.github.com/gists/' + gistId);
+            if (response.ok) {
+                var info = await response.json();
+                gistOwner = info.owner.login;
+                gistInfoLoaded = true;
+            }
+        } catch (e) {
+            console.error('Failed to load gist info:', e);
+        }
+    }
+
+    function getPageFetchUrl(pageFile) {
+        if (isGistPreview && gistOwner && gistId) {
+            // Use raw gist URL for fetching content
+            return 'https://gist.githubusercontent.com/' + gistOwner + '/' + gistId + '/raw/' + pageFile;
+        }
+        return pageFile;
+    }
+
+    function getPageLinkUrl(pageFile) {
+        if (isGistPreview && gistId) {
+            // Use gistpreview URL format for navigation links
+            return '?' + gistId + '/' + pageFile;
+        }
+        return pageFile;
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function openModal(query) {
+        modalInput.value = query || '';
+        searchResults.innerHTML = '';
+        searchStatus.textContent = '';
+        modal.showModal();
+        modalInput.focus();
+        if (query) {
+            performSearch(query);
+        }
+    }
+
+    function closeModal() {
+        modal.close();
+        // Update URL to remove search fragment, preserving path and query string
+        if (window.location.hash.startsWith('#search=')) {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+    }
+
+    function updateUrlHash(query) {
+        if (query) {
+            // Preserve path and query string when adding hash
+            history.replaceState(null, '', window.location.pathname + window.location.search + '#search=' + encodeURIComponent(query));
+        }
+    }
+
+    function highlightTextNodes(element, searchTerm) {
+        var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+        var nodesToReplace = [];
+
+        while (walker.nextNode()) {
+            var node = walker.currentNode;
+            if (node.nodeValue.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1) {
+                nodesToReplace.push(node);
+            }
+        }
+
+        nodesToReplace.forEach(function(node) {
+            var text = node.nodeValue;
+            var regex = new RegExp('(' + escapeRegex(searchTerm) + ')', 'gi');
+            var parts = text.split(regex);
+            if (parts.length > 1) {
+                var span = document.createElement('span');
+                parts.forEach(function(part) {
+                    if (part.toLowerCase() === searchTerm.toLowerCase()) {
+                        var mark = document.createElement('mark');
+                        mark.textContent = part;
+                        span.appendChild(mark);
+                    } else {
+                        span.appendChild(document.createTextNode(part));
+                    }
+                });
+                node.parentNode.replaceChild(span, node);
+            }
+        });
+    }
+
+    function fixInternalLinks(element, pageFile) {
+        // Update all internal anchor links to include the page file
+        var links = element.querySelectorAll('a[href^="#"]');
+        links.forEach(function(link) {
+            var href = link.getAttribute('href');
+            link.setAttribute('href', pageFile + href);
+        });
+    }
+
+    function processPage(pageFile, html, query) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        var resultsFromPage = 0;
+
+        // Find all message blocks
+        var messages = doc.querySelectorAll('.message');
+        messages.forEach(function(msg) {
+            var text = msg.textContent || '';
+            if (text.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
+                resultsFromPage++;
+
+                // Get the message ID for linking
+                var msgId = msg.id || '';
+                var pageLinkUrl = getPageLinkUrl(pageFile);
+                var link = pageLinkUrl + (msgId ? '#' + msgId : '');
+
+                // Clone the message HTML and highlight matches
+                var clone = msg.cloneNode(true);
+                // Fix internal links to include the page file
+                fixInternalLinks(clone, pageLinkUrl);
+                highlightTextNodes(clone, query);
+
+                var resultDiv = document.createElement('div');
+                resultDiv.className = 'search-result';
+                resultDiv.innerHTML = '<a href="' + link + '">' +
+                    '<div class="search-result-page">' + escapeHtml(pageFile) + '</div>' +
+                    '<div class="search-result-content">' + clone.innerHTML + '</div>' +
+                    '</a>';
+                searchResults.appendChild(resultDiv);
+            }
+        });
+
+        return resultsFromPage;
+    }
+
+    async function performSearch(query) {
+        if (!query.trim()) {
+            searchStatus.textContent = 'Enter a search term';
+            return;
+        }
+
+        updateUrlHash(query);
+        searchResults.innerHTML = '';
+        searchStatus.textContent = 'Searching...';
+
+        // Load gist info if on gistpreview (needed for constructing URLs)
+        if (isGistPreview && !gistInfoLoaded) {
+            searchStatus.textContent = 'Loading gist info...';
+            await loadGistInfo();
+            if (!gistOwner) {
+                searchStatus.textContent = 'Failed to load gist info. Search unavailable.';
+                return;
+            }
+        }
+
+        var resultsFound = 0;
+        var pagesSearched = 0;
+
+        // Build list of pages to fetch
+        var pagesToFetch = [];
+        for (var i = 1; i <= totalPages; i++) {
+            pagesToFetch.push('page-' + String(i).padStart(3, '0') + '.html');
+        }
+
+        searchStatus.textContent = 'Searching...';
+
+        // Process pages in batches of 3, but show results immediately as each completes
+        var batchSize = 3;
+        for (var i = 0; i < pagesToFetch.length; i += batchSize) {
+            var batch = pagesToFetch.slice(i, i + batchSize);
+
+            // Create promises that process results immediately when each fetch completes
+            var promises = batch.map(function(pageFile) {
+                return fetch(getPageFetchUrl(pageFile))
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('Failed to fetch');
+                        return response.text();
+                    })
+                    .then(function(html) {
+                        // Process and display results immediately
+                        var count = processPage(pageFile, html, query);
+                        resultsFound += count;
+                        pagesSearched++;
+                        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + pagesSearched + '/' + totalPages + ' pages...';
+                    })
+                    .catch(function() {
+                        pagesSearched++;
+                        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + pagesSearched + '/' + totalPages + ' pages...';
+                    });
+            });
+
+            // Wait for this batch to complete before starting the next
+            await Promise.all(promises);
+        }
+
+        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + totalPages + ' pages';
+    }
+
+    // Event listeners
+    searchBtn.addEventListener('click', function() {
+        openModal(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            openModal(searchInput.value);
+        }
+    });
+
+    modalSearchBtn.addEventListener('click', function() {
+        performSearch(modalInput.value);
+    });
+
+    modalInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            performSearch(modalInput.value);
+        }
+    });
+
+    modalCloseBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    // Check for #search= in URL on page load
+    if (window.location.hash.startsWith('#search=')) {
+        var query = decodeURIComponent(window.location.hash.substring(8));
+        if (query) {
+            searchInput.value = query;
+            openModal(query);
+        }
+    }
+})();
+        </script>
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

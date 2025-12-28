@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 1</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 1/2</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+        
+<div class="message user" id="msg-2025-12-05T20-45-39-793Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-05T20-45-39-793Z" class="timestamp-link"><time datetime="2025-12-05T20:45:39.793Z" data-timestamp="2025-12-05T20:45:39.793Z">2025-12-05T20:45:39.793Z</time></a></div><div class="message-content">
+<div class="user-content"><p>can you generate some mock microbiome data for us to analyze</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-45-45-022Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-45-45-022Z" class="timestamp-link"><time datetime="2025-12-05T20:45:45.022Z" data-timestamp="2025-12-05T20:45:45.022Z">2025-12-05T20:45:45.022Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants me to generate mock microbiome data for analysis. This is a straightforward task - I need to create some synthetic data that represents typical microbiome analysis data.</p>
+<p>Microbiome data typically includes:
+- Sample IDs
+- Taxonomic classifications (phylum, class, order, family, genus, species)
+- Relative abundance values
+- Sometimes metadata like sample type, patient info, etc.</p>
+<p>I'll create a CSV file with mock microbiome data that would be useful for analysis. This could include:
+1. An OTU (Operational Taxonomic Unit) or ASV (Amplicon Sequence Variant) table with abundance counts
+2. Sample metadata
+3. Taxonomic information</p>
+<p>Let me create a comprehensive mock dataset that would be realistic and useful for analysis.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-45-45-817Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-45-45-817Z" class="timestamp-link"><time datetime="2025-12-05T20:45:45.817Z" data-timestamp="2025-12-05T20:45:45.817Z">2025-12-05T20:45:45.817Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I'll create a mock microbiome dataset with sample metadata and taxonomic abundance data. This will give you a realistic dataset for analysis.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-45-57-855Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-45-57-855Z" class="timestamp-link"><time datetime="2025-12-05T20:45:57.855Z" data-timestamp="2025-12-05T20:45:57.855Z">2025-12-05T20:45:57.855Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01HdS84cR2mMP3Q6tVJoXbHp">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">microbiome_abundance.csv</span></div>
+<div class="file-tool-fullpath">/Users/scotthandley/my-empty-project/microbiome_abundance.csv</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">sample_id,Bacteroides,Firmicutes,Proteobacteria,Actinobacteria,Verrucomicrobia,Fusobacteria,Tenericutes,Cyanobacteria
+S001,0.32,0.41,0.08,0.12,0.04,0.02,0.01,0.00
+S002,0.28,0.45,0.10,0.09,0.05,0.01,0.02,0.00
+S003,0.35,0.38,0.07,0.11,0.06,0.02,0.01,0.00
+S004,0.18,0.52,0.15,0.08,0.03,0.03,0.01,0.00
+S005,0.41,0.33,0.06,0.13,0.04,0.01,0.02,0.00
+S006,0.22,0.48,0.12,0.10,0.05,0.02,0.01,0.00
+S007,0.30,0.42,0.09,0.11,0.05,0.02,0.01,0.00
+S008,0.15,0.55,0.18,0.06,0.02,0.03,0.01,0.00
+S009,0.38,0.36,0.05,0.14,0.04,0.01,0.02,0.00
+S010,0.25,0.47,0.11,0.09,0.05,0.02,0.01,0.00
+S011,0.33,0.40,0.08,0.12,0.04,0.02,0.01,0.00
+S012,0.19,0.51,0.16,0.07,0.03,0.03,0.01,0.00
+S013,0.36,0.37,0.06,0.13,0.05,0.01,0.02,0.00
+S014,0.27,0.44,0.10,0.10,0.06,0.02,0.01,0.00
+S015,0.31,0.43,0.09,0.11,0.03,0.02,0.01,0.00
+S016,0.12,0.58,0.20,0.05,0.02,0.02,0.01,0.00
+S017,0.40,0.34,0.05,0.14,0.04,0.01,0.02,0.00
+S018,0.23,0.49,0.13,0.08,0.04,0.02,0.01,0.00
+S019,0.34,0.39,0.07,0.12,0.05,0.02,0.01,0.00
+S020,0.16,0.54,0.17,0.06,0.03,0.03,0.01,0.00
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-46-05-899Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-46-05-899Z" class="timestamp-link"><time datetime="2025-12-05T20:46:05.899Z" data-timestamp="2025-12-05T20:46:05.899Z">2025-12-05T20:46:05.899Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01N7qk3inAtcPNYovcNhMeyf">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">sample_metadata.csv</span></div>
+<div class="file-tool-fullpath">/Users/scotthandley/my-empty-project/sample_metadata.csv</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">sample_id,subject_id,group,age,sex,bmi,collection_date,antibiotic_use,diet_type
+S001,P01,healthy,34,F,22.5,2024-01-15,no,omnivore
+S002,P02,healthy,28,M,24.1,2024-01-16,no,omnivore
+S003,P03,healthy,45,F,21.8,2024-01-17,no,vegetarian
+S004,P04,ibd,52,M,27.3,2024-01-18,yes,omnivore
+S005,P05,healthy,31,F,23.2,2024-01-19,no,omnivore
+S006,P06,ibd,41,M,26.8,2024-01-20,no,omnivore
+S007,P07,healthy,38,F,22.9,2024-01-21,no,vegetarian
+S008,P08,ibd,55,M,28.1,2024-01-22,yes,omnivore
+S009,P09,healthy,29,F,21.5,2024-01-23,no,vegan
+S010,P10,ibd,47,M,25.9,2024-01-24,no,omnivore
+S011,P11,healthy,36,F,23.7,2024-01-25,no,omnivore
+S012,P12,ibd,49,M,27.6,2024-01-26,yes,omnivore
+S013,P13,healthy,33,F,22.1,2024-01-27,no,vegetarian
+S014,P14,healthy,42,M,24.5,2024-01-28,no,omnivore
+S015,P15,healthy,27,F,23.0,2024-01-29,no,omnivore
+S016,P16,ibd,58,M,29.2,2024-01-30,yes,omnivore
+S017,P17,healthy,30,F,21.9,2024-01-31,no,vegan
+S018,P18,ibd,44,M,26.4,2024-02-01,no,omnivore
+S019,P19,healthy,39,F,22.6,2024-02-02,no,omnivore
+S020,P20,ibd,51,M,28.5,2024-02-03,yes,omnivore
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-46-24-637Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-46-24-637Z" class="timestamp-link"><time datetime="2025-12-05T20:46:24.637Z" data-timestamp="2025-12-05T20:46:24.637Z">2025-12-05T20:46:24.637Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01T6n5Hzq8tNrndWVtZtbMDv">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">genus_abundance.csv</span></div>
+<div class="file-tool-fullpath">/Users/scotthandley/my-empty-project/genus_abundance.csv</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">sample_id,Bacteroides,Prevotella,Faecalibacterium,Ruminococcus,Blautia,Bifidobacterium,Akkermansia,Escherichia,Lactobacillus,Roseburia,Clostridium,Streptococcus,Eubacterium,Coprococcus,Dorea
+S001,0.18,0.08,0.12,0.09,0.07,0.08,0.04,0.03,0.05,0.06,0.04,0.03,0.05,0.04,0.04
+S002,0.15,0.07,0.14,0.10,0.08,0.06,0.05,0.04,0.04,0.07,0.05,0.03,0.04,0.05,0.03
+S003,0.20,0.09,0.11,0.08,0.06,0.09,0.06,0.02,0.06,0.05,0.03,0.04,0.04,0.03,0.04
+S004,0.10,0.04,0.08,0.12,0.10,0.05,0.03,0.08,0.03,0.09,0.08,0.05,0.06,0.05,0.04
+S005,0.22,0.11,0.10,0.07,0.05,0.10,0.04,0.02,0.07,0.04,0.03,0.03,0.05,0.04,0.03
+S006,0.12,0.05,0.09,0.11,0.09,0.06,0.05,0.06,0.04,0.08,0.07,0.04,0.05,0.05,0.04
+S007,0.17,0.07,0.13,0.09,0.07,0.08,0.05,0.03,0.05,0.06,0.04,0.03,0.05,0.04,0.04
+S008,0.08,0.03,0.07,0.13,0.11,0.04,0.02,0.10,0.02,0.10,0.09,0.06,0.06,0.05,0.04
+S009,0.21,0.10,0.11,0.07,0.06,0.11,0.04,0.01,0.08,0.05,0.03,0.02,0.04,0.04,0.03
+S010,0.13,0.06,0.10,0.11,0.09,0.06,0.05,0.05,0.04,0.08,0.06,0.04,0.05,0.04,0.04
+S011,0.19,0.08,0.12,0.08,0.06,0.09,0.04,0.03,0.06,0.06,0.04,0.03,0.04,0.04,0.04
+S012,0.09,0.04,0.08,0.12,0.10,0.04,0.03,0.09,0.03,0.09,0.08,0.05,0.06,0.06,0.04
+S013,0.20,0.09,0.11,0.08,0.06,0.10,0.05,0.02,0.07,0.05,0.03,0.03,0.04,0.04,0.03
+S014,0.16,0.06,0.13,0.09,0.07,0.07,0.06,0.04,0.05,0.07,0.05,0.03,0.04,0.04,0.04
+S015,0.18,0.07,0.12,0.09,0.07,0.08,0.03,0.03,0.05,0.06,0.05,0.04,0.05,0.04,0.04
+S016,0.06,0.02,0.06,0.14,0.12,0.03,0.02,0.12,0.02,0.11,0.10,0.06,0.06,0.05,0.03
+S017,0.22,0.11,0.10,0.06,0.05,0.11,0.04,0.01,0.09,0.04,0.03,0.02,0.04,0.04,0.04
+S018,0.12,0.05,0.09,0.11,0.10,0.05,0.04,0.07,0.03,0.08,0.07,0.05,0.05,0.05,0.04
+S019,0.19,0.08,0.12,0.08,0.06,0.09,0.05,0.02,0.06,0.06,0.04,0.03,0.04,0.04,0.04
+S020,0.07,0.03,0.07,0.13,0.11,0.04,0.03,0.11,0.02,0.10,0.09,0.05,0.06,0.05,0.04
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T20-46-27-776Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T20-46-27-776Z" class="timestamp-link"><time datetime="2025-12-05T20:46:27.776Z" data-timestamp="2025-12-05T20:46:27.776Z">2025-12-05T20:46:27.776Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/scotthandley/my-empty-project/microbiome_abundance.csv</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T20-46-27-842Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T20-46-27-842Z" class="timestamp-link"><time datetime="2025-12-05T20:46:27.842Z" data-timestamp="2025-12-05T20:46:27.842Z">2025-12-05T20:46:27.842Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/scotthandley/my-empty-project/sample_metadata.csv</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T20-46-27-907Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T20-46-27-907Z" class="timestamp-link"><time datetime="2025-12-05T20:46:27.907Z" data-timestamp="2025-12-05T20:46:27.907Z">2025-12-05T20:46:27.907Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/scotthandley/my-empty-project/genus_abundance.csv</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-46-30-805Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-46-30-805Z" class="timestamp-link"><time datetime="2025-12-05T20:46:30.805Z" data-timestamp="2025-12-05T20:46:30.805Z">2025-12-05T20:46:30.805Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I've created three files with mock microbiome data. Let me summarize what I created for the user.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-46-37-862Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-46-37-862Z" class="timestamp-link"><time datetime="2025-12-05T20:46:37.862Z" data-timestamp="2025-12-05T20:46:37.862Z">2025-12-05T20:46:37.862Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I've generated three mock microbiome data files:</p>
+<p><strong>1. <code>microbiome_abundance.csv</code></strong> - Phylum-level relative abundance
+- 20 samples with 8 major bacterial phyla
+- Values represent relative abundance (sum to ~1.0 per sample)</p>
+<p><strong>2. <code>sample_metadata.csv</code></strong> - Sample and subject information
+- 20 samples from 20 subjects
+- Groups: 12 healthy controls, 8 IBD patients
+- Variables: age, sex, BMI, collection date, antibiotic use, diet type</p>
+<p><strong>3. <code>genus_abundance.csv</code></strong> - Genus-level relative abundance
+- 20 samples with 15 common gut genera
+- Includes key taxa like <em>Bacteroides</em>, <em>Faecalibacterium</em>, <em>Akkermansia</em>, <em>Bifidobacterium</em></p>
+<p>The data is designed with realistic patterns:
+- <strong>Healthy samples</strong>: Higher <em>Bacteroides</em>, <em>Faecalibacterium</em>, <em>Bifidobacterium</em>
+- <strong>IBD samples</strong>: Lower diversity, higher <em>Proteobacteria</em> (especially <em>Escherichia</em>), reduced beneficial taxa
+- Antibiotic users show more dysbiotic profiles</p>
+<p>Would you like me to help analyze this data? I can do things like:
+- Diversity calculations (alpha/beta)
+- Differential abundance analysis between groups
+- Visualization (PCA, bar plots, heatmaps)
+- Statistical comparisons</p></div></div></div>
+<div class="message user" id="msg-2025-12-05T20-47-16-301Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-05T20-47-16-301Z" class="timestamp-link"><time datetime="2025-12-05T20:47:16.301Z" data-timestamp="2025-12-05T20:47:16.301Z">2025-12-05T20:47:16.301Z</time></a></div><div class="message-content">
+<div class="user-content"><p>can you write an RMarkdown for diversity calculations with ggplot code for the plots</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-47-21-217Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-47-21-217Z" class="timestamp-link"><time datetime="2025-12-05T20:47:21.217Z" data-timestamp="2025-12-05T20:47:21.217Z">2025-12-05T20:47:21.217Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants an RMarkdown document that performs diversity calculations on the mock microbiome data and includes ggplot visualizations. I'll create a comprehensive RMarkdown file that includes:</p>
+<ol>
+<li>Setup and data loading</li>
+<li>Alpha diversity calculations (Shannon, Simpson, Chao1, observed species)</li>
+<li>Beta diversity calculations (Bray-Curtis, Jaccard)</li>
+<li>Statistical comparisons between groups</li>
+<li>ggplot2 visualizations for all of these</li>
+</ol>
+<p>Let me write a well-structured RMarkdown document.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-48-21-822Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-48-21-822Z" class="timestamp-link"><time datetime="2025-12-05T20:48:21.822Z" data-timestamp="2025-12-05T20:48:21.822Z">2025-12-05T20:48:21.822Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01C6GyDkzPp4s8uZm2ifs5Ao">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">microbiome_diversity_analysis.Rmd</span></div>
+<div class="file-tool-fullpath">/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.Rmd</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">---
+title: &#34;Microbiome Diversity Analysis&#34;
+author: &#34;Analysis Report&#34;
+date: &#34;`r Sys.Date()`&#34;
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.width = 10, fig.height = 6)
+```
+
+## Load Libraries
+
+```{r libraries}
+library(tidyverse)
+library(vegan)
+library(ggplot2)
+library(ggpubr)
+library(RColorBrewer)
+library(pheatmap)
+```
+
+## Load Data
+
+```{r load-data}
+# Load abundance data (genus level for diversity calculations)
+abundance &lt;- read_csv(&#34;genus_abundance.csv&#34;)
+metadata &lt;- read_csv(&#34;sample_metadata.csv&#34;)
+
+# Convert to matrix format for vegan
+abundance_matrix &lt;- abundance %&gt;%
+  column_to_rownames(&#34;sample_id&#34;) %&gt;%
+  as.matrix()
+
+# Join metadata for analysis
+meta_df &lt;- metadata %&gt;%
+  mutate(group = factor(group, levels = c(&#34;healthy&#34;, &#34;ibd&#34;)))
+
+head(abundance_matrix)
+```
+
+## Alpha Diversity
+
+Alpha diversity measures the diversity within individual samples.
+
+### Calculate Alpha Diversity Metrics
+
+```{r alpha-diversity}
+# Calculate various alpha diversity metrics
+alpha_div &lt;- data.frame(
+  sample_id = rownames(abundance_matrix),
+
+  # Shannon diversity index
+  shannon = diversity(abundance_matrix, index = &#34;shannon&#34;),
+
+ # Simpson diversity index
+  simpson = diversity(abundance_matrix, index = &#34;simpson&#34;),
+
+  # Inverse Simpson
+  inv_simpson = diversity(abundance_matrix, index = &#34;invsimpson&#34;),
+
+  # Species richness (observed taxa &gt; 0)
+  observed = specnumber(abundance_matrix),
+
+  # Pielou&#39;s evenness (Shannon / log(S))
+  evenness = diversity(abundance_matrix, index = &#34;shannon&#34;) / log(specnumber(abundance_matrix))
+)
+
+# Merge with metadata
+alpha_df &lt;- left_join(alpha_div, meta_df, by = &#34;sample_id&#34;)
+
+# Display summary
+alpha_df %&gt;%
+  group_by(group) %&gt;%
+  summarise(
+    mean_shannon = mean(shannon),
+    sd_shannon = sd(shannon),
+    mean_simpson = mean(simpson),
+    sd_simpson = sd(simpson),
+    mean_observed = mean(observed),
+    sd_observed = sd(observed)
+  ) %&gt;%
+  knitr::kable(digits = 3, caption = &#34;Alpha Diversity Summary by Group&#34;)
+```
+
+### Shannon Diversity by Group
+
+```{r shannon-plot}
+ggplot(alpha_df, aes(x = group, y = shannon, fill = group)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 3, alpha = 0.6) +
+  scale_fill_manual(values = c(&#34;healthy&#34; = &#34;#2E86AB&#34;, &#34;ibd&#34; = &#34;#E94F37&#34;)) +
+  stat_compare_means(method = &#34;wilcox.test&#34;, label = &#34;p.format&#34;,
+                     label.x = 1.5, label.y = max(alpha_df$shannon) + 0.05) +
+  labs(
+    title = &#34;Shannon Diversity Index by Group&#34;,
+    x = &#34;Group&#34;,
+    y = &#34;Shannon Index&#34;,
+    fill = &#34;Group&#34;
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = &#34;none&#34;,
+    plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;)
+  )
+```
+
+### Simpson Diversity by Group
+
+```{r simpson-plot}
+ggplot(alpha_df, aes(x = group, y = simpson, fill = group)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 3, alpha = 0.6) +
+  scale_fill_manual(values = c(&#34;healthy&#34; = &#34;#2E86AB&#34;, &#34;ibd&#34; = &#34;#E94F37&#34;)) +
+  stat_compare_means(method = &#34;wilcox.test&#34;, label = &#34;p.format&#34;,
+                     label.x = 1.5, label.y = max(alpha_df$simpson) + 0.01) +
+  labs(
+    title = &#34;Simpson Diversity Index by Group&#34;,
+    x = &#34;Group&#34;,
+    y = &#34;Simpson Index&#34;,
+    fill = &#34;Group&#34;
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = &#34;none&#34;,
+    plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;)
+  )
+```
+
+### All Alpha Metrics Comparison
+
+```{r alpha-facet}
+# Reshape for faceted plot
+alpha_long &lt;- alpha_df %&gt;%
+  pivot_longer(
+    cols = c(shannon, simpson, inv_simpson, evenness),
+    names_to = &#34;metric&#34;,
+    values_to = &#34;value&#34;
+  ) %&gt;%
+  mutate(metric = factor(metric,
+                         levels = c(&#34;shannon&#34;, &#34;simpson&#34;, &#34;inv_simpson&#34;, &#34;evenness&#34;),
+                         labels = c(&#34;Shannon&#34;, &#34;Simpson&#34;, &#34;Inverse Simpson&#34;, &#34;Evenness&#34;)))
+
+ggplot(alpha_long, aes(x = group, y = value, fill = group)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 2, alpha = 0.6) +
+  facet_wrap(~ metric, scales = &#34;free_y&#34;, nrow = 1) +
+  scale_fill_manual(values = c(&#34;healthy&#34; = &#34;#2E86AB&#34;, &#34;ibd&#34; = &#34;#E94F37&#34;)) +
+  stat_compare_means(method = &#34;wilcox.test&#34;, label = &#34;p.signif&#34;, label.y.npc = 0.95) +
+  labs(
+    title = &#34;Alpha Diversity Metrics by Group&#34;,
+    x = &#34;Group&#34;,
+    y = &#34;Value&#34;,
+    fill = &#34;Group&#34;
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = &#34;bottom&#34;,
+    plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;),
+    strip.text = element_text(face = &#34;bold&#34;)
+  )
+```
+
+### Alpha Diversity vs BMI
+
+```{r alpha-bmi}
+ggplot(alpha_df, aes(x = bmi, y = shannon, color = group)) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = &#34;lm&#34;, se = TRUE, alpha = 0.2) +
+  scale_color_manual(values = c(&#34;healthy&#34; = &#34;#2E86AB&#34;, &#34;ibd&#34; = &#34;#E94F37&#34;)) +
+  labs(
+    title = &#34;Shannon Diversity vs BMI&#34;,
+    x = &#34;BMI&#34;,
+    y = &#34;Shannon Index&#34;,
+    color = &#34;Group&#34;
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;),
+    legend.position = &#34;bottom&#34;
+  )
+```
+
+## Beta Diversity
+
+Beta diversity measures the diversity between samples (community composition differences).
+
+### Calculate Distance Matrices
+
+```{r beta-diversity}
+# Bray-Curtis dissimilarity
+bray_dist &lt;- vegdist(abundance_matrix, method = &#34;bray&#34;)
+
+# Jaccard distance
+jaccard_dist &lt;- vegdist(abundance_matrix, method = &#34;jaccard&#34;)
+
+# Convert to matrix for visualization
+bray_matrix &lt;- as.matrix(bray_dist)
+```
+
+### PCoA (Principal Coordinates Analysis)
+
+```{r pcoa}
+# Perform PCoA on Bray-Curtis distances
+pcoa_result &lt;- cmdscale(bray_dist, k = 2, eig = TRUE)
+
+# Calculate variance explained
+var_explained &lt;- round(pcoa_result$eig / sum(pcoa_result$eig) * 100, 1)
+
+# Create dataframe for plotting
+pcoa_df &lt;- data.frame(
+  sample_id = rownames(abundance_matrix),
+  PC1 = pcoa_result$points[, 1],
+  PC2 = pcoa_result$points[, 2]
+) %&gt;%
+  left_join(meta_df, by = &#34;sample_id&#34;)
+
+# PCoA plot
+ggplot(pcoa_df, aes(x = PC1, y = PC2, color = group, shape = group)) +
+  geom_point(size = 4, alpha = 0.8) +
+  stat_ellipse(level = 0.95, linetype = &#34;dashed&#34;, linewidth = 1) +
+  scale_color_manual(values = c(&#34;healthy&#34; = &#34;#2E86AB&#34;, &#34;ibd&#34; = &#34;#E94F37&#34;)) +
+  labs(
+    title = &#34;PCoA of Microbiome Composition (Bray-Curtis)&#34;,
+    x = paste0(&#34;PC1 (&#34;, var_explained[1], &#34;%)&#34;),
+    y = paste0(&#34;PC2 (&#34;, var_explained[2], &#34;%)&#34;),
+    color = &#34;Group&#34;,
+    shape = &#34;Group&#34;
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;),
+    legend.position = &#34;bottom&#34;
+  )
+```
+
+### PCoA Colored by Other Variables
+
+```{r pcoa-variables}
+# By antibiotic use
+p1 &lt;- ggplot(pcoa_df, aes(x = PC1, y = PC2, color = antibiotic_use)) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_color_manual(values = c(&#34;no&#34; = &#34;#4ECDC4&#34;, &#34;yes&#34; = &#34;#FF6B6B&#34;)) +
+  labs(
+    title = &#34;By Antibiotic Use&#34;,
+    x = paste0(&#34;PC1 (&#34;, var_explained[1], &#34;%)&#34;),
+    y = paste0(&#34;PC2 (&#34;, var_explained[2], &#34;%)&#34;),
+    color = &#34;Antibiotics&#34;
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;))
+
+# By diet type
+p2 &lt;- ggplot(pcoa_df, aes(x = PC1, y = PC2, color = diet_type)) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_color_brewer(palette = &#34;Set2&#34;) +
+  labs(
+    title = &#34;By Diet Type&#34;,
+    x = paste0(&#34;PC1 (&#34;, var_explained[1], &#34;%)&#34;),
+    y = paste0(&#34;PC2 (&#34;, var_explained[2], &#34;%)&#34;),
+    color = &#34;Diet&#34;
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;))
+
+# By BMI (continuous)
+p3 &lt;- ggplot(pcoa_df, aes(x = PC1, y = PC2, color = bmi)) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_color_viridis_c(option = &#34;plasma&#34;) +
+  labs(
+    title = &#34;By BMI&#34;,
+    x = paste0(&#34;PC1 (&#34;, var_explained[1], &#34;%)&#34;),
+    y = paste0(&#34;PC2 (&#34;, var_explained[2], &#34;%)&#34;),
+    color = &#34;BMI&#34;
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;))
+
+# By age
+p4 &lt;- ggplot(pcoa_df, aes(x = PC1, y = PC2, color = age)) +
+  geom_point(size = 3, alpha = 0.8) +
+  scale_color_viridis_c(option = &#34;viridis&#34;) +
+  labs(
+    title = &#34;By Age&#34;,
+    x = paste0(&#34;PC1 (&#34;, var_explained[1], &#34;%)&#34;),
+    y = paste0(&#34;PC2 (&#34;, var_explained[2], &#34;%)&#34;),
+    color = &#34;Age&#34;
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;))
+
+ggarrange(p1, p2, p3, p4, ncol = 2, nrow = 2)
+```
+
+### PERMANOVA Test
+
+```{r permanova}
+# Test for significant differences between groups
+set.seed(123)
+permanova_result &lt;- adonis2(abundance_matrix ~ group + age + bmi + antibiotic_use,
+                            data = meta_df,
+                            method = &#34;bray&#34;,
+                            permutations = 999)
+
+permanova_result %&gt;%
+  as.data.frame() %&gt;%
+  rownames_to_column(&#34;Variable&#34;) %&gt;%
+  knitr::kable(digits = 4, caption = &#34;PERMANOVA Results (Bray-Curtis)&#34;)
+```
+### Beta Dispersion Test
+
+```{r betadisper}
+# Test for homogeneity of multivariate dispersions
+betadisper_result &lt;- betadisper(bray_dist, meta_df$group)
+permutest_result &lt;- permutest(betadisper_result, permutations = 999)
+
+# Plot dispersions
+betadisper_df &lt;- data.frame(
+  sample_id = names(betadisper_result$distances),
+  distance = betadisper_result$distances,
+  group = betadisper_result$group
+)
+
+ggplot(betadisper_df, aes(x = group, y = distance, fill = group)) +
+  geom_boxplot(alpha = 0.7, outlier.shape = NA) +
+  geom_jitter(width = 0.2, size = 3, alpha = 0.6) +
+  scale_fill_manual(values = c(&#34;healthy&#34; = &#34;#2E86AB&#34;, &#34;ibd&#34; = &#34;#E94F37&#34;)) +
+  labs(
+    title = &#34;Beta Dispersion by Group&#34;,
+    subtitle = paste(&#34;Permutation test p-value:&#34;, round(permutest_result$tab$`Pr(&gt;F)`[1], 4)),
+    x = &#34;Group&#34;,
+    y = &#34;Distance to Centroid&#34;,
+    fill = &#34;Group&#34;
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = &#34;none&#34;,
+    plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;),
+    plot.subtitle = element_text(hjust = 0.5)
+  )
+```
+
+### Distance Heatmap
+
+```{r heatmap}
+# Create annotation for heatmap
+annotation_df &lt;- meta_df %&gt;%
+  column_to_rownames(&#34;sample_id&#34;) %&gt;%
+  select(group, antibiotic_use, diet_type)
+
+# Color palette for annotations
+ann_colors &lt;- list(
+  group = c(&#34;healthy&#34; = &#34;#2E86AB&#34;, &#34;ibd&#34; = &#34;#E94F37&#34;),
+  antibiotic_use = c(&#34;no&#34; = &#34;#4ECDC4&#34;, &#34;yes&#34; = &#34;#FF6B6B&#34;),
+  diet_type = c(&#34;omnivore&#34; = &#34;#95E1D3&#34;, &#34;vegetarian&#34; = &#34;#F38181&#34;, &#34;vegan&#34; = &#34;#AA96DA&#34;)
+)
+
+pheatmap(
+  bray_matrix,
+  clustering_method = &#34;complete&#34;,
+  color = colorRampPalette(c(&#34;#2E86AB&#34;, &#34;white&#34;, &#34;#E94F37&#34;))(100),
+  annotation_row = annotation_df,
+  annotation_col = annotation_df,
+  annotation_colors = ann_colors,
+  main = &#34;Bray-Curtis Dissimilarity Heatmap&#34;,
+  fontsize = 10
+)
+```
+
+## Taxonomic Composition
+
+### Relative Abundance Bar Plot
+
+```{r taxonomy-barplot}
+# Load phylum-level data
+phylum_abundance &lt;- read_csv(&#34;microbiome_abundance.csv&#34;)
+
+# Reshape for plotting
+phylum_long &lt;- phylum_abundance %&gt;%
+  pivot_longer(-sample_id, names_to = &#34;phylum&#34;, values_to = &#34;abundance&#34;) %&gt;%
+  left_join(meta_df, by = &#34;sample_id&#34;) %&gt;%
+  mutate(sample_id = factor(sample_id, levels = meta_df$sample_id[order(meta_df$group)]))
+
+# Stacked bar plot
+ggplot(phylum_long, aes(x = sample_id, y = abundance, fill = phylum)) +
+  geom_bar(stat = &#34;identity&#34;, position = &#34;stack&#34;) +
+  scale_fill_brewer(palette = &#34;Set3&#34;) +
+  facet_grid(~ group, scales = &#34;free_x&#34;, space = &#34;free_x&#34;) +
+  labs(
+    title = &#34;Phylum-Level Composition by Sample&#34;,
+    x = &#34;Sample&#34;,
+    y = &#34;Relative Abundance&#34;,
+    fill = &#34;Phylum&#34;
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;),
+    legend.position = &#34;right&#34;,
+    strip.text = element_text(face = &#34;bold&#34;)
+  )
+```
+
+### Mean Abundance by Group
+
+```{r mean-abundance}
+# Calculate mean abundance by group
+mean_phylum &lt;- phylum_long %&gt;%
+  group_by(group, phylum) %&gt;%
+  summarise(mean_abundance = mean(abundance), .groups = &#34;drop&#34;)
+
+ggplot(mean_phylum, aes(x = group, y = mean_abundance, fill = phylum)) +
+  geom_bar(stat = &#34;identity&#34;, position = &#34;stack&#34;) +
+  scale_fill_brewer(palette = &#34;Set3&#34;) +
+  labs(
+    title = &#34;Mean Phylum Abundance by Group&#34;,
+    x = &#34;Group&#34;,
+    y = &#34;Mean Relative Abundance&#34;,
+    fill = &#34;Phylum&#34;
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;)
+  )
+```
+
+### Top Genera Comparison
+
+```{r genera-comparison}
+# Calculate mean genus abundance by group
+genus_long &lt;- abundance %&gt;%
+  pivot_longer(-sample_id, names_to = &#34;genus&#34;, values_to = &#34;abundance&#34;) %&gt;%
+  left_join(meta_df, by = &#34;sample_id&#34;)
+
+mean_genus &lt;- genus_long %&gt;%
+  group_by(group, genus) %&gt;%
+  summarise(
+    mean_abundance = mean(abundance),
+    se = sd(abundance) / sqrt(n()),
+    .groups = &#34;drop&#34;
+  )
+
+# Top 10 genera by overall abundance
+top_genera &lt;- genus_long %&gt;%
+  group_by(genus) %&gt;%
+  summarise(total = sum(abundance)) %&gt;%
+  arrange(desc(total)) %&gt;%
+  head(10) %&gt;%
+  pull(genus)
+
+# Filter and plot
+mean_genus %&gt;%
+  filter(genus %in% top_genera) %&gt;%
+  mutate(genus = factor(genus, levels = top_genera)) %&gt;%
+  ggplot(aes(x = genus, y = mean_abundance, fill = group)) +
+  geom_bar(stat = &#34;identity&#34;, position = position_dodge(width = 0.8), width = 0.7) +
+  geom_errorbar(aes(ymin = mean_abundance - se, ymax = mean_abundance + se),
+                position = position_dodge(width = 0.8), width = 0.25) +
+  scale_fill_manual(values = c(&#34;healthy&#34; = &#34;#2E86AB&#34;, &#34;ibd&#34; = &#34;#E94F37&#34;)) +
+  labs(
+    title = &#34;Top 10 Genera: Mean Abundance by Group&#34;,
+    x = &#34;Genus&#34;,
+    y = &#34;Mean Relative Abundance&#34;,
+    fill = &#34;Group&#34;
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, face = &#34;italic&#34;),
+    plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;),
+    legend.position = &#34;bottom&#34;
+  )
+```
+
+### Differential Abundance (Wilcoxon Tests)
+
+```{r differential}
+# Perform Wilcoxon tests for each genus
+diff_results &lt;- genus_long %&gt;%
+  group_by(genus) %&gt;%
+  summarise(
+    healthy_mean = mean(abundance[group == &#34;healthy&#34;]),
+    ibd_mean = mean(abundance[group == &#34;ibd&#34;]),
+    log2fc = log2((ibd_mean + 0.001) / (healthy_mean + 0.001)),
+    p_value = wilcox.test(abundance ~ group)$p.value,
+    .groups = &#34;drop&#34;
+  ) %&gt;%
+  mutate(
+    p_adj = p.adjust(p_value, method = &#34;BH&#34;),
+    significant = p_adj &lt; 0.05
+  ) %&gt;%
+  arrange(p_adj)
+
+# Display results
+diff_results %&gt;%
+  knitr::kable(digits = 4, caption = &#34;Differential Abundance Analysis (IBD vs Healthy)&#34;)
+
+# Volcano-style plot
+ggplot(diff_results, aes(x = log2fc, y = -log10(p_adj), color = significant)) +
+  geom_point(size = 4, alpha = 0.7) +
+  geom_hline(yintercept = -log10(0.05), linetype = &#34;dashed&#34;, color = &#34;gray50&#34;) +
+  geom_vline(xintercept = c(-0.5, 0.5), linetype = &#34;dashed&#34;, color = &#34;gray50&#34;) +
+  geom_text(aes(label = ifelse(significant, genus, &#34;&#34;)),
+            vjust = -0.5, hjust = 0.5, size = 3) +
+  scale_color_manual(values = c(&#34;FALSE&#34; = &#34;gray60&#34;, &#34;TRUE&#34; = &#34;#E94F37&#34;)) +
+  labs(
+    title = &#34;Differential Abundance: IBD vs Healthy&#34;,
+    x = &#34;Log2 Fold Change (IBD/Healthy)&#34;,
+    y = &#34;-Log10(Adjusted P-value)&#34;,
+    color = &#34;Significant\n(FDR &lt; 0.05)&#34;
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = &#34;bold&#34;),
+    legend.position = &#34;right&#34;
+  )
+```
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T20-48-21-848Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T20-48-21-848Z" class="timestamp-link"><time datetime="2025-12-05T20:48:21.848Z" data-timestamp="2025-12-05T20:48:21.848Z">2025-12-05T20:48:21.848Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/scotthandley/my-empty-project/microbiome_diversity_analysis.Rmd</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-48-26-130Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-48-26-130Z" class="timestamp-link"><time datetime="2025-12-05T20:48:26.130Z" data-timestamp="2025-12-05T20:48:26.130Z">2025-12-05T20:48:26.130Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I've created a comprehensive RMarkdown document for microbiome diversity analysis. Let me summarize what's included for the user.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-48-31-915Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-48-31-915Z" class="timestamp-link"><time datetime="2025-12-05T20:48:31.915Z" data-timestamp="2025-12-05T20:48:31.915Z">2025-12-05T20:48:31.915Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Created <code>microbiome_diversity_analysis.Rmd</code> with comprehensive diversity analysis and ggplot visualizations.</p>
+<h2>Contents</h2>
+<h3>Alpha Diversity</h3>
+<ul>
+<li><strong>Metrics</strong>: Shannon, Simpson, Inverse Simpson, Evenness, Observed species</li>
+<li><strong>Plots</strong>: Boxplots by group, faceted comparison of all metrics, Shannon vs BMI scatter</li>
+<li><strong>Stats</strong>: Wilcoxon tests with p-values displayed on plots</li>
+</ul>
+<h3>Beta Diversity</h3>
+<ul>
+<li><strong>Distance matrices</strong>: Bray-Curtis, Jaccard</li>
+<li><strong>PCoA</strong>: Ordination plots colored by group, antibiotics, diet, BMI, and age</li>
+<li><strong>Statistical tests</strong>: PERMANOVA (adonis2), Beta dispersion test</li>
+<li><strong>Heatmap</strong>: Clustered dissimilarity matrix with annotations</li>
+</ul>
+<h3>Taxonomic Composition</h3>
+<ul>
+<li><strong>Bar plots</strong>: Stacked phylum composition per sample, mean by group</li>
+<li><strong>Genus comparison</strong>: Top 10 genera with error bars</li>
+<li><strong>Differential abundance</strong>: Wilcoxon tests with FDR correction, volcano plot</li>
+</ul>
+<h2>Required Packages</h2>
+<pre><code class="language-r">install.packages(c(&quot;tidyverse&quot;, &quot;vegan&quot;, &quot;ggplot2&quot;, &quot;ggpubr&quot;, 
+                   &quot;RColorBrewer&quot;, &quot;pheatmap&quot;))
+</code></pre>
+<h2>To Run</h2>
+<pre><code class="language-r">rmarkdown::render(&quot;microbiome_diversity_analysis.Rmd&quot;)
+</code></pre>
+<p>This will generate an HTML report with interactive table of contents. Let me know if you'd like any modifications or additional analyses.</p></div></div></div>
+<div class="message user" id="msg-2025-12-05T20-48-59-599Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-05T20-48-59-599Z" class="timestamp-link"><time datetime="2025-12-05T20:48:59.599Z" data-timestamp="2025-12-05T20:48:59.599Z">2025-12-05T20:48:59.599Z</time></a></div><div class="message-content">
+<div class="user-content"><p>how do i run an rmarkdown in positron</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-49-04-148Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-49-04-148Z" class="timestamp-link"><time datetime="2025-12-05T20:49:04.148Z" data-timestamp="2025-12-05T20:49:04.148Z">2025-12-05T20:49:04.148Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user is asking how to run an RMarkdown file in Positron, which is a new IDE for data science (from Posit, formerly RStudio). Let me provide clear instructions for running RMarkdown in Positron.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-49-09-020Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-49-09-020Z" class="timestamp-link"><time datetime="2025-12-05T20:49:09.020Z" data-timestamp="2025-12-05T20:49:09.020Z">2025-12-05T20:49:09.020Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>In Positron, you can run RMarkdown files a few ways:</p>
+<h2>Option 1: Render Button</h2>
+<ul>
+<li>Open the <code>.Rmd</code> file</li>
+<li>Click the <strong>"Render"</strong> button in the editor toolbar (or look for a preview/knit icon)</li>
+</ul>
+<h2>Option 2: Command Palette</h2>
+<ul>
+<li>Press <code>Cmd+Shift+P</code> to open the command palette</li>
+<li>Type "render" and select <strong>"R: Render Document"</strong></li>
+</ul>
+<h2>Option 3: R Console</h2>
+<p>Run directly in the Positron R console:</p>
+<pre><code class="language-r">rmarkdown::render(&quot;microbiome_diversity_analysis.Rmd&quot;)
+</code></pre>
+<h2>Option 4: Keyboard Shortcut</h2>
+<ul>
+<li><code>Cmd+Shift+K</code> (the traditional RStudio knit shortcut may work)</li>
+</ul>
+<h2>First: Install Dependencies</h2>
+<p>Make sure you have the required packages installed first. Run this in the R console:</p>
+<pre><code class="language-r">install.packages(c(&quot;tidyverse&quot;, &quot;vegan&quot;, &quot;ggpubr&quot;, &quot;RColorBrewer&quot;, &quot;pheatmap&quot;, &quot;rmarkdown&quot;))
+</code></pre>
+<h2>Note</h2>
+<p>Positron is still relatively new, so if the render button isn't visible, using the console command (<code>rmarkdown::render()</code>) is the most reliable method. The output HTML will appear in your project folder.</p></div></div></div>
+<div class="message user" id="msg-2025-12-05T20-54-56-948Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-05T20-54-56-948Z" class="timestamp-link"><time datetime="2025-12-05T20:54:56.948Z" data-timestamp="2025-12-05T20:54:56.948Z">2025-12-05T20:54:56.948Z</time></a></div><div class="message-content">
+<div class="user-content"><p>thats great. can you refactor to python</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-55-01-196Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-55-01-196Z" class="timestamp-link"><time datetime="2025-12-05T20:55:01.196Z" data-timestamp="2025-12-05T20:55:01.196Z">2025-12-05T20:55:01.196Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants me to refactor the RMarkdown microbiome diversity analysis to Python. I should create a Jupyter notebook that performs the same analyses using Python libraries like pandas, scikit-bio, scipy, and matplotlib/seaborn for visualizations.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-56-43-221Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-56-43-221Z" class="timestamp-link"><time datetime="2025-12-05T20:56:43.221Z" data-timestamp="2025-12-05T20:56:43.221Z">2025-12-05T20:56:43.221Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01RSvjxk7vrZhomV5XaBjhMJ">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">microbiome_diversity_analysis.ipynb</span></div>
+<div class="file-tool-fullpath">/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">{
+ &#34;cells&#34;: [
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;# Microbiome Diversity Analysis\n&#34;,
+    &#34;\n&#34;,
+    &#34;This notebook performs alpha and beta diversity analysis on microbiome data.&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;## Setup and Imports&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;import pandas as pd\n&#34;,
+    &#34;import numpy as np\n&#34;,
+    &#34;import matplotlib.pyplot as plt\n&#34;,
+    &#34;import seaborn as sns\n&#34;,
+    &#34;from scipy import stats\n&#34;,
+    &#34;from scipy.spatial.distance import pdist, squareform\n&#34;,
+    &#34;from scipy.cluster.hierarchy import linkage, dendrogram\n&#34;,
+    &#34;from sklearn.manifold import MDS\n&#34;,
+    &#34;from skbio.diversity import alpha_diversity, beta_diversity\n&#34;,
+    &#34;from skbio.stats.ordination import pcoa\n&#34;,
+    &#34;from skbio.stats.distance import permanova, anosim\n&#34;,
+    &#34;import warnings\n&#34;,
+    &#34;warnings.filterwarnings(&#39;ignore&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Set style\n&#34;,
+    &#34;sns.set_style(\&#34;whitegrid\&#34;)\n&#34;,
+    &#34;plt.rcParams[&#39;figure.figsize&#39;] = [10, 6]\n&#34;,
+    &#34;plt.rcParams[&#39;figure.dpi&#39;] = 100&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;## Load Data&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Load abundance data\n&#34;,
+    &#34;abundance = pd.read_csv(&#39;genus_abundance.csv&#39;, index_col=&#39;sample_id&#39;)\n&#34;,
+    &#34;phylum_abundance = pd.read_csv(&#39;microbiome_abundance.csv&#39;, index_col=&#39;sample_id&#39;)\n&#34;,
+    &#34;metadata = pd.read_csv(&#39;sample_metadata.csv&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Set sample_id as index for metadata\n&#34;,
+    &#34;metadata = metadata.set_index(&#39;sample_id&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;print(\&#34;Abundance data shape:\&#34;, abundance.shape)\n&#34;,
+    &#34;print(\&#34;Metadata shape:\&#34;, metadata.shape)\n&#34;,
+    &#34;abundance.head()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;## Alpha Diversity\n&#34;,
+    &#34;\n&#34;,
+    &#34;Alpha diversity measures within-sample diversity.&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### Calculate Alpha Diversity Metrics&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;def shannon_diversity(row):\n&#34;,
+    &#34;    \&#34;\&#34;\&#34;Calculate Shannon diversity index.\&#34;\&#34;\&#34;\n&#34;,
+    &#34;    props = row[row &gt; 0]\n&#34;,
+    &#34;    return -np.sum(props * np.log(props))\n&#34;,
+    &#34;\n&#34;,
+    &#34;def simpson_diversity(row):\n&#34;,
+    &#34;    \&#34;\&#34;\&#34;Calculate Simpson diversity index (1 - D).\&#34;\&#34;\&#34;\n&#34;,
+    &#34;    return 1 - np.sum(row ** 2)\n&#34;,
+    &#34;\n&#34;,
+    &#34;def inverse_simpson(row):\n&#34;,
+    &#34;    \&#34;\&#34;\&#34;Calculate Inverse Simpson index.\&#34;\&#34;\&#34;\n&#34;,
+    &#34;    return 1 / np.sum(row ** 2)\n&#34;,
+    &#34;\n&#34;,
+    &#34;def observed_species(row):\n&#34;,
+    &#34;    \&#34;\&#34;\&#34;Count observed species (non-zero entries).\&#34;\&#34;\&#34;\n&#34;,
+    &#34;    return np.sum(row &gt; 0)\n&#34;,
+    &#34;\n&#34;,
+    &#34;def pielou_evenness(row):\n&#34;,
+    &#34;    \&#34;\&#34;\&#34;Calculate Pielou&#39;s evenness.\&#34;\&#34;\&#34;\n&#34;,
+    &#34;    s = observed_species(row)\n&#34;,
+    &#34;    if s &lt;= 1:\n&#34;,
+    &#34;        return 0\n&#34;,
+    &#34;    return shannon_diversity(row) / np.log(s)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Calculate all metrics\n&#34;,
+    &#34;alpha_div = pd.DataFrame({\n&#34;,
+    &#34;    &#39;shannon&#39;: abundance.apply(shannon_diversity, axis=1),\n&#34;,
+    &#34;    &#39;simpson&#39;: abundance.apply(simpson_diversity, axis=1),\n&#34;,
+    &#34;    &#39;inv_simpson&#39;: abundance.apply(inverse_simpson, axis=1),\n&#34;,
+    &#34;    &#39;observed&#39;: abundance.apply(observed_species, axis=1),\n&#34;,
+    &#34;    &#39;evenness&#39;: abundance.apply(pielou_evenness, axis=1)\n&#34;,
+    &#34;})\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Merge with metadata\n&#34;,
+    &#34;alpha_df = alpha_div.join(metadata)\n&#34;,
+    &#34;alpha_df.head()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Summary statistics by group\n&#34;,
+    &#34;summary = alpha_df.groupby(&#39;group&#39;)[[&#39;shannon&#39;, &#39;simpson&#39;, &#39;inv_simpson&#39;, &#39;evenness&#39;]].agg([&#39;mean&#39;, &#39;std&#39;])\n&#34;,
+    &#34;summary.round(3)&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### Shannon Diversity by Group&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Color palette\n&#34;,
+    &#34;colors = {&#39;healthy&#39;: &#39;#2E86AB&#39;, &#39;ibd&#39;: &#39;#E94F37&#39;}\n&#34;,
+    &#34;\n&#34;,
+    &#34;fig, ax = plt.subplots(figsize=(8, 6))\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Boxplot\n&#34;,
+    &#34;sns.boxplot(data=alpha_df, x=&#39;group&#39;, y=&#39;shannon&#39;, palette=colors, ax=ax, width=0.5)\n&#34;,
+    &#34;sns.stripplot(data=alpha_df, x=&#39;group&#39;, y=&#39;shannon&#39;, color=&#39;black&#39;, alpha=0.5, ax=ax)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Statistical test\n&#34;,
+    &#34;healthy = alpha_df[alpha_df[&#39;group&#39;] == &#39;healthy&#39;][&#39;shannon&#39;]\n&#34;,
+    &#34;ibd = alpha_df[alpha_df[&#39;group&#39;] == &#39;ibd&#39;][&#39;shannon&#39;]\n&#34;,
+    &#34;stat, pval = stats.mannwhitneyu(healthy, ibd, alternative=&#39;two-sided&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Add p-value annotation\n&#34;,
+    &#34;ax.text(0.5, ax.get_ylim()[1] * 0.95, f&#39;p = {pval:.4f}&#39;, \n&#34;,
+    &#34;        ha=&#39;center&#39;, fontsize=12, transform=ax.get_xaxis_transform())\n&#34;,
+    &#34;\n&#34;,
+    &#34;ax.set_xlabel(&#39;Group&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_ylabel(&#39;Shannon Index&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_title(&#39;Shannon Diversity Index by Group&#39;, fontsize=14, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;plt.tight_layout()\n&#34;,
+    &#34;plt.show()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### All Alpha Metrics Comparison&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Reshape data for faceted plot\n&#34;,
+    &#34;metrics = [&#39;shannon&#39;, &#39;simpson&#39;, &#39;inv_simpson&#39;, &#39;evenness&#39;]\n&#34;,
+    &#34;metric_labels = [&#39;Shannon&#39;, &#39;Simpson&#39;, &#39;Inverse Simpson&#39;, &#39;Evenness&#39;]\n&#34;,
+    &#34;\n&#34;,
+    &#34;fig, axes = plt.subplots(1, 4, figsize=(16, 5))\n&#34;,
+    &#34;\n&#34;,
+    &#34;for idx, (metric, label) in enumerate(zip(metrics, metric_labels)):\n&#34;,
+    &#34;    ax = axes[idx]\n&#34;,
+    &#34;    sns.boxplot(data=alpha_df, x=&#39;group&#39;, y=metric, palette=colors, ax=ax, width=0.5)\n&#34;,
+    &#34;    sns.stripplot(data=alpha_df, x=&#39;group&#39;, y=metric, color=&#39;black&#39;, alpha=0.5, ax=ax)\n&#34;,
+    &#34;    \n&#34;,
+    &#34;    # Statistical test\n&#34;,
+    &#34;    healthy = alpha_df[alpha_df[&#39;group&#39;] == &#39;healthy&#39;][metric]\n&#34;,
+    &#34;    ibd = alpha_df[alpha_df[&#39;group&#39;] == &#39;ibd&#39;][metric]\n&#34;,
+    &#34;    stat, pval = stats.mannwhitneyu(healthy, ibd, alternative=&#39;two-sided&#39;)\n&#34;,
+    &#34;    \n&#34;,
+    &#34;    # Add significance stars\n&#34;,
+    &#34;    sig = &#39;***&#39; if pval &lt; 0.001 else &#39;**&#39; if pval &lt; 0.01 else &#39;*&#39; if pval &lt; 0.05 else &#39;ns&#39;\n&#34;,
+    &#34;    ax.text(0.5, ax.get_ylim()[1] * 0.95, sig, ha=&#39;center&#39;, fontsize=14, \n&#34;,
+    &#34;            transform=ax.get_xaxis_transform())\n&#34;,
+    &#34;    \n&#34;,
+    &#34;    ax.set_xlabel(&#39;&#39;)\n&#34;,
+    &#34;    ax.set_ylabel(&#39;Value&#39; if idx == 0 else &#39;&#39;)\n&#34;,
+    &#34;    ax.set_title(label, fontsize=12, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;plt.suptitle(&#39;Alpha Diversity Metrics by Group&#39;, fontsize=14, fontweight=&#39;bold&#39;, y=1.02)\n&#34;,
+    &#34;plt.tight_layout()\n&#34;,
+    &#34;plt.show()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### Alpha Diversity vs BMI&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;fig, ax = plt.subplots(figsize=(10, 6))\n&#34;,
+    &#34;\n&#34;,
+    &#34;for group in [&#39;healthy&#39;, &#39;ibd&#39;]:\n&#34;,
+    &#34;    data = alpha_df[alpha_df[&#39;group&#39;] == group]\n&#34;,
+    &#34;    ax.scatter(data[&#39;bmi&#39;], data[&#39;shannon&#39;], c=colors[group], label=group, s=80, alpha=0.7)\n&#34;,
+    &#34;    \n&#34;,
+    &#34;    # Add regression line\n&#34;,
+    &#34;    z = np.polyfit(data[&#39;bmi&#39;], data[&#39;shannon&#39;], 1)\n&#34;,
+    &#34;    p = np.poly1d(z)\n&#34;,
+    &#34;    x_line = np.linspace(data[&#39;bmi&#39;].min(), data[&#39;bmi&#39;].max(), 100)\n&#34;,
+    &#34;    ax.plot(x_line, p(x_line), c=colors[group], linestyle=&#39;--&#39;, alpha=0.5)\n&#34;,
+    &#34;\n&#34;,
+    &#34;ax.set_xlabel(&#39;BMI&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_ylabel(&#39;Shannon Index&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_title(&#39;Shannon Diversity vs BMI&#39;, fontsize=14, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;ax.legend(title=&#39;Group&#39;)\n&#34;,
+    &#34;plt.tight_layout()\n&#34;,
+    &#34;plt.show()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;## Beta Diversity\n&#34;,
+    &#34;\n&#34;,
+    &#34;Beta diversity measures between-sample diversity (community composition differences).&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### Calculate Distance Matrices&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;from skbio import DistanceMatrix\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Bray-Curtis dissimilarity using skbio\n&#34;,
+    &#34;bray_dm = beta_diversity(&#39;braycurtis&#39;, abundance.values, ids=abundance.index.tolist())\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Convert to DataFrame for visualization\n&#34;,
+    &#34;bray_matrix = bray_dm.to_data_frame()\n&#34;,
+    &#34;print(\&#34;Bray-Curtis distance matrix shape:\&#34;, bray_matrix.shape)\n&#34;,
+    &#34;bray_matrix.head()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### PCoA (Principal Coordinates Analysis)&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Perform PCoA\n&#34;,
+    &#34;pcoa_results = pcoa(bray_dm)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Get coordinates and variance explained\n&#34;,
+    &#34;pcoa_df = pcoa_results.samples[[&#39;PC1&#39;, &#39;PC2&#39;]].copy()\n&#34;,
+    &#34;pcoa_df = pcoa_df.join(metadata)\n&#34;,
+    &#34;\n&#34;,
+    &#34;var_explained = pcoa_results.proportion_explained\n&#34;,
+    &#34;pc1_var = var_explained[&#39;PC1&#39;] * 100\n&#34;,
+    &#34;pc2_var = var_explained[&#39;PC2&#39;] * 100\n&#34;,
+    &#34;\n&#34;,
+    &#34;print(f\&#34;PC1 explains {pc1_var:.1f}% of variance\&#34;)\n&#34;,
+    &#34;print(f\&#34;PC2 explains {pc2_var:.1f}% of variance\&#34;)&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;from matplotlib.patches import Ellipse\n&#34;,
+    &#34;import matplotlib.transforms as transforms\n&#34;,
+    &#34;\n&#34;,
+    &#34;def confidence_ellipse(x, y, ax, n_std=2.0, facecolor=&#39;none&#39;, **kwargs):\n&#34;,
+    &#34;    \&#34;\&#34;\&#34;Create a covariance confidence ellipse.\&#34;\&#34;\&#34;\n&#34;,
+    &#34;    if len(x) &lt; 3:\n&#34;,
+    &#34;        return None\n&#34;,
+    &#34;    cov = np.cov(x, y)\n&#34;,
+    &#34;    pearson = cov[0, 1] / np.sqrt(cov[0, 0] * cov[1, 1])\n&#34;,
+    &#34;    ell_radius_x = np.sqrt(1 + pearson)\n&#34;,
+    &#34;    ell_radius_y = np.sqrt(1 - pearson)\n&#34;,
+    &#34;    ellipse = Ellipse((0, 0), width=ell_radius_x * 2, height=ell_radius_y * 2,\n&#34;,
+    &#34;                      facecolor=facecolor, **kwargs)\n&#34;,
+    &#34;    scale_x = np.sqrt(cov[0, 0]) * n_std\n&#34;,
+    &#34;    scale_y = np.sqrt(cov[1, 1]) * n_std\n&#34;,
+    &#34;    transf = transforms.Affine2D() \\\n&#34;,
+    &#34;        .rotate_deg(45) \\\n&#34;,
+    &#34;        .scale(scale_x, scale_y) \\\n&#34;,
+    &#34;        .translate(np.mean(x), np.mean(y))\n&#34;,
+    &#34;    ellipse.set_transform(transf + ax.transData)\n&#34;,
+    &#34;    return ax.add_patch(ellipse)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# PCoA plot\n&#34;,
+    &#34;fig, ax = plt.subplots(figsize=(10, 8))\n&#34;,
+    &#34;\n&#34;,
+    &#34;for group in [&#39;healthy&#39;, &#39;ibd&#39;]:\n&#34;,
+    &#34;    data = pcoa_df[pcoa_df[&#39;group&#39;] == group]\n&#34;,
+    &#34;    ax.scatter(data[&#39;PC1&#39;], data[&#39;PC2&#39;], c=colors[group], label=group, \n&#34;,
+    &#34;               s=100, alpha=0.7, edgecolors=&#39;white&#39;, linewidth=0.5)\n&#34;,
+    &#34;    confidence_ellipse(data[&#39;PC1&#39;], data[&#39;PC2&#39;], ax, n_std=2.0,\n&#34;,
+    &#34;                       edgecolor=colors[group], linestyle=&#39;--&#39;, linewidth=2)\n&#34;,
+    &#34;\n&#34;,
+    &#34;ax.set_xlabel(f&#39;PC1 ({pc1_var:.1f}%)&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_ylabel(f&#39;PC2 ({pc2_var:.1f}%)&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_title(&#39;PCoA of Microbiome Composition (Bray-Curtis)&#39;, fontsize=14, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;ax.legend(title=&#39;Group&#39;, loc=&#39;best&#39;)\n&#34;,
+    &#34;ax.axhline(y=0, color=&#39;gray&#39;, linestyle=&#39;-&#39;, linewidth=0.5, alpha=0.5)\n&#34;,
+    &#34;ax.axvline(x=0, color=&#39;gray&#39;, linestyle=&#39;-&#39;, linewidth=0.5, alpha=0.5)\n&#34;,
+    &#34;plt.tight_layout()\n&#34;,
+    &#34;plt.show()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### PCoA Colored by Other Variables&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;fig, axes = plt.subplots(2, 2, figsize=(14, 12))\n&#34;,
+    &#34;\n&#34;,
+    &#34;# By antibiotic use\n&#34;,
+    &#34;ax = axes[0, 0]\n&#34;,
+    &#34;abx_colors = {&#39;no&#39;: &#39;#4ECDC4&#39;, &#39;yes&#39;: &#39;#FF6B6B&#39;}\n&#34;,
+    &#34;for abx in [&#39;no&#39;, &#39;yes&#39;]:\n&#34;,
+    &#34;    data = pcoa_df[pcoa_df[&#39;antibiotic_use&#39;] == abx]\n&#34;,
+    &#34;    ax.scatter(data[&#39;PC1&#39;], data[&#39;PC2&#39;], c=abx_colors[abx], label=abx, s=80, alpha=0.7)\n&#34;,
+    &#34;ax.set_xlabel(f&#39;PC1 ({pc1_var:.1f}%)&#39;)\n&#34;,
+    &#34;ax.set_ylabel(f&#39;PC2 ({pc2_var:.1f}%)&#39;)\n&#34;,
+    &#34;ax.set_title(&#39;By Antibiotic Use&#39;, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;ax.legend(title=&#39;Antibiotics&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# By diet type\n&#34;,
+    &#34;ax = axes[0, 1]\n&#34;,
+    &#34;diet_colors = {&#39;omnivore&#39;: &#39;#95E1D3&#39;, &#39;vegetarian&#39;: &#39;#F38181&#39;, &#39;vegan&#39;: &#39;#AA96DA&#39;}\n&#34;,
+    &#34;for diet in pcoa_df[&#39;diet_type&#39;].unique():\n&#34;,
+    &#34;    data = pcoa_df[pcoa_df[&#39;diet_type&#39;] == diet]\n&#34;,
+    &#34;    ax.scatter(data[&#39;PC1&#39;], data[&#39;PC2&#39;], c=diet_colors[diet], label=diet, s=80, alpha=0.7)\n&#34;,
+    &#34;ax.set_xlabel(f&#39;PC1 ({pc1_var:.1f}%)&#39;)\n&#34;,
+    &#34;ax.set_ylabel(f&#39;PC2 ({pc2_var:.1f}%)&#39;)\n&#34;,
+    &#34;ax.set_title(&#39;By Diet Type&#39;, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;ax.legend(title=&#39;Diet&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# By BMI (continuous)\n&#34;,
+    &#34;ax = axes[1, 0]\n&#34;,
+    &#34;scatter = ax.scatter(pcoa_df[&#39;PC1&#39;], pcoa_df[&#39;PC2&#39;], c=pcoa_df[&#39;bmi&#39;], \n&#34;,
+    &#34;                     cmap=&#39;plasma&#39;, s=80, alpha=0.7)\n&#34;,
+    &#34;plt.colorbar(scatter, ax=ax, label=&#39;BMI&#39;)\n&#34;,
+    &#34;ax.set_xlabel(f&#39;PC1 ({pc1_var:.1f}%)&#39;)\n&#34;,
+    &#34;ax.set_ylabel(f&#39;PC2 ({pc2_var:.1f}%)&#39;)\n&#34;,
+    &#34;ax.set_title(&#39;By BMI&#39;, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# By age\n&#34;,
+    &#34;ax = axes[1, 1]\n&#34;,
+    &#34;scatter = ax.scatter(pcoa_df[&#39;PC1&#39;], pcoa_df[&#39;PC2&#39;], c=pcoa_df[&#39;age&#39;], \n&#34;,
+    &#34;                     cmap=&#39;viridis&#39;, s=80, alpha=0.7)\n&#34;,
+    &#34;plt.colorbar(scatter, ax=ax, label=&#39;Age&#39;)\n&#34;,
+    &#34;ax.set_xlabel(f&#39;PC1 ({pc1_var:.1f}%)&#39;)\n&#34;,
+    &#34;ax.set_ylabel(f&#39;PC2 ({pc2_var:.1f}%)&#39;)\n&#34;,
+    &#34;ax.set_title(&#39;By Age&#39;, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;plt.suptitle(&#39;PCoA Colored by Different Variables&#39;, fontsize=14, fontweight=&#39;bold&#39;, y=1.01)\n&#34;,
+    &#34;plt.tight_layout()\n&#34;,
+    &#34;plt.show()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### PERMANOVA Test&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# PERMANOVA for group differences\n&#34;,
+    &#34;permanova_result = permanova(bray_dm, metadata[&#39;group&#39;], permutations=999)\n&#34;,
+    &#34;print(\&#34;PERMANOVA Results (Group)\&#34;)\n&#34;,
+    &#34;print(\&#34;=\&#34;*50)\n&#34;,
+    &#34;print(f\&#34;Test statistic: {permanova_result[&#39;test statistic&#39;]:.4f}\&#34;)\n&#34;,
+    &#34;print(f\&#34;P-value: {permanova_result[&#39;p-value&#39;]:.4f}\&#34;)\n&#34;,
+    &#34;print(f\&#34;Number of permutations: {permanova_result[&#39;number of permutations&#39;]}\&#34;)&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# ANOSIM test (alternative to PERMANOVA)\n&#34;,
+    &#34;anosim_result = anosim(bray_dm, metadata[&#39;group&#39;], permutations=999)\n&#34;,
+    &#34;print(\&#34;\\nANOSIM Results (Group)\&#34;)\n&#34;,
+    &#34;print(\&#34;=\&#34;*50)\n&#34;,
+    &#34;print(f\&#34;R statistic: {anosim_result[&#39;test statistic&#39;]:.4f}\&#34;)\n&#34;,
+    &#34;print(f\&#34;P-value: {anosim_result[&#39;p-value&#39;]:.4f}\&#34;)&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### Beta Dispersion&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Calculate distance to centroid for each group\n&#34;,
+    &#34;def calculate_centroid_distances(dm, groups):\n&#34;,
+    &#34;    \&#34;\&#34;\&#34;Calculate distance from each sample to its group centroid.\&#34;\&#34;\&#34;\n&#34;,
+    &#34;    distances = []\n&#34;,
+    &#34;    coords = pcoa(dm).samples[[&#39;PC1&#39;, &#39;PC2&#39;, &#39;PC3&#39;]].values\n&#34;,
+    &#34;    sample_ids = dm.ids\n&#34;,
+    &#34;    \n&#34;,
+    &#34;    for group in groups.unique():\n&#34;,
+    &#34;        group_mask = groups.values == group\n&#34;,
+    &#34;        group_coords = coords[group_mask]\n&#34;,
+    &#34;        centroid = group_coords.mean(axis=0)\n&#34;,
+    &#34;        \n&#34;,
+    &#34;        for i, (sid, is_group) in enumerate(zip(sample_ids, group_mask)):\n&#34;,
+    &#34;            if is_group:\n&#34;,
+    &#34;                dist = np.sqrt(np.sum((coords[i] - centroid) ** 2))\n&#34;,
+    &#34;                distances.append({&#39;sample_id&#39;: sid, &#39;group&#39;: group, &#39;distance&#39;: dist})\n&#34;,
+    &#34;    \n&#34;,
+    &#34;    return pd.DataFrame(distances)\n&#34;,
+    &#34;\n&#34;,
+    &#34;dispersion_df = calculate_centroid_distances(bray_dm, metadata[&#39;group&#39;])\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Plot\n&#34;,
+    &#34;fig, ax = plt.subplots(figsize=(8, 6))\n&#34;,
+    &#34;sns.boxplot(data=dispersion_df, x=&#39;group&#39;, y=&#39;distance&#39;, palette=colors, ax=ax, width=0.5)\n&#34;,
+    &#34;sns.stripplot(data=dispersion_df, x=&#39;group&#39;, y=&#39;distance&#39;, color=&#39;black&#39;, alpha=0.5, ax=ax)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Statistical test\n&#34;,
+    &#34;healthy_dist = dispersion_df[dispersion_df[&#39;group&#39;] == &#39;healthy&#39;][&#39;distance&#39;]\n&#34;,
+    &#34;ibd_dist = dispersion_df[dispersion_df[&#39;group&#39;] == &#39;ibd&#39;][&#39;distance&#39;]\n&#34;,
+    &#34;stat, pval = stats.mannwhitneyu(healthy_dist, ibd_dist)\n&#34;,
+    &#34;\n&#34;,
+    &#34;ax.set_xlabel(&#39;Group&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_ylabel(&#39;Distance to Centroid&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_title(f&#39;Beta Dispersion by Group\\n(p = {pval:.4f})&#39;, fontsize=14, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;plt.tight_layout()\n&#34;,
+    &#34;plt.show()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### Distance Heatmap&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Create annotation colors\n&#34;,
+    &#34;group_colors = metadata[&#39;group&#39;].map(colors)\n&#34;,
+    &#34;abx_colors_map = metadata[&#39;antibiotic_use&#39;].map({&#39;no&#39;: &#39;#4ECDC4&#39;, &#39;yes&#39;: &#39;#FF6B6B&#39;})\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Cluster and plot heatmap\n&#34;,
+    &#34;fig, ax = plt.subplots(figsize=(12, 10))\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Create clustermap\n&#34;,
+    &#34;g = sns.clustermap(\n&#34;,
+    &#34;    bray_matrix,\n&#34;,
+    &#34;    cmap=&#39;RdBu_r&#39;,\n&#34;,
+    &#34;    center=0.5,\n&#34;,
+    &#34;    row_colors=[group_colors, abx_colors_map],\n&#34;,
+    &#34;    col_colors=[group_colors, abx_colors_map],\n&#34;,
+    &#34;    figsize=(12, 10),\n&#34;,
+    &#34;    dendrogram_ratio=0.15,\n&#34;,
+    &#34;    cbar_pos=(0.02, 0.8, 0.03, 0.15)\n&#34;,
+    &#34;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;g.ax_heatmap.set_xlabel(&#39;Samples&#39;)\n&#34;,
+    &#34;g.ax_heatmap.set_ylabel(&#39;Samples&#39;)\n&#34;,
+    &#34;g.fig.suptitle(&#39;Bray-Curtis Dissimilarity Heatmap&#39;, fontsize=14, fontweight=&#39;bold&#39;, y=1.02)\n&#34;,
+    &#34;\n&#34;,
+    &#34;plt.show()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;## Taxonomic Composition&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### Phylum-Level Bar Plot&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Prepare data - sort samples by group\n&#34;,
+    &#34;sample_order = metadata.sort_values(&#39;group&#39;).index.tolist()\n&#34;,
+    &#34;phylum_sorted = phylum_abundance.loc[sample_order]\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Create stacked bar plot\n&#34;,
+    &#34;fig, ax = plt.subplots(figsize=(14, 6))\n&#34;,
+    &#34;\n&#34;,
+    &#34;phylum_sorted.plot(kind=&#39;bar&#39;, stacked=True, ax=ax, colormap=&#39;Set3&#39;, width=0.8)\n&#34;,
+    &#34;\n&#34;,
+    &#34;ax.set_xlabel(&#39;Sample&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_ylabel(&#39;Relative Abundance&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_title(&#39;Phylum-Level Composition by Sample&#39;, fontsize=14, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;ax.legend(title=&#39;Phylum&#39;, bbox_to_anchor=(1.02, 1), loc=&#39;upper left&#39;)\n&#34;,
+    &#34;ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha=&#39;right&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Add group labels\n&#34;,
+    &#34;healthy_samples = metadata[metadata[&#39;group&#39;] == &#39;healthy&#39;].index\n&#34;,
+    &#34;ibd_samples = metadata[metadata[&#39;group&#39;] == &#39;ibd&#39;].index\n&#34;,
+    &#34;\n&#34;,
+    &#34;plt.tight_layout()\n&#34;,
+    &#34;plt.show()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### Mean Abundance by Group&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Calculate mean phylum abundance by group\n&#34;,
+    &#34;phylum_with_group = phylum_abundance.join(metadata[[&#39;group&#39;]])\n&#34;,
+    &#34;mean_phylum = phylum_with_group.groupby(&#39;group&#39;).mean()\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Plot\n&#34;,
+    &#34;fig, ax = plt.subplots(figsize=(8, 6))\n&#34;,
+    &#34;\n&#34;,
+    &#34;mean_phylum.T.plot(kind=&#39;bar&#39;, ax=ax, color=[colors[&#39;healthy&#39;], colors[&#39;ibd&#39;]], width=0.7)\n&#34;,
+    &#34;\n&#34;,
+    &#34;ax.set_xlabel(&#39;Phylum&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_ylabel(&#39;Mean Relative Abundance&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_title(&#39;Mean Phylum Abundance by Group&#39;, fontsize=14, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;ax.legend(title=&#39;Group&#39;)\n&#34;,
+    &#34;ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha=&#39;right&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;plt.tight_layout()\n&#34;,
+    &#34;plt.show()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### Top Genera Comparison&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Calculate mean and SE for each genus by group\n&#34;,
+    &#34;abundance_with_group = abundance.join(metadata[[&#39;group&#39;]])\n&#34;,
+    &#34;\n&#34;,
+    &#34;genus_stats = []\n&#34;,
+    &#34;for genus in abundance.columns:\n&#34;,
+    &#34;    for group in [&#39;healthy&#39;, &#39;ibd&#39;]:\n&#34;,
+    &#34;        values = abundance_with_group[abundance_with_group[&#39;group&#39;] == group][genus]\n&#34;,
+    &#34;        genus_stats.append({\n&#34;,
+    &#34;            &#39;genus&#39;: genus,\n&#34;,
+    &#34;            &#39;group&#39;: group,\n&#34;,
+    &#34;            &#39;mean&#39;: values.mean(),\n&#34;,
+    &#34;            &#39;se&#39;: values.std() / np.sqrt(len(values))\n&#34;,
+    &#34;        })\n&#34;,
+    &#34;\n&#34;,
+    &#34;genus_stats_df = pd.DataFrame(genus_stats)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Get top 10 genera by overall abundance\n&#34;,
+    &#34;top_genera = abundance.sum().nlargest(10).index.tolist()\n&#34;,
+    &#34;top_genus_stats = genus_stats_df[genus_stats_df[&#39;genus&#39;].isin(top_genera)]\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Plot\n&#34;,
+    &#34;fig, ax = plt.subplots(figsize=(12, 6))\n&#34;,
+    &#34;\n&#34;,
+    &#34;x = np.arange(len(top_genera))\n&#34;,
+    &#34;width = 0.35\n&#34;,
+    &#34;\n&#34;,
+    &#34;for i, group in enumerate([&#39;healthy&#39;, &#39;ibd&#39;]):\n&#34;,
+    &#34;    data = top_genus_stats[top_genus_stats[&#39;group&#39;] == group].set_index(&#39;genus&#39;).loc[top_genera]\n&#34;,
+    &#34;    offset = width * (i - 0.5)\n&#34;,
+    &#34;    bars = ax.bar(x + offset, data[&#39;mean&#39;], width, label=group, color=colors[group], alpha=0.8)\n&#34;,
+    &#34;    ax.errorbar(x + offset, data[&#39;mean&#39;], yerr=data[&#39;se&#39;], fmt=&#39;none&#39;, color=&#39;black&#39;, capsize=3)\n&#34;,
+    &#34;\n&#34;,
+    &#34;ax.set_xlabel(&#39;Genus&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_ylabel(&#39;Mean Relative Abundance&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_title(&#39;Top 10 Genera: Mean Abundance by Group&#39;, fontsize=14, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;ax.set_xticks(x)\n&#34;,
+    &#34;ax.set_xticklabels(top_genera, rotation=45, ha=&#39;right&#39;, style=&#39;italic&#39;)\n&#34;,
+    &#34;ax.legend(title=&#39;Group&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;plt.tight_layout()\n&#34;,
+    &#34;plt.show()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;### Differential Abundance Analysis&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;from statsmodels.stats.multitest import multipletests\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Perform Wilcoxon tests for each genus\n&#34;,
+    &#34;diff_results = []\n&#34;,
+    &#34;\n&#34;,
+    &#34;for genus in abundance.columns:\n&#34;,
+    &#34;    healthy_vals = abundance_with_group[abundance_with_group[&#39;group&#39;] == &#39;healthy&#39;][genus]\n&#34;,
+    &#34;    ibd_vals = abundance_with_group[abundance_with_group[&#39;group&#39;] == &#39;ibd&#39;][genus]\n&#34;,
+    &#34;    \n&#34;,
+    &#34;    stat, pval = stats.mannwhitneyu(healthy_vals, ibd_vals, alternative=&#39;two-sided&#39;)\n&#34;,
+    &#34;    \n&#34;,
+    &#34;    healthy_mean = healthy_vals.mean()\n&#34;,
+    &#34;    ibd_mean = ibd_vals.mean()\n&#34;,
+    &#34;    \n&#34;,
+    &#34;    # Log2 fold change (IBD vs Healthy)\n&#34;,
+    &#34;    log2fc = np.log2((ibd_mean + 0.001) / (healthy_mean + 0.001))\n&#34;,
+    &#34;    \n&#34;,
+    &#34;    diff_results.append({\n&#34;,
+    &#34;        &#39;genus&#39;: genus,\n&#34;,
+    &#34;        &#39;healthy_mean&#39;: healthy_mean,\n&#34;,
+    &#34;        &#39;ibd_mean&#39;: ibd_mean,\n&#34;,
+    &#34;        &#39;log2fc&#39;: log2fc,\n&#34;,
+    &#34;        &#39;p_value&#39;: pval\n&#34;,
+    &#34;    })\n&#34;,
+    &#34;\n&#34;,
+    &#34;diff_df = pd.DataFrame(diff_results)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# FDR correction\n&#34;,
+    &#34;diff_df[&#39;p_adj&#39;] = multipletests(diff_df[&#39;p_value&#39;], method=&#39;fdr_bh&#39;)[1]\n&#34;,
+    &#34;diff_df[&#39;significant&#39;] = diff_df[&#39;p_adj&#39;] &lt; 0.05\n&#34;,
+    &#34;diff_df = diff_df.sort_values(&#39;p_adj&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;print(\&#34;Differential Abundance Results (IBD vs Healthy)\&#34;)\n&#34;,
+    &#34;print(\&#34;=\&#34;*70)\n&#34;,
+    &#34;diff_df.round(4)&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Volcano plot\n&#34;,
+    &#34;fig, ax = plt.subplots(figsize=(10, 8))\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Plot non-significant points\n&#34;,
+    &#34;nonsig = diff_df[~diff_df[&#39;significant&#39;]]\n&#34;,
+    &#34;ax.scatter(nonsig[&#39;log2fc&#39;], -np.log10(nonsig[&#39;p_adj&#39;]), \n&#34;,
+    &#34;           c=&#39;gray&#39;, s=80, alpha=0.6, label=&#39;Not significant&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Plot significant points\n&#34;,
+    &#34;sig = diff_df[diff_df[&#39;significant&#39;]]\n&#34;,
+    &#34;ax.scatter(sig[&#39;log2fc&#39;], -np.log10(sig[&#39;p_adj&#39;]), \n&#34;,
+    &#34;           c=&#39;#E94F37&#39;, s=100, alpha=0.8, label=&#39;Significant (FDR &lt; 0.05)&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Add labels for significant points\n&#34;,
+    &#34;for _, row in sig.iterrows():\n&#34;,
+    &#34;    ax.annotate(row[&#39;genus&#39;], (row[&#39;log2fc&#39;], -np.log10(row[&#39;p_adj&#39;])),\n&#34;,
+    &#34;                xytext=(5, 5), textcoords=&#39;offset points&#39;, fontsize=9, style=&#39;italic&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;# Add threshold lines\n&#34;,
+    &#34;ax.axhline(y=-np.log10(0.05), color=&#39;gray&#39;, linestyle=&#39;--&#39;, alpha=0.5)\n&#34;,
+    &#34;ax.axvline(x=-0.5, color=&#39;gray&#39;, linestyle=&#39;--&#39;, alpha=0.5)\n&#34;,
+    &#34;ax.axvline(x=0.5, color=&#39;gray&#39;, linestyle=&#39;--&#39;, alpha=0.5)\n&#34;,
+    &#34;\n&#34;,
+    &#34;ax.set_xlabel(&#39;Log2 Fold Change (IBD/Healthy)&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_ylabel(&#39;-Log10(Adjusted P-value)&#39;, fontsize=12)\n&#34;,
+    &#34;ax.set_title(&#39;Differential Abundance: IBD vs Healthy&#39;, fontsize=14, fontweight=&#39;bold&#39;)\n&#34;,
+    &#34;ax.legend(loc=&#39;upper right&#39;)\n&#34;,
+    &#34;\n&#34;,
+    &#34;plt.tight_layout()\n&#34;,
+    &#34;plt.show()&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;markdown&#34;,
+   &#34;metadata&#34;: {},
+   &#34;source&#34;: [
+    &#34;## Summary\n&#34;,
+    &#34;\n&#34;,
+    &#34;This analysis examined alpha and beta diversity patterns in gut microbiome samples from healthy controls and IBD patients.\n&#34;,
+    &#34;\n&#34;,
+    &#34;### Key Findings:\n&#34;,
+    &#34;- **Alpha diversity**: IBD patients show reduced Shannon diversity compared to healthy controls\n&#34;,
+    &#34;- **Beta diversity**: PERMANOVA indicates significant community composition differences between groups\n&#34;,
+    &#34;- **Differentially abundant taxa**: Several genera show significant differences between groups&#34;
+   ]
+  },
+  {
+   &#34;cell_type&#34;: &#34;code&#34;,
+   &#34;execution_count&#34;: null,
+   &#34;metadata&#34;: {},
+   &#34;outputs&#34;: [],
+   &#34;source&#34;: [
+    &#34;# Print package versions\n&#34;,
+    &#34;import sys\n&#34;,
+    &#34;print(f\&#34;Python version: {sys.version}\&#34;)\n&#34;,
+    &#34;print(f\&#34;pandas version: {pd.__version__}\&#34;)\n&#34;,
+    &#34;print(f\&#34;numpy version: {np.__version__}\&#34;)\n&#34;,
+    &#34;print(f\&#34;scipy version: {stats.scipy.version.version}\&#34;)&#34;
+   ]
+  }
+ ],
+ &#34;metadata&#34;: {
+  &#34;kernelspec&#34;: {
+   &#34;display_name&#34;: &#34;Python 3&#34;,
+   &#34;language&#34;: &#34;python&#34;,
+   &#34;name&#34;: &#34;python3&#34;
+  },
+  &#34;language_info&#34;: {
+   &#34;name&#34;: &#34;python&#34;,
+   &#34;version&#34;: &#34;3.9.0&#34;
+  }
+ },
+ &#34;nbformat&#34;: 4,
+ &#34;nbformat_minor&#34;: 4
+}
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T20-56-43-242Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T20-56-43-242Z" class="timestamp-link"><time datetime="2025-12-05T20:56:43.242Z" data-timestamp="2025-12-05T20:56:43.242Z">2025-12-05T20:56:43.242Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-56-47-713Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-56-47-713Z" class="timestamp-link"><time datetime="2025-12-05T20:56:47.713Z" data-timestamp="2025-12-05T20:56:47.713Z">2025-12-05T20:56:47.713Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I've created a comprehensive Python Jupyter notebook that mirrors the R analysis. Let me summarize what's included for the user.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-56-53-972Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-56-53-972Z" class="timestamp-link"><time datetime="2025-12-05T20:56:53.972Z" data-timestamp="2025-12-05T20:56:53.972Z">2025-12-05T20:56:53.972Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Created <code>microbiome_diversity_analysis.ipynb</code> with the full analysis refactored to Python.</p>
+<h2>Contents</h2>
+<h3>Alpha Diversity</h3>
+<ul>
+<li>Custom functions for Shannon, Simpson, Inverse Simpson, Evenness</li>
+<li>Boxplots with Mann-Whitney U tests</li>
+<li>Faceted comparison of all metrics</li>
+<li>Shannon vs BMI scatter with regression lines</li>
+</ul>
+<h3>Beta Diversity</h3>
+<ul>
+<li>Bray-Curtis distance matrix using <code>scikit-bio</code></li>
+<li>PCoA ordination with confidence ellipses</li>
+<li>Multi-panel PCoA colored by antibiotics, diet, BMI, age</li>
+<li>PERMANOVA and ANOSIM statistical tests</li>
+<li>Beta dispersion analysis</li>
+<li>Clustered heatmap with annotations</li>
+</ul>
+<h3>Taxonomic Composition</h3>
+<ul>
+<li>Stacked bar plots (phylum level)</li>
+<li>Mean abundance comparison by group</li>
+<li>Top 10 genera with error bars</li>
+<li>Differential abundance with FDR correction</li>
+<li>Volcano plot</li>
+</ul>
+<h2>Required Packages</h2>
+<pre><code class="language-bash">pip install pandas numpy matplotlib seaborn scipy scikit-learn scikit-bio statsmodels
+</code></pre>
+<h2>To Run in Positron</h2>
+<ol>
+<li>Open <code>microbiome_diversity_analysis.ipynb</code></li>
+<li>Select a Python kernel</li>
+<li>Run all cells (<code>Cmd+Shift+Enter</code> or use the "Run All" button)</li>
+</ol>
+<h2>Note</h2>
+<p><code>scikit-bio</code> can be tricky to install on some systems. If you have issues:</p>
+<pre><code class="language-bash">conda install -c conda-forge scikit-bio
+</code></pre>
+<p>Let me know if you need any modifications or have installation issues.</p></div></div></div>
+<div class="message user" id="msg-2025-12-05T20-57-42-188Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-05T20-57-42-188Z" class="timestamp-link"><time datetime="2025-12-05T20:57:42.188Z" data-timestamp="2025-12-05T20:57:42.188Z">2025-12-05T20:57:42.188Z</time></a></div><div class="message-content">
+<div class="user-content"><p>i ran it but my plots are not showing in positron</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-57-48-204Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-57-48-204Z" class="timestamp-link"><time datetime="2025-12-05T20:57:48.204Z" data-timestamp="2025-12-05T20:57:48.204Z">2025-12-05T20:57:48.204Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user is having trouble with plots not showing in Positron when running the Jupyter notebook. This is a common issue with matplotlib in Jupyter environments. There are a few potential solutions:</p>
+<ol>
+<li>Add <code>%matplotlib inline</code> magic command at the top</li>
+<li>Make sure <code>plt.show()</code> is being called</li>
+<li>Use <code>%matplotlib widget</code> for interactive plots</li>
+<li>Check if the output is being suppressed</li>
+</ol>
+<p>Let me provide a fix by updating the notebook to include the proper matplotlib magic command and ensure plots display correctly.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-57-49-031Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-57-49-031Z" class="timestamp-link"><time datetime="2025-12-05T20:57:49.031Z" data-timestamp="2025-12-05T20:57:49.031Z">2025-12-05T20:57:49.031Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>This is a common issue with Jupyter notebooks in Positron. Add the matplotlib magic command to force inline display. Let me fix the setup cell:</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-57-49-648Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-57-49-648Z" class="timestamp-link"><time datetime="2025-12-05T20:57:49.648Z" data-timestamp="2025-12-05T20:57:49.648Z">2025-12-05T20:57:49.648Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01HaE89RQrzzpkUNSr2R3vFU"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;limit&#34;: 80
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T20-57-49-678Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T20-57-49-678Z" class="timestamp-link"><time datetime="2025-12-05T20:57:49.678Z" data-timestamp="2025-12-05T20:57:49.678Z">2025-12-05T20:57:49.678Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre class="json">[
+  {
+    &quot;text&quot;: &quot;&lt;cell id=\&quot;cell-0\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;# Microbiome Diversity Analysis\n\nThis notebook performs alpha and beta diversity analysis on microbiome data.&lt;/cell id=\&quot;cell-0\&quot;&gt;\n&lt;cell id=\&quot;cell-1\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;## Setup and Imports&lt;/cell id=\&quot;cell-1\&quot;&gt;\n&lt;cell id=\&quot;cell-2\&quot;&gt;import pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nfrom scipy import stats\nfrom scipy.spatial.distance import pdist, squareform\nfrom scipy.cluster.hierarchy import linkage, dendrogram\nfrom sklearn.manifold import MDS\nfrom skbio.diversity import alpha_diversity, beta_diversity\nfrom skbio.stats.ordination import pcoa\nfrom skbio.stats.distance import permanova, anosim\nimport warnings\nwarnings.filterwarnings(&#x27;ignore&#x27;)\n\n# Set style\nsns.set_style(\&quot;whitegrid\&quot;)\nplt.rcParams[&#x27;figure.figsize&#x27;] = [10, 6]\nplt.rcParams[&#x27;figure.dpi&#x27;] = 100&lt;/cell id=\&quot;cell-2\&quot;&gt;\n&lt;cell id=\&quot;cell-3\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;## Load Data&lt;/cell id=\&quot;cell-3\&quot;&gt;\n&lt;cell id=\&quot;cell-4\&quot;&gt;# Load abundance data\nabundance = pd.read_csv(&#x27;genus_abundance.csv&#x27;, index_col=&#x27;sample_id&#x27;)\nphylum_abundance = pd.read_csv(&#x27;microbiome_abundance.csv&#x27;, index_col=&#x27;sample_id&#x27;)\nmetadata = pd.read_csv(&#x27;sample_metadata.csv&#x27;)\n\n# Set sample_id as index for metadata\nmetadata = metadata.set_index(&#x27;sample_id&#x27;)\n\nprint(\&quot;Abundance data shape:\&quot;, abundance.shape)\nprint(\&quot;Metadata shape:\&quot;, metadata.shape)\nabundance.head()&lt;/cell id=\&quot;cell-4\&quot;&gt;\n&lt;cell id=\&quot;cell-5\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;## Alpha Diversity\n\nAlpha diversity measures within-sample diversity.&lt;/cell id=\&quot;cell-5\&quot;&gt;\n&lt;cell id=\&quot;cell-6\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### Calculate Alpha Diversity Metrics&lt;/cell id=\&quot;cell-6\&quot;&gt;\n&lt;cell id=\&quot;cell-7\&quot;&gt;def shannon_diversity(row):\n    \&quot;\&quot;\&quot;Calculate Shannon diversity index.\&quot;\&quot;\&quot;\n    props = row[row &gt; 0]\n    return -np.sum(props * np.log(props))\n\ndef simpson_diversity(row):\n    \&quot;\&quot;\&quot;Calculate Simpson diversity index (1 - D).\&quot;\&quot;\&quot;\n    return 1 - np.sum(row ** 2)\n\ndef inverse_simpson(row):\n    \&quot;\&quot;\&quot;Calculate Inverse Simpson index.\&quot;\&quot;\&quot;\n    return 1 / np.sum(row ** 2)\n\ndef observed_species(row):\n    \&quot;\&quot;\&quot;Count observed species (non-zero entries).\&quot;\&quot;\&quot;\n    return np.sum(row &gt; 0)\n\ndef pielou_evenness(row):\n    \&quot;\&quot;\&quot;Calculate Pielou&#x27;s evenness.\&quot;\&quot;\&quot;\n    s = observed_species(row)\n    if s &lt;= 1:\n        return 0\n    return shannon_diversity(row) / np.log(s)\n\n# Calculate all metrics\nalpha_div = pd.DataFrame({\n    &#x27;shannon&#x27;: abundance.apply(shannon_diversity, axis=1),\n    &#x27;simpson&#x27;: abundance.apply(simpson_diversity, axis=1),\n    &#x27;inv_simpson&#x27;: abundance.apply(inverse_simpson, axis=1),\n    &#x27;observed&#x27;: abundance.apply(observed_species, axis=1),\n    &#x27;evenness&#x27;: abundance.apply(pielou_evenness, axis=1)\n})\n\n# Merge with metadata\nalpha_df = alpha_div.join(metadata)\nalpha_df.head()&lt;/cell id=\&quot;cell-7\&quot;&gt;\n&lt;cell id=\&quot;cell-8\&quot;&gt;# Summary statistics by group\nsummary = alpha_df.groupby(&#x27;group&#x27;)[[&#x27;shannon&#x27;, &#x27;simpson&#x27;, &#x27;inv_simpson&#x27;, &#x27;evenness&#x27;]].agg([&#x27;mean&#x27;, &#x27;std&#x27;])\nsummary.round(3)&lt;/cell id=\&quot;cell-8\&quot;&gt;\n&lt;cell id=\&quot;cell-9\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### Shannon Diversity by Group&lt;/cell id=\&quot;cell-9\&quot;&gt;\n&lt;cell id=\&quot;cell-10\&quot;&gt;# Color palette\ncolors = {&#x27;healthy&#x27;: &#x27;#2E86AB&#x27;, &#x27;ibd&#x27;: &#x27;#E94F37&#x27;}\n\nfig, ax = plt.subplots(figsize=(8, 6))\n\n# Boxplot\nsns.boxplot(data=alpha_df, x=&#x27;group&#x27;, y=&#x27;shannon&#x27;, palette=colors, ax=ax, width=0.5)\nsns.stripplot(data=alpha_df, x=&#x27;group&#x27;, y=&#x27;shannon&#x27;, color=&#x27;black&#x27;, alpha=0.5, ax=ax)\n\n# Statistical test\nhealthy = alpha_df[alpha_df[&#x27;group&#x27;] == &#x27;healthy&#x27;][&#x27;shannon&#x27;]\nibd = alpha_df[alpha_df[&#x27;group&#x27;] == &#x27;ibd&#x27;][&#x27;shannon&#x27;]\nstat, pval = stats.mannwhitneyu(healthy, ibd, alternative=&#x27;two-sided&#x27;)\n\n# Add p-value annotation\nax.text(0.5, ax.get_ylim()[1] * 0.95, f&#x27;p = {pval:.4f}&#x27;, \n        ha=&#x27;center&#x27;, fontsize=12, transform=ax.get_xaxis_transform())\n\nax.set_xlabel(&#x27;Group&#x27;, fontsize=12)\nax.set_ylabel(&#x27;Shannon Index&#x27;, fontsize=12)\nax.set_title(&#x27;Shannon Diversity Index by Group&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)\nplt.tight_layout()\nplt.show()&lt;/cell id=\&quot;cell-10\&quot;&gt;\n&lt;cell id=\&quot;cell-11\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### All Alpha Metrics Comparison&lt;/cell id=\&quot;cell-11\&quot;&gt;\n&lt;cell id=\&quot;cell-12\&quot;&gt;# Reshape data for faceted plot\nmetrics = [&#x27;shannon&#x27;, &#x27;simpson&#x27;, &#x27;inv_simpson&#x27;, &#x27;evenness&#x27;]\nmetric_labels = [&#x27;Shannon&#x27;, &#x27;Simpson&#x27;, &#x27;Inverse Simpson&#x27;, &#x27;Evenness&#x27;]\n\nfig, axes = plt.subplots(1, 4, figsize=(16, 5))\n\nfor idx, (metric, label) in enumerate(zip(metrics, metric_labels)):\n    ax = axes[idx]\n    sns.boxplot(data=alpha_df, x=&#x27;group&#x27;, y=metric, palette=colors, ax=ax, width=0.5)\n    sns.stripplot(data=alpha_df, x=&#x27;group&#x27;, y=metric, color=&#x27;black&#x27;, alpha=0.5, ax=ax)\n    \n    # Statistical test\n    healthy = alpha_df[alpha_df[&#x27;group&#x27;] == &#x27;healthy&#x27;][metric]\n    ibd = alpha_df[alpha_df[&#x27;group&#x27;] == &#x27;ibd&#x27;][metric]\n    stat, pval = stats.mannwhitneyu(healthy, ibd, alternative=&#x27;two-sided&#x27;)\n    \n    # Add significance stars\n    sig = &#x27;***&#x27; if pval &lt; 0.001 else &#x27;**&#x27; if pval &lt; 0.01 else &#x27;*&#x27; if pval &lt; 0.05 else &#x27;ns&#x27;\n    ax.text(0.5, ax.get_ylim()[1] * 0.95, sig, ha=&#x27;center&#x27;, fontsize=14, \n            transform=ax.get_xaxis_transform())\n    \n    ax.set_xlabel(&#x27;&#x27;)\n    ax.set_ylabel(&#x27;Value&#x27; if idx == 0 else &#x27;&#x27;)\n    ax.set_title(label, fontsize=12, fontweight=&#x27;bold&#x27;)\n\nplt.suptitle(&#x27;Alpha Diversity Metrics by Group&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;, y=1.02)\nplt.tight_layout()\nplt.show()&lt;/cell id=\&quot;cell-12\&quot;&gt;\n&lt;cell id=\&quot;cell-13\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### Alpha Diversity vs BMI&lt;/cell id=\&quot;cell-13\&quot;&gt;\n&lt;cell id=\&quot;cell-14\&quot;&gt;fig, ax = plt.subplots(figsize=(10, 6))\n\nfor group in [&#x27;healthy&#x27;, &#x27;ibd&#x27;]:\n    data = alpha_df[alpha_df[&#x27;group&#x27;] == group]\n    ax.scatter(data[&#x27;bmi&#x27;], data[&#x27;shannon&#x27;], c=colors[group], label=group, s=80, alpha=0.7)\n    \n    # Add regression line\n    z = np.polyfit(data[&#x27;bmi&#x27;], data[&#x27;shannon&#x27;], 1)\n    p = np.poly1d(z)\n    x_line = np.linspace(data[&#x27;bmi&#x27;].min(), data[&#x27;bmi&#x27;].max(), 100)\n    ax.plot(x_line, p(x_line), c=colors[group], linestyle=&#x27;--&#x27;, alpha=0.5)\n\nax.set_xlabel(&#x27;BMI&#x27;, fontsize=12)\nax.set_ylabel(&#x27;Shannon Index&#x27;, fontsize=12)\nax.set_title(&#x27;Shannon Diversity vs BMI&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)\nax.legend(title=&#x27;Group&#x27;)\nplt.tight_layout()\nplt.show()&lt;/cell id=\&quot;cell-14\&quot;&gt;\n&lt;cell id=\&quot;cell-15\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;## Beta Diversity\n\nBeta diversity measures between-sample diversity (community composition differences).&lt;/cell id=\&quot;cell-15\&quot;&gt;\n&lt;cell id=\&quot;cell-16\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### Calculate Distance Matrices&lt;/cell id=\&quot;cell-16\&quot;&gt;\n&lt;cell id=\&quot;cell-17\&quot;&gt;from skbio import DistanceMatrix\n\n# Bray-Curtis dissimilarity using skbio\nbray_dm = beta_diversity(&#x27;braycurtis&#x27;, abundance.values, ids=abundance.index.tolist())\n\n# Convert to DataFrame for visualization\nbray_matrix = bray_dm.to_data_frame()\nprint(\&quot;Bray-Curtis distance matrix shape:\&quot;, bray_matrix.shape)\nbray_matrix.head()&lt;/cell id=\&quot;cell-17\&quot;&gt;\n&lt;cell id=\&quot;cell-18\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### PCoA (Principal Coordinates Analysis)&lt;/cell id=\&quot;cell-18\&quot;&gt;\n&lt;cell id=\&quot;cell-19\&quot;&gt;# Perform PCoA\npcoa_results = pcoa(bray_dm)\n\n# Get coordinates and variance explained\npcoa_df = pcoa_results.samples[[&#x27;PC1&#x27;, &#x27;PC2&#x27;]].copy()\npcoa_df = pcoa_df.join(metadata)\n\nvar_explained = pcoa_results.proportion_explained\npc1_var = var_explained[&#x27;PC1&#x27;] * 100\npc2_var = var_explained[&#x27;PC2&#x27;] * 100\n\nprint(f\&quot;PC1 explains {pc1_var:.1f}% of variance\&quot;)\nprint(f\&quot;PC2 explains {pc2_var:.1f}% of variance\&quot;)&lt;/cell id=\&quot;cell-19\&quot;&gt;\n&lt;cell id=\&quot;cell-20\&quot;&gt;from matplotlib.patches import Ellipse\nimport matplotlib.transforms as transforms\n\ndef confidence_ellipse(x, y, ax, n_std=2.0, facecolor=&#x27;none&#x27;, **kwargs):\n    \&quot;\&quot;\&quot;Create a covariance confidence ellipse.\&quot;\&quot;\&quot;\n    if len(x) &lt; 3:\n        return None\n    cov = np.cov(x, y)\n    pearson = cov[0, 1] / np.sqrt(cov[0, 0] * cov[1, 1])\n    ell_radius_x = np.sqrt(1 + pearson)\n    ell_radius_y = np.sqrt(1 - pearson)\n    ellipse = Ellipse((0, 0), width=ell_radius_x * 2, height=ell_radius_y * 2,\n                      facecolor=facecolor, **kwargs)\n    scale_x = np.sqrt(cov[0, 0]) * n_std\n    scale_y = np.sqrt(cov[1, 1]) * n_std\n    transf = transforms.Affine2D() \\\n        .rotate_deg(45) \\\n        .scale(scale_x, scale_y) \\\n        .translate(np.mean(x), np.mean(y))\n    ellipse.set_transform(transf + ax.transData)\n    return ax.add_patch(ellipse)\n\n# PCoA plot\nfig, ax = plt.subplots(figsize=(10, 8))\n\nfor group in [&#x27;healthy&#x27;, &#x27;ibd&#x27;]:\n    data = pcoa_df[pcoa_df[&#x27;group&#x27;] == group]\n    ax.scatter(data[&#x27;PC1&#x27;], data[&#x27;PC2&#x27;], c=colors[group], label=group, \n               s=100, alpha=0.7, edgecolors=&#x27;white&#x27;, linewidth=0.5)\n    confidence_ellipse(data[&#x27;PC1&#x27;], data[&#x27;PC2&#x27;], ax, n_std=2.0,\n                       edgecolor=colors[group], linestyle=&#x27;--&#x27;, linewidth=2)\n\nax.set_xlabel(f&#x27;PC1 ({pc1_var:.1f}%)&#x27;, fontsize=12)\nax.set_ylabel(f&#x27;PC2 ({pc2_var:.1f}%)&#x27;, fontsize=12)\nax.set_title(&#x27;PCoA of Microbiome Composition (Bray-Curtis)&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)\nax.legend(title=&#x27;Group&#x27;, loc=&#x27;best&#x27;)\nax.axhline(y=0, color=&#x27;gray&#x27;, linestyle=&#x27;-&#x27;, linewidth=0.5, alpha=0.5)\nax.axvline(x=0, color=&#x27;gray&#x27;, linestyle=&#x27;-&#x27;, linewidth=0.5, alpha=0.5)\nplt.tight_layout()\nplt.show()&lt;/cell id=\&quot;cell-20\&quot;&gt;\n&lt;cell id=\&quot;cell-21\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### PCoA Colored by Other Variables&lt;/cell id=\&quot;cell-21\&quot;&gt;\n&lt;cell id=\&quot;cell-22\&quot;&gt;fig, axes = plt.subplots(2, 2, figsize=(14, 12))\n\n# By antibiotic use\nax = axes[0, 0]\nabx_colors = {&#x27;no&#x27;: &#x27;#4ECDC4&#x27;, &#x27;yes&#x27;: &#x27;#FF6B6B&#x27;}\nfor abx in [&#x27;no&#x27;, &#x27;yes&#x27;]:\n    data = pcoa_df[pcoa_df[&#x27;antibiotic_use&#x27;] == abx]\n    ax.scatter(data[&#x27;PC1&#x27;], data[&#x27;PC2&#x27;], c=abx_colors[abx], label=abx, s=80, alpha=0.7)\nax.set_xlabel(f&#x27;PC1 ({pc1_var:.1f}%)&#x27;)\nax.set_ylabel(f&#x27;PC2 ({pc2_var:.1f}%)&#x27;)\nax.set_title(&#x27;By Antibiotic Use&#x27;, fontweight=&#x27;bold&#x27;)\nax.legend(title=&#x27;Antibiotics&#x27;)\n\n# By diet type\nax = axes[0, 1]\ndiet_colors = {&#x27;omnivore&#x27;: &#x27;#95E1D3&#x27;, &#x27;vegetarian&#x27;: &#x27;#F38181&#x27;, &#x27;vegan&#x27;: &#x27;#AA96DA&#x27;}\nfor diet in pcoa_df[&#x27;diet_type&#x27;].unique():\n    data = pcoa_df[pcoa_df[&#x27;diet_type&#x27;] == diet]\n    ax.scatter(data[&#x27;PC1&#x27;], data[&#x27;PC2&#x27;], c=diet_colors[diet], label=diet, s=80, alpha=0.7)\nax.set_xlabel(f&#x27;PC1 ({pc1_var:.1f}%)&#x27;)\nax.set_ylabel(f&#x27;PC2 ({pc2_var:.1f}%)&#x27;)\nax.set_title(&#x27;By Diet Type&#x27;, fontweight=&#x27;bold&#x27;)\nax.legend(title=&#x27;Diet&#x27;)\n\n# By BMI (continuous)\nax = axes[1, 0]\nscatter = ax.scatter(pcoa_df[&#x27;PC1&#x27;], pcoa_df[&#x27;PC2&#x27;], c=pcoa_df[&#x27;bmi&#x27;], \n                     cmap=&#x27;plasma&#x27;, s=80, alpha=0.7)\nplt.colorbar(scatter, ax=ax, label=&#x27;BMI&#x27;)\nax.set_xlabel(f&#x27;PC1 ({pc1_var:.1f}%)&#x27;)\nax.set_ylabel(f&#x27;PC2 ({pc2_var:.1f}%)&#x27;)\nax.set_title(&#x27;By BMI&#x27;, fontweight=&#x27;bold&#x27;)\n\n# By age\nax = axes[1, 1]\nscatter = ax.scatter(pcoa_df[&#x27;PC1&#x27;], pcoa_df[&#x27;PC2&#x27;], c=pcoa_df[&#x27;age&#x27;], \n                     cmap=&#x27;viridis&#x27;, s=80, alpha=0.7)\nplt.colorbar(scatter, ax=ax, label=&#x27;Age&#x27;)\nax.set_xlabel(f&#x27;PC1 ({pc1_var:.1f}%)&#x27;)\nax.set_ylabel(f&#x27;PC2 ({pc2_var:.1f}%)&#x27;)\nax.set_title(&#x27;By Age&#x27;, fontweight=&#x27;bold&#x27;)\n\nplt.suptitle(&#x27;PCoA Colored by Different Variables&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;, y=1.01)\nplt.tight_layout()\nplt.show()&lt;/cell id=\&quot;cell-22\&quot;&gt;\n&lt;cell id=\&quot;cell-23\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### PERMANOVA Test&lt;/cell id=\&quot;cell-23\&quot;&gt;\n&lt;cell id=\&quot;cell-24\&quot;&gt;# PERMANOVA for group differences\npermanova_result = permanova(bray_dm, metadata[&#x27;group&#x27;], permutations=999)\nprint(\&quot;PERMANOVA Results (Group)\&quot;)\nprint(\&quot;=\&quot;*50)\nprint(f\&quot;Test statistic: {permanova_result[&#x27;test statistic&#x27;]:.4f}\&quot;)\nprint(f\&quot;P-value: {permanova_result[&#x27;p-value&#x27;]:.4f}\&quot;)\nprint(f\&quot;Number of permutations: {permanova_result[&#x27;number of permutations&#x27;]}\&quot;)&lt;/cell id=\&quot;cell-24\&quot;&gt;\n&lt;cell id=\&quot;cell-25\&quot;&gt;# ANOSIM test (alternative to PERMANOVA)\nanosim_result = anosim(bray_dm, metadata[&#x27;group&#x27;], permutations=999)\nprint(\&quot;\\nANOSIM Results (Group)\&quot;)\nprint(\&quot;=\&quot;*50)\nprint(f\&quot;R statistic: {anosim_result[&#x27;test statistic&#x27;]:.4f}\&quot;)\nprint(f\&quot;P-value: {anosim_result[&#x27;p-value&#x27;]:.4f}\&quot;)&lt;/cell id=\&quot;cell-25\&quot;&gt;\n&lt;cell id=\&quot;cell-26\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### Beta Dispersion&lt;/cell id=\&quot;cell-26\&quot;&gt;\n&lt;cell id=\&quot;cell-27\&quot;&gt;# Calculate distance to centroid for each group\ndef calculate_centroid_distances(dm, groups):\n    \&quot;\&quot;\&quot;Calculate distance from each sample to its group centroid.\&quot;\&quot;\&quot;\n    distances = []\n    coords = pcoa(dm).samples[[&#x27;PC1&#x27;, &#x27;PC2&#x27;, &#x27;PC3&#x27;]].values\n    sample_ids = dm.ids\n    \n    for group in groups.unique():\n        group_mask = groups.values == group\n        group_coords = coords[group_mask]\n        centroid = group_coords.mean(axis=0)\n        \n        for i, (sid, is_group) in enumerate(zip(sample_ids, group_mask)):\n            if is_group:\n                dist = np.sqrt(np.sum((coords[i] - centroid) ** 2))\n                distances.append({&#x27;sample_id&#x27;: sid, &#x27;group&#x27;: group, &#x27;distance&#x27;: dist})\n    \n    return pd.DataFrame(distances)\n\ndispersion_df = calculate_centroid_distances(bray_dm, metadata[&#x27;group&#x27;])\n\n# Plot\nfig, ax = plt.subplots(figsize=(8, 6))\nsns.boxplot(data=dispersion_df, x=&#x27;group&#x27;, y=&#x27;distance&#x27;, palette=colors, ax=ax, width=0.5)\nsns.stripplot(data=dispersion_df, x=&#x27;group&#x27;, y=&#x27;distance&#x27;, color=&#x27;black&#x27;, alpha=0.5, ax=ax)\n\n# Statistical test\nhealthy_dist = dispersion_df[dispersion_df[&#x27;group&#x27;] == &#x27;healthy&#x27;][&#x27;distance&#x27;]\nibd_dist = dispersion_df[dispersion_df[&#x27;group&#x27;] == &#x27;ibd&#x27;][&#x27;distance&#x27;]\nstat, pval = stats.mannwhitneyu(healthy_dist, ibd_dist)\n\nax.set_xlabel(&#x27;Group&#x27;, fontsize=12)\nax.set_ylabel(&#x27;Distance to Centroid&#x27;, fontsize=12)\nax.set_title(f&#x27;Beta Dispersion by Group\\n(p = {pval:.4f})&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)\nplt.tight_layout()\nplt.show()&lt;/cell id=\&quot;cell-27\&quot;&gt;\n&lt;cell id=\&quot;cell-28\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### Distance Heatmap&lt;/cell id=\&quot;cell-28\&quot;&gt;\n&lt;cell id=\&quot;cell-29\&quot;&gt;# Create annotation colors\ngroup_colors = metadata[&#x27;group&#x27;].map(colors)\nabx_colors_map = metadata[&#x27;antibiotic_use&#x27;].map({&#x27;no&#x27;: &#x27;#4ECDC4&#x27;, &#x27;yes&#x27;: &#x27;#FF6B6B&#x27;})\n\n# Cluster and plot heatmap\nfig, ax = plt.subplots(figsize=(12, 10))\n\n# Create clustermap\ng = sns.clustermap(\n    bray_matrix,\n    cmap=&#x27;RdBu_r&#x27;,\n    center=0.5,\n    row_colors=[group_colors, abx_colors_map],\n    col_colors=[group_colors, abx_colors_map],\n    figsize=(12, 10),\n    dendrogram_ratio=0.15,\n    cbar_pos=(0.02, 0.8, 0.03, 0.15)\n)\n\ng.ax_heatmap.set_xlabel(&#x27;Samples&#x27;)\ng.ax_heatmap.set_ylabel(&#x27;Samples&#x27;)\ng.fig.suptitle(&#x27;Bray-Curtis Dissimilarity Heatmap&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;, y=1.02)\n\nplt.show()&lt;/cell id=\&quot;cell-29\&quot;&gt;\n&lt;cell id=\&quot;cell-30\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;## Taxonomic Composition&lt;/cell id=\&quot;cell-30\&quot;&gt;\n&lt;cell id=\&quot;cell-31\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### Phylum-Level Bar Plot&lt;/cell id=\&quot;cell-31\&quot;&gt;\n&lt;cell id=\&quot;cell-32\&quot;&gt;# Prepare data - sort samples by group\nsample_order = metadata.sort_values(&#x27;group&#x27;).index.tolist()\nphylum_sorted = phylum_abundance.loc[sample_order]\n\n# Create stacked bar plot\nfig, ax = plt.subplots(figsize=(14, 6))\n\nphylum_sorted.plot(kind=&#x27;bar&#x27;, stacked=True, ax=ax, colormap=&#x27;Set3&#x27;, width=0.8)\n\nax.set_xlabel(&#x27;Sample&#x27;, fontsize=12)\nax.set_ylabel(&#x27;Relative Abundance&#x27;, fontsize=12)\nax.set_title(&#x27;Phylum-Level Composition by Sample&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)\nax.legend(title=&#x27;Phylum&#x27;, bbox_to_anchor=(1.02, 1), loc=&#x27;upper left&#x27;)\nax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha=&#x27;right&#x27;)\n\n# Add group labels\nhealthy_samples = metadata[metadata[&#x27;group&#x27;] == &#x27;healthy&#x27;].index\nibd_samples = metadata[metadata[&#x27;group&#x27;] == &#x27;ibd&#x27;].index\n\nplt.tight_layout()\nplt.show()&lt;/cell id=\&quot;cell-32\&quot;&gt;\n&lt;cell id=\&quot;cell-33\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### Mean Abundance by Group&lt;/cell id=\&quot;cell-33\&quot;&gt;\n&lt;cell id=\&quot;cell-34\&quot;&gt;# Calculate mean phylum abundance by group\nphylum_with_group = phylum_abundance.join(metadata[[&#x27;group&#x27;]])\nmean_phylum = phylum_with_group.groupby(&#x27;group&#x27;).mean()\n\n# Plot\nfig, ax = plt.subplots(figsize=(8, 6))\n\nmean_phylum.T.plot(kind=&#x27;bar&#x27;, ax=ax, color=[colors[&#x27;healthy&#x27;], colors[&#x27;ibd&#x27;]], width=0.7)\n\nax.set_xlabel(&#x27;Phylum&#x27;, fontsize=12)\nax.set_ylabel(&#x27;Mean Relative Abundance&#x27;, fontsize=12)\nax.set_title(&#x27;Mean Phylum Abundance by Group&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)\nax.legend(title=&#x27;Group&#x27;)\nax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha=&#x27;right&#x27;)\n\nplt.tight_layout()\nplt.show()&lt;/cell id=\&quot;cell-34\&quot;&gt;\n&lt;cell id=\&quot;cell-35\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### Top Genera Comparison&lt;/cell id=\&quot;cell-35\&quot;&gt;\n&lt;cell id=\&quot;cell-36\&quot;&gt;# Calculate mean and SE for each genus by group\nabundance_with_group = abundance.join(metadata[[&#x27;group&#x27;]])\n\ngenus_stats = []\nfor genus in abundance.columns:\n    for group in [&#x27;healthy&#x27;, &#x27;ibd&#x27;]:\n        values = abundance_with_group[abundance_with_group[&#x27;group&#x27;] == group][genus]\n        genus_stats.append({\n            &#x27;genus&#x27;: genus,\n            &#x27;group&#x27;: group,\n            &#x27;mean&#x27;: values.mean(),\n            &#x27;se&#x27;: values.std() / np.sqrt(len(values))\n        })\n\ngenus_stats_df = pd.DataFrame(genus_stats)\n\n# Get top 10 genera by overall abundance\ntop_genera = abundance.sum().nlargest(10).index.tolist()\ntop_genus_stats = genus_stats_df[genus_stats_df[&#x27;genus&#x27;].isin(top_genera)]\n\n# Plot\nfig, ax = plt.subplots(figsize=(12, 6))\n\nx = np.arange(len(top_genera))\nwidth = 0.35\n\nfor i, group in enumerate([&#x27;healthy&#x27;, &#x27;ibd&#x27;]):\n    data = top_genus_stats[top_genus_stats[&#x27;group&#x27;] == group].set_index(&#x27;genus&#x27;).loc[top_genera]\n    offset = width * (i - 0.5)\n    bars = ax.bar(x + offset, data[&#x27;mean&#x27;], width, label=group, color=colors[group], alpha=0.8)\n    ax.errorbar(x + offset, data[&#x27;mean&#x27;], yerr=data[&#x27;se&#x27;], fmt=&#x27;none&#x27;, color=&#x27;black&#x27;, capsize=3)\n\nax.set_xlabel(&#x27;Genus&#x27;, fontsize=12)\nax.set_ylabel(&#x27;Mean Relative Abundance&#x27;, fontsize=12)\nax.set_title(&#x27;Top 10 Genera: Mean Abundance by Group&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)\nax.set_xticks(x)\nax.set_xticklabels(top_genera, rotation=45, ha=&#x27;right&#x27;, style=&#x27;italic&#x27;)\nax.legend(title=&#x27;Group&#x27;)\n\nplt.tight_layout()\nplt.show()&lt;/cell id=\&quot;cell-36\&quot;&gt;\n&lt;cell id=\&quot;cell-37\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;### Differential Abundance Analysis&lt;/cell id=\&quot;cell-37\&quot;&gt;\n&lt;cell id=\&quot;cell-38\&quot;&gt;from statsmodels.stats.multitest import multipletests\n\n# Perform Wilcoxon tests for each genus\ndiff_results = []\n\nfor genus in abundance.columns:\n    healthy_vals = abundance_with_group[abundance_with_group[&#x27;group&#x27;] == &#x27;healthy&#x27;][genus]\n    ibd_vals = abundance_with_group[abundance_with_group[&#x27;group&#x27;] == &#x27;ibd&#x27;][genus]\n    \n    stat, pval = stats.mannwhitneyu(healthy_vals, ibd_vals, alternative=&#x27;two-sided&#x27;)\n    \n    healthy_mean = healthy_vals.mean()\n    ibd_mean = ibd_vals.mean()\n    \n    # Log2 fold change (IBD vs Healthy)\n    log2fc = np.log2((ibd_mean + 0.001) / (healthy_mean + 0.001))\n    \n    diff_results.append({\n        &#x27;genus&#x27;: genus,\n        &#x27;healthy_mean&#x27;: healthy_mean,\n        &#x27;ibd_mean&#x27;: ibd_mean,\n        &#x27;log2fc&#x27;: log2fc,\n        &#x27;p_value&#x27;: pval\n    })\n\ndiff_df = pd.DataFrame(diff_results)\n\n# FDR correction\ndiff_df[&#x27;p_adj&#x27;] = multipletests(diff_df[&#x27;p_value&#x27;], method=&#x27;fdr_bh&#x27;)[1]\ndiff_df[&#x27;significant&#x27;] = diff_df[&#x27;p_adj&#x27;] &lt; 0.05\ndiff_df = diff_df.sort_values(&#x27;p_adj&#x27;)\n\nprint(\&quot;Differential Abundance Results (IBD vs Healthy)\&quot;)\nprint(\&quot;=\&quot;*70)\ndiff_df.round(4)&lt;/cell id=\&quot;cell-38\&quot;&gt;\n&lt;cell id=\&quot;cell-39\&quot;&gt;# Volcano plot\nfig, ax = plt.subplots(figsize=(10, 8))\n\n# Plot non-significant points\nnonsig = diff_df[~diff_df[&#x27;significant&#x27;]]\nax.scatter(nonsig[&#x27;log2fc&#x27;], -np.log10(nonsig[&#x27;p_adj&#x27;]), \n           c=&#x27;gray&#x27;, s=80, alpha=0.6, label=&#x27;Not significant&#x27;)\n\n# Plot significant points\nsig = diff_df[diff_df[&#x27;significant&#x27;]]\nax.scatter(sig[&#x27;log2fc&#x27;], -np.log10(sig[&#x27;p_adj&#x27;]), \n           c=&#x27;#E94F37&#x27;, s=100, alpha=0.8, label=&#x27;Significant (FDR &lt; 0.05)&#x27;)\n\n# Add labels for significant points\nfor _, row in sig.iterrows():\n    ax.annotate(row[&#x27;genus&#x27;], (row[&#x27;log2fc&#x27;], -np.log10(row[&#x27;p_adj&#x27;])),\n                xytext=(5, 5), textcoords=&#x27;offset points&#x27;, fontsize=9, style=&#x27;italic&#x27;)\n\n# Add threshold lines\nax.axhline(y=-np.log10(0.05), color=&#x27;gray&#x27;, linestyle=&#x27;--&#x27;, alpha=0.5)\nax.axvline(x=-0.5, color=&#x27;gray&#x27;, linestyle=&#x27;--&#x27;, alpha=0.5)\nax.axvline(x=0.5, color=&#x27;gray&#x27;, linestyle=&#x27;--&#x27;, alpha=0.5)\n\nax.set_xlabel(&#x27;Log2 Fold Change (IBD/Healthy)&#x27;, fontsize=12)\nax.set_ylabel(&#x27;-Log10(Adjusted P-value)&#x27;, fontsize=12)\nax.set_title(&#x27;Differential Abundance: IBD vs Healthy&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)\nax.legend(loc=&#x27;upper right&#x27;)\n\nplt.tight_layout()\nplt.show()&lt;/cell id=\&quot;cell-39\&quot;&gt;\n&lt;cell id=\&quot;cell-40\&quot;&gt;&lt;cell_type&gt;markdown&lt;/cell_type&gt;## Summary\n\nThis analysis examined alpha and beta diversity patterns in gut microbiome samples from healthy controls and IBD patients.\n\n### Key Findings:\n- **Alpha diversity**: IBD patients show reduced Shannon diversity compared to healthy controls\n- **Beta diversity**: PERMANOVA indicates significant community composition differences between groups\n- **Differentially abundant taxa**: Several genera show significant differences between groups&lt;/cell id=\&quot;cell-40\&quot;&gt;\n&lt;cell id=\&quot;cell-41\&quot;&gt;# Print package versions\nimport sys\nprint(f\&quot;Python version: {sys.version}\&quot;)\nprint(f\&quot;pandas version: {pd.__version__}\&quot;)\nprint(f\&quot;numpy version: {np.__version__}\&quot;)\nprint(f\&quot;scipy version: {stats.scipy.version.version}\&quot;)&lt;/cell id=\&quot;cell-41\&quot;&gt;&quot;,
+    &quot;type&quot;: &quot;text&quot;
+  }
+]</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-57-56-027Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-57-56-027Z" class="timestamp-link"><time datetime="2025-12-05T20:57:56.027Z" data-timestamp="2025-12-05T20:57:56.027Z">2025-12-05T20:57:56.027Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I need to update the setup cell to add <code>%matplotlib inline</code> at the very beginning. This should force matplotlib to display plots inline in Jupyter notebooks in Positron.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-58-00-538Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-58-00-538Z" class="timestamp-link"><time datetime="2025-12-05T20:58:00.538Z" data-timestamp="2025-12-05T20:58:00.538Z">2025-12-05T20:58:00.538Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01WpXSDLW5E837VeKKS9wbuN"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-2&#34;,
+  &#34;new_source&#34;: &#34;%matplotlib inline\n\nimport pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nfrom scipy import stats\nfrom scipy.spatial.distance import pdist, squareform\nfrom scipy.cluster.hierarchy import linkage, dendrogram\nfrom sklearn.manifold import MDS\nfrom skbio.diversity import alpha_diversity, beta_diversity\nfrom skbio.stats.ordination import pcoa\nfrom skbio.stats.distance import permanova, anosim\nimport warnings\nwarnings.filterwarnings(&#39;ignore&#39;)\n\n# Force interactive backend for Positron\nplt.switch_backend(&#39;module://matplotlib_inline.backend_inline&#39;)\n\n# Set style\nsns.set_style(\&#34;whitegrid\&#34;)\nplt.rcParams[&#39;figure.figsize&#39;] = [10, 6]\nplt.rcParams[&#39;figure.dpi&#39;] = 100\n\nprint(\&#34;Setup complete - plots should display inline\&#34;)&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T20-58-00-560Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T20-58-00-560Z" class="timestamp-link"><time datetime="2025-12-05T20:58:00.560Z" data-timestamp="2025-12-05T20:58:00.560Z">2025-12-05T20:58:00.560Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with %matplotlib inline
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from scipy.spatial.distance import pdist, squareform
+from scipy.cluster.hierarchy import linkage, dendrogram
+from sklearn.manifold import MDS
+from skbio.diversity import alpha_diversity, beta_diversity
+from skbio.stats.ordination import pcoa
+from skbio.stats.distance import permanova, anosim
+import warnings
+warnings.filterwarnings(&#x27;ignore&#x27;)
+
+# Force interactive backend for Positron
+plt.switch_backend(&#x27;module://matplotlib_inline.backend_inline&#x27;)
+
+# Set style
+sns.set_style(&quot;whitegrid&quot;)
+plt.rcParams[&#x27;figure.figsize&#x27;] = [10, 6]
+plt.rcParams[&#x27;figure.dpi&#x27;] = 100
+
+print(&quot;Setup complete - plots should display inline&quot;)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-58-05-180Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-58-05-180Z" class="timestamp-link"><time datetime="2025-12-05T20:58:05.180Z" data-timestamp="2025-12-05T20:58:05.180Z">2025-12-05T20:58:05.180Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I've updated the setup cell to include <code>%matplotlib inline</code> at the very beginning, which should force inline plotting in Positron. I also added a backend switch as a fallback. Let me tell the user what I did and give them some troubleshooting tips.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T20-58-10-218Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T20-58-10-218Z" class="timestamp-link"><time datetime="2025-12-05T20:58:10.218Z" data-timestamp="2025-12-05T20:58:10.218Z">2025-12-05T20:58:10.218Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Updated the setup cell with <code>%matplotlib inline</code>. Now:</p>
+<ol>
+<li><strong>Restart the kernel</strong> (important!) - In Positron: <code>Cmd+Shift+P</code> → "Restart Kernel"</li>
+<li><strong>Run all cells again</strong> from the beginning</li>
+</ol>
+<h2>If plots still don't show</h2>
+<p>Try these alternatives in the first cell:</p>
+<p><strong>Option A</strong> - Use a different backend:</p>
+<pre><code class="language-python">%matplotlib inline
+import matplotlib
+matplotlib.use('agg')
+</code></pre>
+<p><strong>Option B</strong> - For interactive plots:</p>
+<pre><code class="language-python">%matplotlib widget
+</code></pre>
+<p>(requires <code>pip install ipympl</code>)</p>
+<p><strong>Option C</strong> - Explicit display call:</p>
+<pre><code class="language-python">from IPython.display import display
+# Then after each plot instead of plt.show():
+display(plt.gcf())
+plt.close()
+</code></pre>
+<h2>Quick test</h2>
+<p>Run this in a new cell to verify plotting works:</p>
+<pre><code class="language-python">%matplotlib inline
+import matplotlib.pyplot as plt
+plt.plot([1, 2, 3], [1, 4, 9])
+plt.title(&quot;Test plot&quot;)
+plt.show()
+</code></pre>
+<p>If this test plot shows up, the rest should work. Let me know if you're still having issues.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<span class="disabled">&larr; Prev</span>
+<span class="current">1</span>
+<a href="page-002.html">2</a>
+<a href="page-002.html">Next &rarr;</a>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

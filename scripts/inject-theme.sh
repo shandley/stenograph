@@ -118,8 +118,57 @@ if [[ "$EMBED_CSS" = false ]]; then
     fi
 fi
 
-# Dark mode toggle HTML
-TOGGLE_HTML='<button class="theme-toggle" onclick="document.body.classList.toggle('\''dark'\'')" style="position:fixed;top:1rem;right:1rem;z-index:1000;padding:0.5rem 1rem;border:1px solid #ddd;border-radius:0.5rem;background:#fff;cursor:pointer;font-size:0.875rem;">Toggle Dark Mode</button>'
+# Dark mode toggle HTML (icon-based with localStorage)
+TOGGLE_HTML='<button class="theme-toggle" aria-label="Toggle dark mode" style="position:fixed;top:1rem;right:1rem;z-index:1000;"></button>'
+
+# JavaScript for theme handling
+THEME_SCRIPT='<script>
+(function() {
+  // Prevent transition flash on load
+  document.documentElement.classList.add("no-transitions");
+
+  // Check for saved theme or system preference
+  const savedTheme = localStorage.getItem("steno-theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+  if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+    document.body.classList.add("dark");
+  }
+
+  // Re-enable transitions after load
+  window.addEventListener("load", function() {
+    setTimeout(function() {
+      document.documentElement.classList.remove("no-transitions");
+    }, 100);
+  });
+
+  // Toggle handler
+  document.addEventListener("DOMContentLoaded", function() {
+    const toggle = document.querySelector(".theme-toggle");
+    if (toggle) {
+      toggle.addEventListener("click", function() {
+        document.body.classList.toggle("dark");
+        const isDark = document.body.classList.contains("dark");
+        localStorage.setItem("steno-theme", isDark ? "dark" : "light");
+      });
+    }
+
+    // Scroll fade-in animation
+    const observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll(".index-item, .message, .session-card").forEach(function(el) {
+      el.classList.add("animate-on-scroll");
+      observer.observe(el);
+    });
+  });
+})();
+</script>'
 
 # Process each HTML file
 UPDATED=0
@@ -154,25 +203,27 @@ while IFS= read -r html_file; do
     # Create backup
     cp "$html_file" "${html_file}.bak"
 
-    if [[ "$EMBED_CSS" = true ]]; then
-        # Embed CSS inline
-        CSS_CONTENT=$(cat "$CSS_FILE")
-        # Insert style tag before </head>
-        sed -i.tmp "s|</head>|<style>\n$CSS_CONTENT\n</style>\n$TOGGLE_HTML\n</head>|" "$html_file"
+    # Link to external CSS
+    LINK_TAG="<link rel=\"stylesheet\" href=\"$CSS_REL_PATH\">"
+
+    if [[ "$(uname)" == "Darwin" ]]; then
+        # macOS sed
+        sed -i '' "s|</head>|$LINK_TAG</head>|" "$html_file"
+        # Add toggle after <body>
+        sed -i '' "s|<body>|<body>$TOGGLE_HTML|" "$html_file"
     else
-        # Link to external CSS
-        LINK_TAG="<link rel=\"stylesheet\" href=\"$CSS_REL_PATH\">"
-        # Insert link and toggle before </head>
-        if [[ "$(uname)" == "Darwin" ]]; then
-            # macOS sed
-            sed -i '' "s|</head>|$LINK_TAG\n</head>|" "$html_file"
-            # Add toggle after <body>
-            sed -i '' "s|<body>|<body>\n$TOGGLE_HTML|" "$html_file"
-        else
-            # GNU sed
-            sed -i "s|</head>|$LINK_TAG\n</head>|" "$html_file"
-            sed -i "s|<body>|<body>\n$TOGGLE_HTML|" "$html_file"
-        fi
+        # GNU sed
+        sed -i "s|</head>|$LINK_TAG\n</head>|" "$html_file"
+        sed -i "s|<body>|<body>\n$TOGGLE_HTML|" "$html_file"
+    fi
+
+    # Add theme script before </body>
+    if [[ "$(uname)" == "Darwin" ]]; then
+        # Create temp file with script (macOS sed struggles with multiline)
+        SCRIPT_ESCAPED=$(printf '%s\n' "$THEME_SCRIPT" | sed 's/[&/\]/\\&/g' | tr '\n' '\r')
+        perl -i -pe "s|</body>|$THEME_SCRIPT</body>|" "$html_file" 2>/dev/null || true
+    else
+        perl -i -pe "s|</body>|$THEME_SCRIPT</body>|" "$html_file" 2>/dev/null || true
     fi
 
     # Clean up temp files
@@ -200,6 +251,9 @@ if [[ "$DRY_RUN" = true ]]; then
 else
     echo "Theme applied! Open any transcript HTML to see the new styling."
     echo ""
-    echo "Toggle dark mode with the button in the top-right corner,"
-    echo "or add 'dark' class to <body> for dark mode by default."
+    echo "Features:"
+    echo "  ☀️/🌙 Click the icon button (top-right) to toggle dark mode"
+    echo "  💾  Theme preference saved to localStorage"
+    echo "  🎨  Smooth transitions between themes"
+    echo "  ✨  Scroll animations on cards"
 fi

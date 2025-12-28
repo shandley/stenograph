@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 1</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+<link rel="stylesheet" href="../../steno-transcript.css">
+</head>
+<body>
+<button class="theme-toggle" onclick="document.body.classList.toggle('dark')" style="position:fixed;top:1rem;right:1rem;z-index:1000;padding:0.5rem 1rem;border:1px solid #ddd;border-radius:0.5rem;background:#fff;cursor:pointer;font-size:0.875rem;">Toggle Dark Mode</button>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 1/1</h1>
+        
+
+<div class="pagination"><a href="index.html" class="index-link">Index</a></div>
+
+        
+<div class="message user" id="msg-2025-12-02T16-07-53-412Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-02T16-07-53-412Z" class="timestamp-link"><time datetime="2025-12-02T16:07:53.412Z" data-timestamp="2025-12-02T16:07:53.412Z">2025-12-02T16:07:53.412Z</time></a></div><div class="message-content">
+<div class="user-content"><p>i am interested in re-analyzing the pediatric cealiacs disease microbiome data generated by Maureen Leanord. can you research about these papers</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-08-00-346Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-08-00-346Z" class="timestamp-link"><time datetime="2025-12-02T16:08:00.346Z" data-timestamp="2025-12-02T16:08:00.346Z">2025-12-02T16:08:00.346Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user is asking me to research papers about pediatric celiac disease microbiome data generated by Maureen Leonard (they spelled it "Leanord" but likely mean Leonard). </p>
+<p>This is a research task, so I should:
+1. Use WebSearch to find papers by Maureen Leonard on pediatric celiac disease microbiome
+2. Look for datasets that might be publicly available
+3. Provide information about the studies, methods, and data availability</p>
+<p>Let me search for this information.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-08-00-948Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-08-00-948Z" class="timestamp-link"><time datetime="2025-12-02T16:08:00.948Z" data-timestamp="2025-12-02T16:08:00.948Z">2025-12-02T16:08:00.948Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I'll research papers on pediatric celiac disease microbiome by Maureen Leonard.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-08-01-669Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-08-01-669Z" class="timestamp-link"><time datetime="2025-12-02T16:08:01.669Z" data-timestamp="2025-12-02T16:08:01.669Z">2025-12-02T16:08:01.669Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01LsaBmpCiAtCCcUBdCf6bad"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Maureen Leonard pediatric celiac disease microbiome&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-08-02-413Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-08-02-413Z" class="timestamp-link"><time datetime="2025-12-02T16:08:02.413Z" data-timestamp="2025-12-02T16:08:02.413Z">2025-12-02T16:08:02.413Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01E6yiNoM9NMy6nSrJkS4inS"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Maureen Leonard celiac microbiome 16S sequencing children&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-08-24-705Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-08-24-705Z" class="timestamp-link"><time datetime="2025-12-02T16:08:24.705Z" data-timestamp="2025-12-02T16:08:24.705Z">2025-12-02T16:08:24.705Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Maureen Leonard pediatric celiac disease microbiome&quot;
+
+Links: [{&quot;title&quot;:&quot;Maureen Leonard, MD - Department of Pediatrics&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/doctors/19698/maureen-leonard&quot;},{&quot;title&quot;:&quot;Maureen LEONARD | Clinical Director, Center For Celiac Research and Treatment | MD, MMSc | Mass General Hospital | Pediatric Gastroenterology and Nutrition | Research profile&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/profile/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;Maureen M. Leonard | Division of Nutrition at Harvard Medical School&quot;,&quot;url&quot;:&quot;https://nutrition.hms.harvard.edu/Leonard-Maureen&quot;},{&quot;title&quot;:&quot;Maureen Leonard, M.D., MMSc | Mass General Research Institute&quot;,&quot;url&quot;:&quot;https://researchers.mgh.harvard.edu/profile/7524406/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;Changes in gut microbiome in longitudinal study of infants precede onset of celiac disease&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/news/press-release/changes-in-gut-microbiome-in-longitudinal-study-of-infants-precede-onset-of-celiac-disease&quot;},{&quot;title&quot;:&quot;The Microbiome As a Possible Target To Prevent Celiac Disease - PMC&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5278927/&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC8307711/&quot;},{&quot;title&quot;:&quot;Gut Microbiota in Infants: First Results from the CDGEMM Study&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/coronavirus/gut-microbiota-in-infants-first-results-from-the-cdgemm-study&quot;},{&quot;title&quot;:&quot;Maureen Leonard, MD, MMSc - Harvard Health&quot;,&quot;url&quot;:&quot;https://www.health.harvard.edu/authors/maureen-leonard-md-mmsc&quot;},{&quot;title&quot;:&quot;The microbiome as a possible target to prevent celiac disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/26999627/&quot;}]
+
+Based on the search results, here&#x27;s what I found about Dr. Maureen Leonard and her work on pediatric celiac disease and the microbiome:
+
+## Dr. Maureen Leonard&#x27;s Background
+
+Dr. Maureen Leonard, MD, MMSc, is the Clinical Director of the Center For Celiac Research And Treatment at MassGeneral Hospital for Children (MGHfC) and an Assistant Professor of Pediatrics at Harvard Medical School (HMS).(no content)She sees adult and pediatric patients with celiac disease, non-celiac gluten sensitivity, and other gluten-related disorders.
+
+## Research Focus: The CDGEMM Study
+
+Dr. Leonard&#x27;s research is focused on predicting and preventing celiac disease through the NIH-funded Celiac Disease; Genomic, Environment, Microbiome and Metabolomic Study.(no content)The Celiac Disease Genomic, Environmental, Microbiome and Metabolomic (CDGEMM) study is an international prospective birth cohort in children at-risk of developing celiac disease (CD). The CDGEMM study has been designed to take a multi-omic approach to predicting CD onset in at-risk individuals.
+
+## Key Research Findings
+
+&quot;In this proof-of-concept study, we compared the gut microbiome of 10 infants who went on to develop celiac disease to the gut microbiome of 10 infants who did not develop the autoimmune condition,&quot; says Maureen Leonard, MD, lead author and clinical director of the Center for Celiac Research and Treatment at MGfC. &quot;We found significant changes in the intestinal microbes, pathways and metabolites as early as 18 months before disease onset. This was much earlier than we expected,&quot; adds Leonard.(no content)Here, we prospectively examine the trajectory of the gut microbiota starting 18 mo before CD onset in 10 infants who developed CD and 10 infants who did not. We identified alterations in the gut microbiota, functional pathways, and metabolome before CD onset, suggesting our approach may be used for disease prediction
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-08-25-577Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-08-25-577Z" class="timestamp-link"><time datetime="2025-12-02T16:08:25.577Z" data-timestamp="2025-12-02T16:08:25.577Z">2025-12-02T16:08:25.577Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Maureen Leonard celiac microbiome 16S sequencing children&quot;
+
+Links: [{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/10.1073/pnas.2020322118&quot;},{&quot;title&quot;:&quot;Maureen LEONARD | Clinical Director, Center For Celiac Research and Treatment | MD, MMSc | Mass General Hospital | Pediatric Gastroenterology and Nutrition | Research profile&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/profile/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;Maureen Leonard, MD - Department of Pediatrics&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/doctors/19698/maureen-leonard&quot;},{&quot;title&quot;:&quot;Characterization of the blood microbiota in children with Celiac disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/34841359/&quot;},{&quot;title&quot;:&quot;Changes in gut microbiome in longitudinal study of infants precede onset of celiac disease&quot;,&quot;url&quot;:&quot;https://www.eurekalert.org/news-releases/510053&quot;},{&quot;title&quot;:&quot;Changes in gut microbiome in longitudinal study of infants precede onset of celiac disease&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/news/press-release/changes-in-gut-microbiome-in-longitudinal-study-of-infants-precede-onset-of-celiac-disease&quot;},{&quot;title&quot;:&quot;Changes in gut microbiome in longitudinal study of infants precede onset of celiac disease | Celiac Disease Foundation&quot;,&quot;url&quot;:&quot;https://celiac.org/changes-in-gut-microbiome-found-in-infants-before-development-of-celiac-disease/&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/34253606/&quot;},{&quot;title&quot;:&quot;Children who develop celiac disease are predicted to exhibit distinct metabolic pathways among their gut microbiota years before diagnosis - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/39902908/&quot;},{&quot;title&quot;:&quot;MGH researchers studying early onset celiac disease — Harvard Gazette&quot;,&quot;url&quot;:&quot;https://news.harvard.edu/gazette/story/2021/07/mgh-researchers-studying-early-onset-celiac-disease/&quot;}]
+
+I found several relevant research studies by Dr. Maureen Leonard on celiac disease, the microbiome, and 16S sequencing in children:
+
+## Key Research Findings
+
+Dr. Maureen Leonard is the Clinical Director of the Center For Celiac Research and Treatment at MassGeneral Hospital for Children and has conducted extensive microbiome research in pediatric celiac disease.
+
+### Major Publications:
+
+**1. PNAS Study (2021) - Prospective Longitudinal Cohort**
+This study prospectively examined the trajectory of the gut microbiota starting 18 months before CD onset in 10 infants who developed CD and 10 infants who did not. The researchers found significant changes in the intestinal microbes, pathways and metabolites as early as 18 months before disease onset. 
+
+While previous studies used 16S rRNA sequencing to analyze intestinal microbiota, which cannot provide information about functional characteristics of the microbiota nor provide taxonomic data at the strain level, this research employed metagenomic analysis for more detailed insights.
+
+**2. Blood Microbiota Study (2021)**
+This study aimed to characterize the diversity and taxonomic composition of the blood microbiota of children with CD compared to controls, using whole blood samples collected from children with active CD, CD in remission, and control subjects analyzed with 16S rRNA sequencing.
+
+**3. CDGEMM Study**
+The Celiac Disease Genomic, Environmental, Microbiome and Metabolomic (CDGEMM) study is an international prospective birth cohort in children at-risk of developing celiac disease, which is studying 500 genetically at-risk infants from birth through age ten.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-08-29-776Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-08-29-776Z" class="timestamp-link"><time datetime="2025-12-02T16:08:29.776Z" data-timestamp="2025-12-02T16:08:29.776Z">2025-12-02T16:08:29.776Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Good, I found some key papers. Let me search for more specific information about data availability and the specific papers.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-08-30-586Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-08-30-586Z" class="timestamp-link"><time datetime="2025-12-02T16:08:30.586Z" data-timestamp="2025-12-02T16:08:30.586Z">2025-12-02T16:08:30.586Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Ga1nQnHjCHJTP45kbP5p6E"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;\&#34;Maureen Leonard\&#34; celiac PNAS 2021 microbiome data SRA BioProject&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-08-31-199Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-08-31-199Z" class="timestamp-link"><time datetime="2025-12-02T16:08:31.199Z" data-timestamp="2025-12-02T16:08:31.199Z">2025-12-02T16:08:31.199Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01SVa2dtA5nMtJXSAbo1eHrC"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;CDGEMM study celiac disease data repository sequencing&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-08-50-919Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-08-50-919Z" class="timestamp-link"><time datetime="2025-12-02T16:08:50.919Z" data-timestamp="2025-12-02T16:08:50.919Z">2025-12-02T16:08:50.919Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;CDGEMM study celiac disease data repository sequencing&quot;
+
+Links: [{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC4663598/&quot;},{&quot;title&quot;:&quot;Cohort profile: Celiac disease genomic, environmental, microbiome and metabolome study; a prospective longitudinal birth cohort study of children at-risk for celiac disease | PLOS One&quot;,&quot;url&quot;:&quot;https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0282739&quot;},{&quot;title&quot;:&quot;Celiac Disease Genomic Environmental Microbiome and ...&quot;,&quot;url&quot;:&quot;https://clinicaltrials.gov/study/NCT02061306&quot;},{&quot;title&quot;:&quot;(PDF) Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/publication/283786717_Celiac_Disease_Genomic_Environmental_Microbiome_and_Metabolomic_CDGEMM_Study_Design_Approach_to_the_Future_of_Personalized_Prevention_of_Celiac_Disease&quot;},{&quot;title&quot;:&quot;Changes in gut microbiome in longitudinal study of infants precede onset of celiac disease&quot;,&quot;url&quot;:&quot;https://www.eurekalert.org/news-releases/510053&quot;},{&quot;title&quot;:&quot;MGfC Researchers Advancing Discoveries into Celiac Disease Receive New NIH Funding&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/news/article/mghfc-researchers-celiac-disease-new-funding&quot;},{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic... | Download Scientific Diagram&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/figure/Celiac-Disease-Genomic-Environmental-Microbiome-and-Metabolomic-CDGEMM-Integrative_fig1_283786717&quot;},{&quot;title&quot;:&quot;MGH researchers studying early onset celiac disease — Harvard Gazette&quot;,&quot;url&quot;:&quot;https://news.harvard.edu/gazette/story/2021/07/mgh-researchers-studying-early-onset-celiac-disease/&quot;},{&quot;title&quot;:&quot;Changes in gut microbiome in longitudinal study of infants precede onset of celiac disease&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/news/press-release/changes-in-gut-microbiome-in-longitudinal-study-of-infants-precede-onset-of-celiac-disease&quot;},{&quot;title&quot;:&quot;CDGEMM Publications&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study/publications&quot;}]
+
+I found comprehensive information about the CDGEMM study. Here&#x27;s what the search revealed:
+
+## Study Overview
+
+CDGEMM (Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic) aims to understand the role of the gut microbiome in early steps involved in the development of autoimmune disease. The study was designed to focus on early environmental factors and their interaction with the intestinal microbiome on the earliest steps in celiac disease pathogenesis.
+
+## Study Design &amp; Data Repository
+
+Researchers in Italy, Spain and the U.S. are studying 500 genetically at-risk infants from birth through age ten. CDGEMM researchers have been collecting extensive blood and fecal samples and voluminous environmental data on each participant since 2014.
+
+The longitudinal analysis includes more than 36,500 biospecimens and more than 145,500 clinical data points including environmental factors and genomic sequencing. CDGEMM&#x27;s biorepository will allow for future epigenetic studies and validation of biomarkers.
+
+## Sequencing Methods
+
+Researchers used shotgun metagenomic sequencing and untargeted metabolomic analysis to perform cross-sectional and longitudinal analyses. Researchers used metagenomic analysis that enabled them to link microbial composition with function, highlighting changes in pathways associated with either increased inflammatory processes or reduced inflammation.
+
+## Key Findings
+
+Researchers found significant changes in the intestinal microbes, pathways and metabolites as early as 18 months before disease onset.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-09-03-106Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-09-03-106Z" class="timestamp-link"><time datetime="2025-12-02T16:09:03.106Z" data-timestamp="2025-12-02T16:09:03.106Z">2025-12-02T16:09:03.106Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;&quot;Maureen Leonard&quot; celiac PNAS 2021 microbiome data SRA BioProject&quot;
+
+Links: [{&quot;title&quot;:&quot;Maureen Leonard, MD - Department of Pediatrics&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/doctors/19698/maureen-leonard&quot;},{&quot;title&quot;:&quot;Maureen Leonard, M.D., MMSc | Mass General Research Institute&quot;,&quot;url&quot;:&quot;https://researchers.mgh.harvard.edu/profile/7524406/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;Maureen LEONARD | Clinical Director, Center For Celiac Research and Treatment | MD, MMSc | Mass General Hospital | Pediatric Gastroenterology and Nutrition | Research profile&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/profile/Maureen-Leonard&quot;}]
+
+Links: [{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/10.1073/pnas.2020322118&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC8307711/&quot;},{&quot;title&quot;:&quot;Intestinal dysbiosis in celiac disease: Decreased butyrate production may facilitate the onset of the disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC8522264/&quot;},{&quot;title&quot;:&quot;The microbiome as a possible target to prevent celiac disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/26999627/&quot;},{&quot;title&quot;:&quot;Google Scholar&quot;,&quot;url&quot;:&quot;https://scholar.google.com/scholar_lookup?title=Microbiome+signatures+of+progression+toward+celiac+disease+onset+in+at-risk+children+in+a+longitudinal+prospective+cohort+study&amp;amp=&amp;author=MM+Leonard&amp;amp=&amp;author=F+Valitutti&amp;amp=&amp;author=H+Karathia&amp;amp=&amp;publication_year=2021&amp;amp=&amp;journal=Proc+Natl+Acad+Sci+USA&amp;amp=&amp;volume=118&amp;amp=&amp;pages=e2020322118&quot;},{&quot;title&quot;:&quot;Intestinal dysbiosis in celiac disease: Decreased butyrate production may facilitate the onset of the disease | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/full/10.1073/pnas.2113655118&quot;},{&quot;title&quot;:&quot;Gut microbiota in Celiac Disease: microbes, metabolites, pathways and therapeutics - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/33103934/&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/34253606/&quot;},{&quot;title&quot;:&quot;Dynamics of the gut microbiome, IgA response, and plasma metabolome in the development of pediatric celiac disease | Microbiome | Full Text&quot;,&quot;url&quot;:&quot;https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-022-01429-2&quot;},{&quot;title&quot;:&quot;Reply to Chen and Vitetta: Unraveling the complex interactions among organisms in the microbiome is necessary to identify unique signatures predicting CD onset | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/content/118/41/e2114053118&quot;}]
+
+I found the information you&#x27;re looking for! 
+
+The 2021 PNAS study by Maureen M. Leonard and colleagues titled &quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study&quot; examined the gut microbiota trajectory starting 18 months before CD onset in infants.
+
+**Data Availability:**
+
+The raw sequence data from this study has been deposited in the National Center for Biotechnology Information Sequence Read Archive (SRA) repository with BioProject ID PRJNA486782 and SRA accession number SRP158417.
+
+The study was published in Proceedings of the National Academy of Sciences (PNAS) in July 2021, volume 118, issue 29, article e2020322118.
+
+You can access the sequencing data through NCBI&#x27;s SRA using either:
+- **BioProject ID**: PRJNA486782
+- **SRA accession**: SRP158417
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-09-08-653Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-09-08-653Z" class="timestamp-link"><time datetime="2025-12-02T16:09:08.653Z" data-timestamp="2025-12-02T16:09:08.653Z">2025-12-02T16:09:08.653Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Great! Now let me get more specific information about the actual papers and their full citations, and any other related studies.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-09-10-561Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-09-10-561Z" class="timestamp-link"><time datetime="2025-12-02T16:09:10.561Z" data-timestamp="2025-12-02T16:09:10.561Z">2025-12-02T16:09:10.561Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01VbB11qctb99w363Qz3z5ke"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://www.pnas.org/doi/10.1073/pnas.2020322118&#34;,
+  &#34;prompt&#34;: &#34;Extract the full citation, abstract, methods (especially sequencing methods and sample information), data availability statement, and key findings from this paper.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-09-10-907Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-09-10-907Z" class="timestamp-link"><time datetime="2025-12-02T16:09:10.907Z" data-timestamp="2025-12-02T16:09:10.907Z">2025-12-02T16:09:10.907Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Jy2uYoMFrqrugnfsmMVzyh"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;\&#34;Maureen Leonard\&#34; celiac disease publications list complete&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-09-11-401Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-09-11-401Z" class="timestamp-link"><time datetime="2025-12-02T16:09:11.401Z" data-timestamp="2025-12-02T16:09:11.401Z">2025-12-02T16:09:11.401Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Request failed with status code 403</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-09-31-733Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-09-31-733Z" class="timestamp-link"><time datetime="2025-12-02T16:09:31.733Z" data-timestamp="2025-12-02T16:09:31.733Z">2025-12-02T16:09:31.733Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;&quot;Maureen Leonard&quot; celiac disease publications list complete&quot;
+
+Links: [{&quot;title&quot;:&quot;Maureen LEONARD | Clinical Director, Center For Celiac Research and Treatment | MD, MMSc | Mass General Hospital | Pediatric Gastroenterology and Nutrition | Research profile&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/profile/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;Maureen Leonard, MD - Department of Pediatrics&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/doctors/19698/maureen-leonard&quot;},{&quot;title&quot;:&quot;Maureen Leonard, M.D., MMSc | Mass General Research Institute&quot;,&quot;url&quot;:&quot;https://researchers.mgh.harvard.edu/profile/7524406/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;Dr. Maureen Leonard Appointed Director of the Center for Celiac Research and Treatment at Mass General for Children | Celiac Disease Foundation&quot;,&quot;url&quot;:&quot;https://celiac.org/2025/03/03/leonard-massgen-announcement/&quot;},{&quot;title&quot;:&quot;Maureen Leonard&quot;,&quot;url&quot;:&quot;https://scholar.google.com/citations?user=Wyc5rmMAAAAJ&amp;hl=en&quot;},{&quot;title&quot;:&quot;Maureen M. Leonard | Division of Nutrition at Harvard Medical School&quot;,&quot;url&quot;:&quot;https://nutrition.hms.harvard.edu/Leonard-Maureen&quot;},{&quot;title&quot;:&quot;Maureen Leonard, MD, MMSc - Harvard Health&quot;,&quot;url&quot;:&quot;https://www.health.harvard.edu/authors/maureen-leonard-md-mmsc&quot;},{&quot;title&quot;:&quot;Maureen Leonard, MD: A Promising Celiac Disease Biomarker&quot;,&quot;url&quot;:&quot;https://www.hcplive.com/view/maureen-leonard-md-promising-celiac-disease-biomarker&quot;},{&quot;title&quot;:&quot;Dr. Maureen M Leonard, MD - Boston, MA - Pediatric Gastroenterology - Request Appointment&quot;,&quot;url&quot;:&quot;https://doctors.massgeneralbrigham.org/provider/maureen-m-leonard/256204&quot;},{&quot;title&quot;:&quot;MedicalResearch.com | Review of Celiac Disease and Nonceliac Gluten Sensitivity&quot;,&quot;url&quot;:&quot;https://medicalresearch.com/review-of-celiac-disease-and-nonceliac-gluten-sensitivity/&quot;}]
+
+Based on the search results, I found information about Dr. Maureen Leonard and her celiac disease research:
+
+Dr. Maureen Leonard has 83 publications with 1,582 citations according to her ResearchGate profile. She is the Clinical Director of the Center For Celiac Research and Treatment at Mass General Hospital for Children and an Assistant Professor of Pediatrics at Harvard Medical School.
+
+A pediatric gastroenterologist and physician-scientist with celiac disease herself, Dr. Leonard received the Celiac Disease Foundation Young Investigator Prize for Clinical Science in 2023.
+
+Her research focuses include:
+- The CDGEMM study, which examines genetic and environmental factors influencing celiac disease development
+- Predicting and preventing celiac disease through precision medicine
+- Discovering biomarkers for celiac disease and developing new treatment options
+
+One notable publication mentioned is:
+Leonard MM, Sapone A, Catassi C, Fasano A. &quot;Celiac Disease and Nonceliac Gluten Sensitivity: A Review.&quot; JAMA. 2017;318(7):647–656
+
+For a **complete list of all 83 publications**, you would need to visit:
+- Her ResearchGate profile: https://www.researchgate.net/profile/Maureen-Leonard
+- Her Google Scholar profile: https://scholar.google.com/citations?user=Wyc5rmMAAAAJ&amp;hl=en
+
+These platforms provide comprehensive publication lists with full citations and links to the papers.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-09-35-800Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-09-35-800Z" class="timestamp-link"><time datetime="2025-12-02T16:09:35.800Z" data-timestamp="2025-12-02T16:09:35.800Z">2025-12-02T16:09:35.800Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Let me try the PMC version of the paper to get the full details.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-09-37-342Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-09-37-342Z" class="timestamp-link"><time datetime="2025-12-02T16:09:37.342Z" data-timestamp="2025-12-02T16:09:37.342Z">2025-12-02T16:09:37.342Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01J4tSAnVernEmYk6f7c7dzo"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://pmc.ncbi.nlm.nih.gov/articles/PMC8307711/&#34;,
+  &#34;prompt&#34;: &#34;Extract the full citation, abstract, detailed methods including sequencing platform and analysis, sample information (number of samples, timepoints), data availability with accession numbers, and key results from this paper.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-09-37-800Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-09-37-800Z" class="timestamp-link"><time datetime="2025-12-02T16:09:37.800Z" data-timestamp="2025-12-02T16:09:37.800Z">2025-12-02T16:09:37.800Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01QfyPxAAyLojTjBC5LJ3GmM"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;PRJNA486782 celiac disease Leonard sample information&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-09-51-366Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-09-51-366Z" class="timestamp-link"><time datetime="2025-12-02T16:09:51.366Z" data-timestamp="2025-12-02T16:09:51.366Z">2025-12-02T16:09:51.366Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Research Paper Summary: Microbiome Signatures of Celiac Disease Progression
+
+## Full Citation
+
+Leonard MM, Valitutti F, Karathia H, et al. Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study. *Proc Natl Acad Sci U S A*. 2021 Jul 12;118(29):e2020322118. doi: 10.1073/pnas.2020322118
+
+## Abstract
+
+The researchers conducted a prospective metagenomic analysis tracking gut microbiota shifts in infants before celiac disease (CD) development. &quot;Cross-sectional analysis at CD onset identified altered abundance of six microbial strains and several metabolites between cases and controls but no change in microbial species or pathway abundance.&quot; Longitudinal analysis revealed several species, pathways, and metabolites with increased or decreased abundance before CD onset, including *Dialister invisus* and *Parabacteroides* sp., alongside decreased levels of protective organisms like *Faecalibacterium prausnitzii*.
+
+## Methods
+
+**Sequencing Platform:** Shotgun metagenomic sequencing on Illumina HiSeq 400 (2 × 150-bp reads) at CosmosID Inc.
+
+**Taxonomic Profiling:** Assembly-free k-mer based method via CosmosID platform, providing species- and strain-level resolution for bacteria, archaea, fungi, protists, and viruses.
+
+**Functional Profiling:** KEGG pathway identification using metagenome assembly (SPADes), gene prediction (Prodigal), and functional assignment (Interproscan).
+
+**Metabolomic Analysis:** Gas chromatography–mass spectrometry (GC-MS) on fecal samples with external standard confirmation.
+
+**Statistical Analysis:** Mann-Whitney U test (cross-sectional); paired Wilcoxon signed-rank test (longitudinal); Spearman correlation for association studies.
+
+## Sample Information
+
+- **Total Participants:** 20 children (10 cases developing CD, 10 matched controls)
+- **Total Samples:** 118 fecal samples analyzed
+- **Timepoints:** 7 collection points spanning 18 months before CD onset through disease onset (−18, −15, −12, −9, −6, −3 months, and t = 0)
+- **Sampling Strategy:** Every 3 months for first 3 years; every 6 months until age 5 in full cohort study
+
+## Data Availability
+
+**Accession Numbers:** Raw sequence data deposited in NCBI Sequence Read Archive (SRA)
+- BioProject ID: PRJNA486782
+- SRA accession: SRP158417
+
+**Supplementary Materials:** Six supplementary datasets (S1-S6) containing complete metadata, taxonomic profiling, functional pathways, metabolites, and association analyses.
+
+## Key Results
+
+**Cross-sectional Findings (at CD onset):**
+- Significantly decreased *Bacteroides vulgatus* and *B. uniformis* strains in cases
+- No significant species-level or pathway changes detected
+- Several previously unreported metabolites showed altered abundance
+
+**Longitudinal Findings (before CD onset):**
+
+*Increased in CD cases:*
+- Proinflammatory species: &quot;*Dialister invisus* strain DSM_15470 in CD at all time points (except −3 mo)&quot;
+- *Parabacteroides* species and *Lachnospiraceae bacterium*
+- Tryptophan metabolism pathway
+- Metabolites serine and threonine
+
+*Decreased in CD cases:*
+- Anti-inflammatory bacteria: &quot;*Streptococcus thermophilus*,&quot; &quot;*Faecalibacterium prausnitzii*,&quot; and &quot;*Clostridium clostridioforme*&quot;
+- High mannose-type N-glycan biosynthesis pathway at −15 mo
+- Glycolic acid metabolite
+
+**Control Group Protective Features:**
+- Increased abundance of *Bifidobacterium longum* (6 strains), *B. breve*, and *Eubacterium eligens*
+- These organisms associated with anti-inflammatory effects and immunoregulation
+
+**Pathway Enrichment (Human Metabolism):**
+Identified three human pathways affected by microbial metabolites: fatty acid biosynthesis, pentose phosphate pathway, and aminoacyl-tRNA biosynthesis—all associated with inflammation.
+
+**Study Significance:** This longitudinal approach revealed that &quot;a number of microbial species, pathways, and metabolites were found to increase in abundance before the onset of CD,&quot; suggesting potential biomarkers for disease prediction and intervention targets.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-10-24-394Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-10-24-394Z" class="timestamp-link"><time datetime="2025-12-02T16:10:24.394Z" data-timestamp="2025-12-02T16:10:24.394Z">2025-12-02T16:10:24.394Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;PRJNA486782 celiac disease Leonard sample information&quot;
+
+Links: [{&quot;title&quot;:&quot;Maureen Leonard, MD - Department of Pediatrics&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/doctors/19698/maureen-leonard&quot;},{&quot;title&quot;:&quot;Maureen LEONARD | Clinical Director, Center For Celiac Research and Treatment | MD, MMSc | Mass General Hospital | Pediatric Gastroenterology and Nutrition | Research profile&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/profile/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;Nutrition and risk of celiac disease - you are what you (wh)eat - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/38044021/&quot;},{&quot;title&quot;:&quot;Maureen Leonard, M.D., MMSc | Mass General Research Institute&quot;,&quot;url&quot;:&quot;https://researchers.mgh.harvard.edu/profile/7524406/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;Non-Host Factors Influencing Onset and Severity of Celiac Disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/38286392/&quot;},{&quot;title&quot;:&quot;Celiac Disease and Nonceliac Gluten Sensitivity: A Review - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/28810029/&quot;},{&quot;title&quot;:&quot;[PDF] Celiac Disease and Nonceliac Gluten Sensitivity: A Review | Semantic Scholar&quot;,&quot;url&quot;:&quot;https://www.semanticscholar.org/paper/Celiac-Disease-and-Nonceliac-Gluten-Sensitivity:-A-Leonard-Sapone/c9563d37c0c91e9026fe9fa44e7220b7c28ddcf6&quot;},{&quot;title&quot;:&quot;n engl j med 374;19 nejm.org May 12, 2016 1875&quot;,&quot;url&quot;:&quot;http://www.luigigreco.info/public/60/celipsycho.pdf&quot;},{&quot;title&quot;:&quot;Maureen M. Leonard | Division of Nutrition at Harvard Medical School&quot;,&quot;url&quot;:&quot;https://nutrition.hms.harvard.edu/Leonard-Maureen&quot;},{&quot;title&quot;:&quot;Gluten and Celiac Disease Risk: Is It Just a Matter of Quantity? - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/31408119/&quot;}]
+
+Links: [{&quot;title&quot;:&quot;Multi-omics analysis reveals the influence of genetic and environmental risk factors on developing gut microbiota in infants at risk of celiac disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC7488762/&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/content/118/29/e2020322118&quot;},{&quot;title&quot;:&quot;Genome-wide fine-mapping identifies pleiotropic and functional variants that predict many traits across global cattle populations | Nature Communications&quot;,&quot;url&quot;:&quot;https://www.nature.com/articles/s41467-021-21001-0&quot;},{&quot;title&quot;:&quot;Home - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject&quot;},{&quot;title&quot;:&quot;ID 492842 - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://ncbi.nlm.nih.gov/bioproject/PRJNA492842&quot;},{&quot;title&quot;:&quot;Primates genomes assembly hubs&quot;,&quot;url&quot;:&quot;https://hgdownload.soe.ucsc.edu/hubs/primates/index.html&quot;},{&quot;title&quot;:&quot;Cell&quot;,&quot;url&quot;:&quot;https://www.cell.com/cms/10.1016/j.molp.2020.08.001/attachment/cc29878e-434d-4aef-b60c-767bb3f4c452/mmc4&quot;},{&quot;title&quot;:&quot;ID 485481 - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject/485481&quot;},{&quot;title&quot;:&quot;Homo sapiens (ID 477862) - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject/477862&quot;},{&quot;title&quot;:&quot;Effects of spaced k-mers on alignment-free genotyping | Bioinformatics | Oxford Academic&quot;,&quot;url&quot;:&quot;https://academic.oup.com/bioinformatics/article/39/Supplement_1/i213/7210439&quot;}]
+
+Links: [{&quot;title&quot;:&quot;Multi-omics analysis reveals the influence of genetic and environmental risk factors on developing gut microbiota in infants at risk of celiac disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC7488762/&quot;},{&quot;title&quot;:&quot;Home - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject&quot;},{&quot;title&quot;:&quot;ID 492842 - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://ncbi.nlm.nih.gov/bioproject/PRJNA492842&quot;},{&quot;title&quot;:&quot;PRJNA476474 - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA476474&quot;},{&quot;title&quot;:&quot;ID 485481 - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject/485481&quot;},{&quot;title&quot;:&quot;Bos taurus (ID 477833) - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA477833&quot;},{&quot;title&quot;:&quot;Homo sapiens (ID 477862) - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject/477862&quot;},{&quot;title&quot;:&quot;Faecalibacterium prausnitzii genome assembly ASM455880v1 - NCBI - NLM&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/datasets/genome/GCA_004558805.1/&quot;},{&quot;title&quot;:&quot;Prion protein monoclonal antibody (PRN100) therapy for Creutzfeldt-Jakob disease: evaluation of a first-in-human treatment programme - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/35305340/&quot;},{&quot;title&quot;:&quot;Characterization of mutations in PRNP (prion) gene and their possible roles in neurodegenerative diseases - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC6097508/&quot;}]
+
+Links: [{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/26569299/&quot;},{&quot;title&quot;:&quot;Cohort profile: Celiac disease genomic, environmental, microbiome and metabolome study; a prospective longitudinal birth cohort study of children at-risk for celiac disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/36888627/&quot;},{&quot;title&quot;:&quot;Multi-omics analysis reveals the influence of genetic and environmental risk factors on developing gut microbiota in infants at risk of celiac disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC7488762/&quot;},{&quot;title&quot;:&quot;(PDF) Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/publication/283786717_Celiac_Disease_Genomic_Environmental_Microbiome_and_Metabolomic_CDGEMM_Study_Design_Approach_to_the_Future_of_Personalized_Prevention_of_Celiac_Disease&quot;},{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic... | Download Scientific Diagram&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/figure/Celiac-Disease-Genomic-Environmental-Microbiome-and-Metabolomic-CDGEMM-Integrative_fig1_283786717&quot;},{&quot;title&quot;:&quot;About CDGEMM&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study/about&quot;},{&quot;title&quot;:&quot;Multi-omics analysis reveals the influence of genetic and environmental risk factors on developing gut microbiota in infants at risk of celiac disease | Research Square&quot;,&quot;url&quot;:&quot;https://www.researchsquare.com/article/rs-14796/v1&quot;},{&quot;title&quot;:&quot;Frequently Asked Questions About the CDGEMM Study&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study/study-faq&quot;},{&quot;title&quot;:&quot;Gut Microbiota in Infants: First Results from the CDGEMM Study&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/coronavirus/gut-microbiota-in-infants-first-results-from-the-cdgemm-study&quot;},{&quot;title&quot;:&quot;CDGEMM Study: Get Involved&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study/study-get-involved&quot;}]
+
+Based on my search results, I found detailed information about PRJNA486782 and the celiac disease research by Dr. Maureen Leonard:
+
+## BioProject PRJNA486782 Overview
+
+PRJNA486782 is the BioProject ID for data submitted to the NCBI Short Read Archive (SRA) repository, with SRA accession number SRP158417, associated with the CDGEMM (Celiac Disease Genomic, Environmental, Microbiome and Metabolomic) study.
+
+## Study Details
+
+The study selected 31 infants from the CDGEMM cohort with fecal samples available at enrollment, 3 months, and 4-6 months after birth. None of these infants consumed solid foods before 6 months, making them ideal for studying the effect of genetic and environmental risk factors on the gut microbiota in the absence of gluten as a confounder.
+
+## Sample Characteristics
+
+The 31 infants were characterized as follows:
+- 26 infants were genetically susceptible to developing CD, of which 19 were either heterozygous for DQ2 or DQ8 or carried both DQ2 and DQ8 (referred to as &quot;standard genetic risk&quot;) and seven were homozygous for DQ2 (referred to as &quot;high genetic risk&quot;)
+- 19 infants who were genetically predisposed to CD and exposed to at least one environmental risk factor were referred to as &quot;environmentally exposed&quot; infants
+
+## Methodology
+
+Collected stool samples underwent shotgun metagenomic sequencing and metabolomic profiling.
+
+## Principal Investigator
+
+Dr. Maureen Leonard is the Clinical Director of the Center For Celiac Research and Treatment at MassGeneral Hospital for Children and an Assistant Professor of Pediatrics at Harvard Medical School, and she is the lead author on the publication associated with this BioProject.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-10-30-045Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-10-30-045Z" class="timestamp-link"><time datetime="2025-12-02T16:10:30.045Z" data-timestamp="2025-12-02T16:10:30.045Z">2025-12-02T16:10:30.045Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Great! I have comprehensive information. Now let me search for any other related papers and check if there are additional datasets or publications.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-10-30-878Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-10-30-878Z" class="timestamp-link"><time datetime="2025-12-02T16:10:30.878Z" data-timestamp="2025-12-02T16:10:30.878Z">2025-12-02T16:10:30.878Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01GVXibzXB9hXWRDKECDXe44"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;\&#34;Maureen Leonard\&#34; celiac \&#34;Microbiome\&#34; 2022 2023 2024&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-10-32-224Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-10-32-224Z" class="timestamp-link"><time datetime="2025-12-02T16:10:32.224Z" data-timestamp="2025-12-02T16:10:32.224Z">2025-12-02T16:10:32.224Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01EpkjjDgB3W7xDpAYWHY4Vm"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-022-01429-2&#34;,
+  &#34;prompt&#34;: &#34;Extract full citation, abstract, methods, sample information, data availability, and key findings from this celiac disease microbiome paper.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-10-35-592Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-10-35-592Z" class="timestamp-link"><time datetime="2025-12-02T16:10:35.592Z" data-timestamp="2025-12-02T16:10:35.592Z">2025-12-02T16:10:35.592Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>REDIRECT DETECTED: The URL redirects to a different host.
+
+Original URL: https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-022-01429-2
+Redirect URL: https://link.springer.com/article/10.1186/s40168-022-01429-2
+Status: 301 Moved Permanently
+
+To complete your request, I need to fetch content from the redirected URL. Please use WebFetch again with these parameters:
+- url: &quot;https://link.springer.com/article/10.1186/s40168-022-01429-2&quot;
+- prompt: &quot;Extract full citation, abstract, methods, sample information, data availability, and key findings from this celiac disease microbiome paper.&quot;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-10-54-238Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-10-54-238Z" class="timestamp-link"><time datetime="2025-12-02T16:10:54.238Z" data-timestamp="2025-12-02T16:10:54.238Z">2025-12-02T16:10:54.238Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;&quot;Maureen Leonard&quot; celiac &quot;Microbiome&quot; 2022 2023 2024&quot;
+
+Links: [{&quot;title&quot;:&quot;Maureen LEONARD | Clinical Director, Center For Celiac Research and Treatment | MD, MMSc | Mass General Hospital | Pediatric Gastroenterology and Nutrition | Research profile&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/profile/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;Maureen Leonard, MD - Department of Pediatrics&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/doctors/19698/maureen-leonard&quot;},{&quot;title&quot;:&quot;Maureen Leonard, M.D., MMSc | Mass General Research Institute&quot;,&quot;url&quot;:&quot;https://researchers.mgh.harvard.edu/profile/7524406/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;Changes in microbiome that might signal celiac disease before it develops identified in study of at-risk children | BeyondCeliac.org&quot;,&quot;url&quot;:&quot;https://www.beyondceliac.org/research-news/microbiome-study-children-celiac/&quot;},{&quot;title&quot;:&quot;Changes in gut microbiome in longitudinal study of infants precede onset of celiac disease | Celiac Disease Foundation&quot;,&quot;url&quot;:&quot;https://celiac.org/changes-in-gut-microbiome-found-in-infants-before-development-of-celiac-disease/&quot;},{&quot;title&quot;:&quot;Gut Microbiota in Infants: First Results from the CDGEMM Study&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/coronavirus/gut-microbiota-in-infants-first-results-from-the-cdgemm-study&quot;},{&quot;title&quot;:&quot;Maryland Today | UMD Research Finds Early Clues to Celiac Disease in…&quot;,&quot;url&quot;:&quot;https://today.umd.edu/umd-research-finds-early-clues-celiac-disease-risk-babies-intestines-81c9388d-3d04-479c-bec0-fe19e088a101&quot;},{&quot;title&quot;:&quot;Maureen Leonard, MD, MMSc | The Institute for Functional Medicine&quot;,&quot;url&quot;:&quot;https://www.ifm.org/about/profile/maureen-leonard-md-mmsc/&quot;}]
+
+I found several results related to Dr. Maureen Leonard&#x27;s research on celiac disease and the microbiome. Here&#x27;s what the search revealed:
+
+## About Dr. Maureen Leonard
+
+Dr. Maureen Leonard is the Clinical Director of the Center for Celiac Research and Treatment at MassGeneral Hospital for Children and an Associate Professor of Pediatrics at Harvard Medical School.(no content)Her research is focused on predicting and preventing celiac disease through precision medicine, with particular emphasis on gut microbiome and pediatric celiac disease.
+
+## Recent Research (2023-2024)
+
+From the search results, several recent publications were identified:
+
+1. **Zonulin Biomarker Study (December 2023)**: A study examining zonulin as a biomarker for the development of celiac disease, investigating whether increased intestinal permeability precedes disease onset.
+
+2. **Gut Microbiome Characterization Study**: Research characterizing gut microbiome alterations in celiac disease remission using long-read sequencing, focusing on the immune-mediated condition and its enteropathy.
+
+## The CDGEMM Study
+
+The Celiac Disease Genomic, Environmental, Microbiome and Metabolomic (CDGEMM) study is an international prospective birth cohort in children at-risk of developing celiac disease, designed to take a multi-omic approach to predicting disease onset.(no content)Significant changes in intestinal microbes, pathways and metabolites were found as early as 18 months before celiac disease developed.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-10-59-216Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-10-59-216Z" class="timestamp-link"><time datetime="2025-12-02T16:10:59.216Z" data-timestamp="2025-12-02T16:10:59.216Z">2025-12-02T16:10:59.216Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Let me fetch the redirected URL.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-11-00-717Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-11-00-717Z" class="timestamp-link"><time datetime="2025-12-02T16:11:00.717Z" data-timestamp="2025-12-02T16:11:00.717Z">2025-12-02T16:11:00.717Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01K1q9dRSGw7ChgY9Y9xxeq6"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://link.springer.com/article/10.1186/s40168-022-01429-2&#34;,
+  &#34;prompt&#34;: &#34;Extract full citation, abstract, methods, sample information, data availability, and key findings from this celiac disease microbiome paper.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-11-01-494Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-11-01-494Z" class="timestamp-link"><time datetime="2025-12-02T16:11:01.494Z" data-timestamp="2025-12-02T16:11:01.494Z">2025-12-02T16:11:01.494Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01TQMM4YnnQeuErscdKB561g"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;celiac disease IgA microbiome metabolome Leonard 2022 Microbiome journal&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-11-01-996Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-11-01-996Z" class="timestamp-link"><time datetime="2025-12-02T16:11:01.996Z" data-timestamp="2025-12-02T16:11:01.996Z">2025-12-02T16:11:01.996Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Request failed with status code 303</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-11-32-568Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-11-32-568Z" class="timestamp-link"><time datetime="2025-12-02T16:11:32.568Z" data-timestamp="2025-12-02T16:11:32.568Z">2025-12-02T16:11:32.568Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;celiac disease IgA microbiome metabolome Leonard 2022 Microbiome journal&quot;
+
+Links: [{&quot;title&quot;:&quot;Dynamics of the gut microbiome, IgA response, and plasma metabolome in the development of pediatric celiac disease | Microbiome | Full Text&quot;,&quot;url&quot;:&quot;https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-022-01429-2&quot;},{&quot;title&quot;:&quot;Dynamics of the gut microbiome, IgA response, and plasma metabolome in the development of pediatric celiac disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC9840338/&quot;},{&quot;title&quot;:&quot;Cohort profile: Celiac disease genomic, environmental, microbiome and metabolome study; a prospective longitudinal birth cohort study of children at-risk for celiac disease | PLOS One&quot;,&quot;url&quot;:&quot;https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0282739&quot;},{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC4663598/&quot;},{&quot;title&quot;:&quot;Children who develop celiac disease are predicted to exhibit distinct metabolic pathways among their gut microbiota years before diagnosis | Microbiology Spectrum&quot;,&quot;url&quot;:&quot;https://journals.asm.org/doi/10.1128/spectrum.01468-24&quot;},{&quot;title&quot;:&quot;Dynamics of Gut Microbiome, IgA Response and Plasma Metabolome in Development of Pediatric Celiac Disease | bioRxiv&quot;,&quot;url&quot;:&quot;https://www.biorxiv.org/content/10.1101/2020.02.29.971242v3&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/10.1073/pnas.2020322118&quot;},{&quot;title&quot;:&quot;Characteristics of gut microbiota and fecal metabolomes in patients with celiac disease in Northwest China - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/36519162/&quot;},{&quot;title&quot;:&quot;Dynamics of the gut microbiome, IgA response, and plasma metabolome in the development of pediatric celiac disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/36639805/&quot;},{&quot;title&quot;:&quot;Gut microbiota in celiac disease: microbes, metabolites, pathways and therapeutics - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC7796936/&quot;}]
+
+I found the paper you&#x27;re looking for! Here are the details:
+
+## Main Publication
+
+**&quot;Dynamics of the gut microbiome, IgA response, and plasma metabolome in the development of pediatric celiac disease&quot;** was published in *Microbiome* journal on January 13, 2023 (doi: 10.1186/s40168-022-01429-2).
+
+**Authors**: Girdhar K, Dogru YD, Huang Q, Yang Y, Tolstikov V, Raisingani A, Chrudinova M, Oh J, Kelley K, Ludvigsson JF, Kiebish MA, Palm NW, Ludvigsson J, Altindis E
+
+## Key Findings
+
+The study found that pediatric celiac disease (CD) progressors have a distinct gut microbiota composition, plasma metabolome, and cytokine profile before diagnosis, and CD progressors have more IgA-coated bacteria and unique targets of IgA in their gut microbiota.
+
+TDCA (taurodeoxycholic acid) feeding alone stimulates an inflammatory immune response in the small intestines of mice and causes villous atrophy, and this microbiota-derived metabolite, enriched in CD progressors&#x27; plasma, has the potential to drive inflammation in the small intestines and enhance CD pathogenesis.
+
+## Study Design
+
+The researchers used fecal and plasma samples from a prospective cohort of CD progressors who developed the disease after the last sample collection, with samples obtained at ages 2.5 and 5, representing two important stages of gut microbiota development.
+
+The paper is available at: https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-022-01429-2
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-11-37-534Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-11-37-534Z" class="timestamp-link"><time datetime="2025-12-02T16:11:37.534Z" data-timestamp="2025-12-02T16:11:37.534Z">2025-12-02T16:11:37.534Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Good! Let me try fetching this from PMC instead.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-11-38-831Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-11-38-831Z" class="timestamp-link"><time datetime="2025-12-02T16:11:38.831Z" data-timestamp="2025-12-02T16:11:38.831Z">2025-12-02T16:11:38.831Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_019w4kwU4WBprDGurEGGKNJD"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://pmc.ncbi.nlm.nih.gov/articles/PMC9840338/&#34;,
+  &#34;prompt&#34;: &#34;Extract full citation, abstract, detailed methods including sequencing approaches and sample information, data availability with accession numbers, and key findings from this celiac disease paper.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-11-48-306Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-11-48-306Z" class="timestamp-link"><time datetime="2025-12-02T16:11:48.306Z" data-timestamp="2025-12-02T16:11:48.306Z">2025-12-02T16:11:48.306Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Celiac Disease Microbiome Study: Citation and Key Information
+
+## Full Citation
+Girdhar K, Dogru YD, Huang Q, et al. Dynamics of the gut microbiome, IgA response, and plasma metabolome in the development of pediatric celiac disease. *Microbiome*. 2023;11:9. doi:10.1186/s40168-022-01429-2
+
+## Abstract Summary
+This prospective cohort investigation examined whether gut microbiota alterations contribute to celiac disease onset in genetically susceptible children. The authors identified &quot;a distinct gut microbiota composition, an increased IgA response, and unique IgA targets compared to healthy subjects&quot; in disease progressors, along with elevated plasma metabolites and inflammatory cytokines before diagnosis.
+
+## Methods Overview
+
+**Samples &amp; Participants:**
+- ABIS cohort (All Babies in Southeast Sweden); 16-31 children per timepoint
+- Fecal samples collected at ages 2.5 and 5 years
+- Plasma samples (n=7-9 progressors, n=9 controls) at age 5
+
+**Sequencing Approaches:**
+- 16S rRNA gene sequencing (V4 region, Illumina MiSeq)
+- IgA-sequencing combining bacterial sorting with 16S analysis
+- Plasma metabolomics via gas chromatography and liquid chromatography-mass spectrometry
+
+**Key Analyses:**
+- Alpha/beta diversity assessment using DADA2 and phyloseq
+- Differential abundance testing with edgeR (FDR&lt;0.05)
+- Cytokine profiling (48 targets) and pathway enrichment analysis
+
+## Data Availability
+- 16S raw data: NCBI Sequence Read Archive Bioproject PRJNA631001
+- Metabolomics and ASV data in supplementary tables
+- Analysis code available at: https://github.com/altindislab/celiac-gut-microbiome
+
+## Key Findings
+
+1. **Microbiota Composition:** 117 amplicon sequence variants differed at age 2.5; 71 at age 5 (ASV-level differences despite similar phylum/genera distributions)
+
+2. **IgA Response:** &quot;Two-fold increase&quot; of IgA-coated bacteria in progressors versus controls at age 5 (p=0.027); distinct bacterial targets including *Dialister* and *Clostridium* species
+
+3. **Metabolomics:** Twenty-six altered plasma metabolites; &quot;2-fold increase in TDCA&quot; (taurodeoxycholic acid), a microbially-derived conjugated bile acid
+
+4. **Inflammatory Profile:** Elevated interferon-alpha 2, interleukin-1α, interleukin-17E, and MIP-1β chemokine in progressors
+
+5. **Functional Evidence:** TDCA feeding alone induced villous atrophy, increased CD4+ T cells, and enhanced NKG2D expression while reducing regulatory T cells in mice</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-11-54-487Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-11-54-487Z" class="timestamp-link"><time datetime="2025-12-02T16:11:54.487Z" data-timestamp="2025-12-02T16:11:54.487Z">2025-12-02T16:11:54.487Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Excellent! Now let me search for a couple more recent papers and then compile everything for the user.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-11-55-510Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-11-55-510Z" class="timestamp-link"><time datetime="2025-12-02T16:11:55.510Z" data-timestamp="2025-12-02T16:11:55.510Z">2025-12-02T16:11:55.510Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01WQZKkrFtSCoDFiVFjJCEkk"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;\&#34;Children who develop celiac disease\&#34; metabolic pathways microbiota 2024 Leonard&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-11-56-181Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-11-56-181Z" class="timestamp-link"><time datetime="2025-12-02T16:11:56.181Z" data-timestamp="2025-12-02T16:11:56.181Z">2025-12-02T16:11:56.181Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01ERgT1xkctZM7JDHAn65phL"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Maureen Leonard celiac zonulin biomarker 2023 2024&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-12-18-595Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-12-18-595Z" class="timestamp-link"><time datetime="2025-12-02T16:12:18.595Z" data-timestamp="2025-12-02T16:12:18.595Z">2025-12-02T16:12:18.595Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Maureen Leonard celiac zonulin biomarker 2023 2024&quot;
+
+Links: [{&quot;title&quot;:&quot;Zonulin as a Biomarker for the Development of Celiac Disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/38062791/&quot;},{&quot;title&quot;:&quot;Maureen Leonard, MD: A Promising Celiac Disease Biomarker&quot;,&quot;url&quot;:&quot;https://www.hcplive.com/view/maureen-leonard-md-promising-celiac-disease-biomarker&quot;},{&quot;title&quot;:&quot;Zonulin as a Biomarker for the Development of Celiac Disease | Pediatrics | American Academy of Pediatrics&quot;,&quot;url&quot;:&quot;https://publications.aap.org/pediatrics/article/153/1/e2023063050/196182/Zonulin-as-a-Biomarker-for-the-Development-of&quot;},{&quot;title&quot;:&quot;Maureen LEONARD | Clinical Director, Center For Celiac Research and Treatment | MD, MMSc | Mass General Hospital | Pediatric Gastroenterology and Nutrition | Research profile&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/profile/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;MGfC Researchers Find Increased Intestinal Permeability as Precursor of Celiac Disease in Pediatric Study; Antibiotic Use Effects Zonulin Levels&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/news/press-release/increased-intestinal-permeability-precursor-celiac-disease&quot;},{&quot;title&quot;:&quot;Zonulin increase may signal celiac diagnosis in children&quot;,&quot;url&quot;:&quot;https://www.healio.com/news/pediatrics/20231220/zonulin-increase-may-signal-celiac-diagnosis-in-children&quot;},{&quot;title&quot;:&quot;Maureen Leonard, MD - Department of Pediatrics&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/doctors/19698/maureen-leonard&quot;},{&quot;title&quot;:&quot;Zonulin shows biomarker potential for celiac disease in at-risk children | Institut SERVIER&quot;,&quot;url&quot;:&quot;https://institut-servier.com/en/zonulin-shows-biomarker-potential-for-celiac-disease-in-at-risk-children/&quot;},{&quot;title&quot;:&quot;Researchers find increased intestinal permeability is precursor of celiac disease in pediatric study&quot;,&quot;url&quot;:&quot;https://medicalxpress.com/news/2023-12-intestinal-permeability-precursor-celiac-disease.html&quot;},{&quot;title&quot;:&quot;Zonulin, a newly discovered modulator of intestinal permeability, and its expression in coeliac disease | Request PDF&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/publication/12516693_Zonulin_a_newly_discovered_modulator_of_intestinal_permeability_and_its_expression_in_coeliac_disease&quot;}]
+
+I found several relevant sources about Dr. Maureen Leonard&#x27;s research on zonulin as a biomarker for celiac disease from 2023-2024.
+
+## Key Research Findings
+
+Zonulin levels significantly rise in the months that precede celiac disease autoimmunity diagnosis, and exposure to a greater number of antibiotic courses was associated with an increase in zonulin levels in CDA subjects, suggesting zonulin may be used as a biomarker for preclinical celiac disease screening in at-risk children.
+
+## Study Details
+
+The researchers evaluated 102 children in the CDGEMM study from 2014–2022, including 51 CDA cases and matched controls who were enrolled for 12 months or more and consumed gluten, measuring serum zonulin from age 12 months to time of CDA onset.(no content)Children who developed CDA had a significant increase in zonulin in the 18.3 months (range 6–78) preceding CDA compared to those without CDA (slope differential = β = 0.1277, 95% CI: 0.001, 0.255).
+
+## Publication
+
+The primary research was published in Pediatrics, 2024 Jan 1;153(1):e2023063050, with Dr. Maureen M. Leonard as a senior author. The findings were also presented at the North American Society for Pediatric Gastroenterology, Hepatology and Nutrition (NASPGHAN) 2023 Annual Meeting in October 2023.
+
+## Clinical Implications
+
+Antibiotic exposure influences zonulin levels over time, and as such, it may influence the risk of developing celiac disease, therefore physicians should continue to only prescribe antibiotics that are necessary.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-12-22-250Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-12-22-250Z" class="timestamp-link"><time datetime="2025-12-02T16:12:22.250Z" data-timestamp="2025-12-02T16:12:22.250Z">2025-12-02T16:12:22.250Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;&quot;Children who develop celiac disease&quot; metabolic pathways microbiota 2024 Leonard&quot;
+
+Links: [{&quot;title&quot;:&quot;Children who develop celiac disease are predicted to exhibit distinct metabolic pathways among their gut microbiota years before diagnosis | Microbiology Spectrum&quot;,&quot;url&quot;:&quot;https://journals.asm.org/doi/10.1128/spectrum.01468-24&quot;},{&quot;title&quot;:&quot;Children who develop celiac disease are predicted to exhibit distinct metabolic pathways among their gut microbiota years before diagnosis - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC11878042/&quot;},{&quot;title&quot;:&quot;Children who develop celiac disease are predicted to exhibit distinct metabolic pathways among their gut microbiota years before diagnosis - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/39902908/&quot;},{&quot;title&quot;:&quot;Children Who Develop Celiac Disease Exhibit Distinct Metabolic Pathways Among Their Gut Microbiota Years Before Diagnosis | bioRxiv&quot;,&quot;url&quot;:&quot;https://www.biorxiv.org/content/10.1101/2024.06.13.598929v1&quot;},{&quot;title&quot;:&quot;Children who develop celiac disease are predicted to exhibit distinct metabolic pathways among their gut microbiota years before diagnosis&quot;,&quot;url&quot;:&quot;https://agris.fao.org/search/en/providers/122436/records/67dabf5e677d8be0233ba229&quot;},{&quot;title&quot;:&quot;Frontiers | Integrated analysis of fecal microbiota and metabolomics reveals unique characteristics of asymptomatic and classic celiac disease&quot;,&quot;url&quot;:&quot;https://www.frontiersin.org/journals/microbiology/articles/10.3389/fmicb.2025.1636007/full&quot;},{&quot;title&quot;:&quot;Noah W. Palm&#x27;s research works | Yale University and other places&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/scientific-contributions/Noah-W-Palm-2133607373&quot;}]
+
+I found several relevant results for your search. The primary finding is a recent study published in **Microbiology Spectrum** (2025):
+
+## Main Study
+
+**Title:** &quot;Children who develop celiac disease are predicted to exhibit distinct metabolic pathways among their gut microbiota years before diagnosis&quot;
+
+**Authors:** Kelley, K., Dogru, D., Huang, Q., Yang, Y., Palm, N. W., Ludvigsson, J., and Altindis, E.
+
+**Publication Details:** 
+- Initially posted as a bioRxiv preprint in June 2024
+- Received 2024 Jun 18; Accepted 2025 Jan 7; Collection date 2025 Mar
+- Published in Microbiology Spectrum (DOI: 10.1128/spectrum.01468-24)
+
+## Key Findings
+
+The researchers analyzed gut microbiome data from children who later developed celiac disease (CD progressors) compared to healthy children in the first 5 years of life. Using fecal samples corresponding to the three phases of gut microbiome development, they uncovered enriched functional microbial pathways in CD progressors at age 1. Some of these pathways, implicated in bacterial pathogenesis, microbiota modulation, and inflammation, have been correlated with CD.(no content)They also identified taxa in CD progressors at age 1 including Lachnospiraceae, Alistipes, and Bifidobacterium dentium that were previously associated with CD. These findings suggest a potential role for these taxa and enriched pathways in pediatric CD onset years before diagnosis, highlighting potential for early interventions.
+
+## Connection to &quot;Leonard&quot;
+
+The search results also reference earlier related work by **Leonard MM** and colleagues from 2020, which was a multi-omics analysis on infants at risk of celiac disease (CD-GEMM study).
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-12-27-277Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-12-27-277Z" class="timestamp-link"><time datetime="2025-12-02T16:12:27.277Z" data-timestamp="2025-12-02T16:12:27.277Z">2025-12-02T16:12:27.277Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Great! Now let me compile a comprehensive summary for the user. I should organize this by papers, provide data access information, and note whether Maureen Leonard is an author (since one of the recent papers doesn't have her as an author).</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-13-01-508Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-13-01-508Z" class="timestamp-link"><time datetime="2025-12-02T16:13:01.508Z" data-timestamp="2025-12-02T16:13:01.508Z">2025-12-02T16:13:01.508Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Based on my research, here's a comprehensive overview of pediatric celiac disease microbiome papers by Dr. Maureen Leonard and collaborators:</p>
+<h2>Key Papers from the CDGEMM Study</h2>
+<h3>1. <strong>Microbiome Signatures Before Celiac Disease Onset (2021)</strong> ⭐</h3>
+<p><strong>Citation:</strong> Leonard MM, Valitutti F, Karathia H, et al. Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study. <em>Proc Natl Acad Sci USA</em>. 2021;118(29):e2020322118.</p>
+<p><strong>Dataset Access:</strong>
+- <strong>BioProject ID:</strong> PRJNA486782
+- <strong>SRA Accession:</strong> SRP158417
+- Available at: https://www.ncbi.nlm.nih.gov/bioproject/PRJNA486782</p>
+<p><strong>Study Design:</strong>
+- 20 children (10 cases, 10 controls)
+- 118 fecal samples across 7 timepoints
+- Longitudinal sampling every 3 months for 18 months before CD onset
+- <strong>Sequencing:</strong> Shotgun metagenomic sequencing (Illumina HiSeq 4000, 2×150bp)
+- <strong>Platform:</strong> CosmosID for taxonomic profiling (strain-level resolution)</p>
+<p><strong>Key Findings:</strong>
+- Microbiome changes detected <strong>18 months before disease onset</strong>
+- Increased proinflammatory species: <em>Dialister invisus</em>, <em>Parabacteroides</em> sp.
+- Decreased protective species: <em>Faecalibacterium prausnitzii</em>, <em>Streptococcus thermophilus</em>
+- Altered tryptophan metabolism and serine/threonine metabolites</p>
+<hr />
+<h3>2. <strong>IgA Response and Plasma Metabolome Dynamics (2023)</strong> ⭐</h3>
+<p><strong>Citation:</strong> Girdhar K, Dogru YD, Huang Q, et al. Dynamics of the gut microbiome, IgA response, and plasma metabolome in the development of pediatric celiac disease. <em>Microbiome</em>. 2023;11:9.</p>
+<p><strong>Dataset Access:</strong>
+- <strong>BioProject ID:</strong> PRJNA631001
+- GitHub code: https://github.com/altindislab/celiac-gut-microbiome</p>
+<p><strong>Study Design:</strong>
+- ABIS cohort (All Babies in Southeast Sweden)
+- 16-31 children per timepoint
+- Samples at ages 2.5 and 5 years
+- <strong>Sequencing:</strong> 16S rRNA (V4 region, Illumina MiSeq)
+- <strong>Novel approach:</strong> IgA-sequencing combining bacterial sorting with 16S</p>
+<p><strong>Key Findings:</strong>
+- <strong>2-fold increase</strong> in IgA-coated bacteria in progressors
+- 117 differentially abundant ASVs at age 2.5; 71 at age 5
+- <strong>TDCA (taurodeoxycholic acid)</strong> elevated 2-fold in progressors
+- TDCA feeding caused villous atrophy in mouse models
+- Distinct inflammatory cytokine profile (IFN-α2, IL-1α, IL-17E)</p>
+<p><strong>Note:</strong> Dr. Maureen Leonard is not listed as an author on this paper, but it's from the same research group/cohort.</p>
+<hr />
+<h3>3. <strong>Zonulin as a Biomarker (2024)</strong></h3>
+<p><strong>Citation:</strong> Leonard MM, et al. Zonulin as a Biomarker for the Development of Celiac Disease. <em>Pediatrics</em>. 2024;153(1):e2023063050.</p>
+<p><strong>Study Design:</strong>
+- 102 children from CDGEMM study (2014-2022)
+- 51 CDA cases + matched controls
+- Serum zonulin measured from 12 months to CDA onset</p>
+<p><strong>Key Findings:</strong>
+- Zonulin levels <strong>rise 18.3 months</strong> (range 6-78) before diagnosis
+- Antibiotic exposure associated with increased zonulin
+- Potential for <strong>preclinical screening</strong> in at-risk children
+- Links intestinal permeability to disease development</p>
+<hr />
+<h3>4. <strong>Metabolic Pathways Predict Disease Years Before Diagnosis (2025)</strong> ⭐</h3>
+<p><strong>Citation:</strong> Kelley K, Dogru D, Huang Q, et al. Children who develop celiac disease are predicted to exhibit distinct metabolic pathways among their gut microbiota years before diagnosis. <em>Microbiol Spectr</em>. 2025;13(3):e0146824.</p>
+<p><strong>Study Design:</strong>
+- Fecal samples from first 5 years of life
+- Three phases of microbiome development analyzed
+- Functional pathway analysis</p>
+<p><strong>Key Findings:</strong>
+- Enriched microbial pathways at <strong>age 1</strong> predict disease
+- Pathways linked to bacterial pathogenesis and inflammation
+- Key taxa: <em>Lachnospiraceae</em>, <em>Alistipes</em>, <em>Bifidobacterium dentium</em>
+- Potential for <strong>early intervention strategies</strong></p>
+<p><strong>Note:</strong> Dr. Maureen Leonard is not listed as an author, but builds on CDGEMM work.</p>
+<hr />
+<h2>About the CDGEMM Study</h2>
+<p><strong>Full Name:</strong> Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic Study</p>
+<p><strong>Study Characteristics:</strong>
+- International prospective birth cohort (US, Italy, Spain)
+- <strong>500 genetically at-risk infants</strong> followed from birth to age 10
+- <strong>36,500+ biospecimens</strong> collected since 2014
+- <strong>145,500+ clinical data points</strong>
+- Multi-omic approach: genomics, microbiome, metabolomics, environmental factors</p>
+<p><strong>Principal Investigator:</strong> Dr. Maureen M. Leonard, MD, MMSc
+- Clinical Director, Center for Celiac Research and Treatment, MGH
+- Assistant Professor of Pediatrics, Harvard Medical School
+- 83 publications, 1,582 citations</p>
+<hr />
+<h2>Data Reanalysis Opportunities</h2>
+<h3>Available Datasets:</h3>
+<ol>
+<li><strong>PRJNA486782</strong> (2021 PNAS study)</li>
+<li>Shotgun metagenomics</li>
+<li>118 samples, longitudinal design</li>
+<li>
+<p>Strain-level resolution data</p>
+</li>
+<li>
+<p><strong>PRJNA631001</strong> (2023 Microbiome study)</p>
+</li>
+<li>16S rRNA sequencing</li>
+<li>IgA-seq data (novel approach)</li>
+<li>Plasma metabolomics</li>
+<li>Code available on GitHub</li>
+</ol>
+<h3>Potential Reanalysis Questions:</h3>
+<ol>
+<li><strong>Strain-level analysis</strong> - Leveraging the shotgun data for strain variation</li>
+<li><strong>Integration</strong> - Combining both datasets for larger sample size</li>
+<li><strong>Machine learning</strong> - Building predictive models from longitudinal data</li>
+<li><strong>Network analysis</strong> - Microbial co-occurrence patterns before disease</li>
+<li><strong>Metabolic modeling</strong> - Linking pathways to metabolites</li>
+</ol>
+<hr />
+<h2>Sources:</h2>
+<ul>
+<li><a href="https://www.pnas.org/doi/10.1073/pnas.2020322118">Microbiome signatures paper - PNAS</a></li>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8307711/">Microbiome signatures paper - PMC</a></li>
+<li><a href="https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-022-01429-2">IgA response and metabolome paper - Microbiome</a></li>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9840338/">IgA response paper - PMC</a></li>
+<li><a href="https://journals.asm.org/doi/10.1128/spectrum.01468-24">Metabolic pathways paper - Microbiology Spectrum</a></li>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11878042/">Metabolic pathways paper - PMC</a></li>
+<li><a href="https://publications.aap.org/pediatrics/article/153/1/e2023063050/196182/Zonulin-as-a-Biomarker-for-the-Development-of">Zonulin biomarker paper - Pediatrics</a></li>
+<li><a href="https://www.massgeneral.org/doctors/19698/maureen-leonard">Dr. Maureen Leonard profile - Mass General</a></li>
+<li><a href="https://www.researchgate.net/profile/Maureen-Leonard">Dr. Maureen Leonard - ResearchGate</a></li>
+<li><a href="https://scholar.google.com/citations?user=Wyc5rmMAAAAJ&amp;hl=en">Dr. Maureen Leonard - Google Scholar</a></li>
+<li><a href="https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study/about">CDGEMM Study Overview - Mass General</a></li>
+<li><a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0282739">CDGEMM Cohort Profile - PLOS One</a></li>
+</ul>
+<hr />
+<p>Would you like me to help you download and begin analyzing any of these datasets?</p></div></div></div>
+<div class="message user" id="msg-2025-12-02T16-22-39-120Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-02T16-22-39-120Z" class="timestamp-link"><time datetime="2025-12-02T16:22:39.120Z" data-timestamp="2025-12-02T16:22:39.120Z">2025-12-02T16:22:39.120Z</time></a></div><div class="message-content">
+<div class="user-content"><p>do any of these have data ready to analyze such as a phyloseq object? perhaps they are located in a microbiome data aggregation database like QITA?</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-22-45-876Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-22-45-876Z" class="timestamp-link"><time datetime="2025-12-02T16:22:45.876Z" data-timestamp="2025-12-02T16:22:45.876Z">2025-12-02T16:22:45.876Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user is asking if any of these celiac disease datasets have pre-processed data like phyloseq objects available, or if they're in microbiome data aggregation databases like Qiita. Let me search for this information.</p>
+<p>I should search for:
+1. Whether these datasets are available in Qiita (spelled Q-I-I-T-A, not QITA)
+2. Whether there are pre-processed phyloseq objects available
+3. Any other microbiome databases that might have these datasets</p>
+<p>Let me search for this information.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-22-46-287Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-22-46-287Z" class="timestamp-link"><time datetime="2025-12-02T16:22:46.287Z" data-timestamp="2025-12-02T16:22:46.287Z">2025-12-02T16:22:46.287Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I'll search for whether these datasets are available in Qiita or other microbiome databases with pre-processed data.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-22-46-855Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-22-46-855Z" class="timestamp-link"><time datetime="2025-12-02T16:22:46.855Z" data-timestamp="2025-12-02T16:22:46.855Z">2025-12-02T16:22:46.855Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Lq64FmRPPeJZtjvfGEviL8"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;Qiita database celiac disease Leonard CDGEMM microbiome&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-22-47-344Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-22-47-344Z" class="timestamp-link"><time datetime="2025-12-02T16:22:47.344Z" data-timestamp="2025-12-02T16:22:47.344Z">2025-12-02T16:22:47.344Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01KNQMeguj5oyLXeiBemoc3P"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;PRJNA486782 Qiita phyloseq processed data&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-22-47-781Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-22-47-781Z" class="timestamp-link"><time datetime="2025-12-02T16:22:47.781Z" data-timestamp="2025-12-02T16:22:47.781Z">2025-12-02T16:22:47.781Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01G9K38UeXHGtrYoPcfiz11s"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;celiac disease microbiome Qiita database study ID&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-23-11-346Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-23-11-346Z" class="timestamp-link"><time datetime="2025-12-02T16:23:11.346Z" data-timestamp="2025-12-02T16:23:11.346Z">2025-12-02T16:23:11.346Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;Qiita database celiac disease Leonard CDGEMM microbiome&quot;
+
+Links: [{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC4663598/&quot;},{&quot;title&quot;:&quot;Cohort profile: Celiac disease genomic, environmental, microbiome and metabolome study; a prospective longitudinal birth cohort study of children at-risk for celiac disease - PMC&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9994673/&quot;},{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic... | Download Scientific Diagram&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/figure/Celiac-Disease-Genomic-Environmental-Microbiome-and-Metabolomic-CDGEMM-Integrative_fig1_283786717&quot;},{&quot;title&quot;:&quot;The microbiome as a possible target to prevent celiac disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/26999627/&quot;},{&quot;title&quot;:&quot;CDGEMM Shows How Microbes Go Astray in Infants At Risk for Celiac Disease | Celiac Disease Foundation&quot;,&quot;url&quot;:&quot;https://celiac.org/cdgemm-shows-how-microbes-go-astray-in-infants-at-risk-for-celiac-disease/&quot;},{&quot;title&quot;:&quot;Celiac Disease Microbiome and Metabolomic Study&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study&quot;},{&quot;title&quot;:&quot;Gut microbiota in celiac disease: microbes, metabolites, pathways and therapeutics - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC7796936/&quot;},{&quot;title&quot;:&quot;(PDF) Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/publication/283786717_Celiac_Disease_Genomic_Environmental_Microbiome_and_Metabolomic_CDGEMM_Study_Design_Approach_to_the_Future_of_Personalized_Prevention_of_Celiac_Disease&quot;},{&quot;title&quot;:&quot;About CDGEMM&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study/about&quot;},{&quot;title&quot;:&quot;Celiac Disease and the Microbiome - PMC&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6835875/&quot;}]
+
+I found comprehensive information about the CDGEMM study and its connection to celiac disease microbiome research. Here&#x27;s what the search revealed:
+
+## CDGEMM Study Overview
+
+The Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) study aims to understand the role of the gut microbiome as an additional factor that may play a key role in early steps involved in the development of autoimmune disease.(no content)The CDGEMM study is an international prospective birth cohort in children at-risk of developing celiac disease (CD).(no content)The CDGEMM cohort is currently composed of 554 participants enrolled from 42 of the US states, and in 8 different regions in Italy.
+
+## Dr. Maureen M. Leonard&#x27;s Role
+
+Maureen M. Leonard is listed among the principal investigators for the CDGEMM study, with roles in Conceptualization, Investigation, Methodology, and Project administration. Dr. Leonard has authored multiple publications from this study examining microbiome signatures in at-risk children.
+
+## Study Design and Goals
+
+The specific aims of CDGEMM are (1) To study alterations in the infant&#x27;s microbiome and metabolome from birth in relation to tolerance vs. immune response that leads to the autoimmune insult characteristic of CD; (2) To investigate the impact of specific bacterial strains and bacteria derived metabolites on gut mucosal molecular pathways contributing to CD pathogenesis; and (3) To use multi-omic statistical analysis to identify biomarkers of CD and to predict the chance of CD development.
+
+The study collects stool and blood samples longitudinally from infants with first-degree relatives who have celiac disease, tracking them from birth through disease development.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-23-33-950Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-23-33-950Z" class="timestamp-link"><time datetime="2025-12-02T16:23:33.950Z" data-timestamp="2025-12-02T16:23:33.950Z">2025-12-02T16:23:33.950Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;PRJNA486782 Qiita phyloseq processed data&quot;
+
+Links: [{&quot;title&quot;:&quot;phyloseq Frequently Asked Questions (FAQ)&quot;,&quot;url&quot;:&quot;https://www.bioconductor.org/packages/devel/bioc/vignettes/phyloseq/inst/doc/phyloseq-FAQ.html&quot;},{&quot;title&quot;:&quot;Functions for Accessing and (Pre)Processing Data&quot;,&quot;url&quot;:&quot;https://joey711.github.io/phyloseq/preprocess.html&quot;},{&quot;title&quot;:&quot;PHYLOSEQ: A BIOCONDUCTOR PACKAGE FOR HANDLING AND ANALYSIS OF HIGH-THROUGHPUT PHYLOGENETIC SEQUENCE DATA - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC3357092/&quot;},{&quot;title&quot;:&quot;Importing phyloseq Data&quot;,&quot;url&quot;:&quot;https://joey711.github.io/phyloseq/import-data.html&quot;},{&quot;title&quot;:&quot;Basic storage, access, and manipulation of phylogenetic sequencing data with phyloseq&quot;,&quot;url&quot;:&quot;https://www.bioconductor.org/packages/devel/bioc/vignettes/phyloseq/inst/doc/phyloseq-basics.html&quot;},{&quot;title&quot;:&quot;Chapter 5 Phyloseq Object Processing | Microbiome in R&quot;,&quot;url&quot;:&quot;https://microbiome.netlify.app/phyloseq-object-processing.html&quot;},{&quot;title&quot;:&quot;Preprocessing before Deseq2 · Issue #421 · joey711/phyloseq&quot;,&quot;url&quot;:&quot;https://github.com/joey711/phyloseq/issues/421&quot;},{&quot;title&quot;:&quot;phyloseq: An R Package for Reproducible Interactive Analysis and Graphics of Microbiome Census Data | PLOS One&quot;,&quot;url&quot;:&quot;https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0061217&quot;},{&quot;title&quot;:&quot;accessing data for public restroom bacteria tutorial · Issue #491 · joey711/phyloseq&quot;,&quot;url&quot;:&quot;https://github.com/joey711/phyloseq/issues/491&quot;},{&quot;title&quot;:&quot;Introduction to Phyloseq | Academic&quot;,&quot;url&quot;:&quot;https://www.nicholas-ollberding.com/post/introduction-to-phyloseq/&quot;}]
+
+Let me search more specifically for the PRJNA486782 bioproject:
+
+Links: [{&quot;title&quot;:&quot;Multi-omics analysis reveals the influence of genetic and environmental risk factors on developing gut microbiota in infants at risk of celiac disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC7488762/&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/content/118/29/e2020322118&quot;},{&quot;title&quot;:&quot;Genome-wide fine-mapping identifies pleiotropic and functional variants that predict many traits across global cattle populations | Nature Communications&quot;,&quot;url&quot;:&quot;https://www.nature.com/articles/s41467-021-21001-0&quot;},{&quot;title&quot;:&quot;Home - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject&quot;},{&quot;title&quot;:&quot;ID 492842 - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://ncbi.nlm.nih.gov/bioproject/PRJNA492842&quot;},{&quot;title&quot;:&quot;Primates genomes assembly hubs&quot;,&quot;url&quot;:&quot;https://hgdownload.soe.ucsc.edu/hubs/primates/index.html&quot;},{&quot;title&quot;:&quot;Cell&quot;,&quot;url&quot;:&quot;https://www.cell.com/cms/10.1016/j.molp.2020.08.001/attachment/cc29878e-434d-4aef-b60c-767bb3f4c452/mmc4&quot;},{&quot;title&quot;:&quot;ID 485481 - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject/485481&quot;},{&quot;title&quot;:&quot;Homo sapiens (ID 477862) - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject/477862&quot;},{&quot;title&quot;:&quot;Effects of spaced k-mers on alignment-free genotyping | Bioinformatics | Oxford Academic&quot;,&quot;url&quot;:&quot;https://academic.oup.com/bioinformatics/article/39/Supplement_1/i213/7210439&quot;}]
+
+Let me search for this bioproject on Qiita:
+
+Links: [{&quot;title&quot;:&quot;Qiita&quot;,&quot;url&quot;:&quot;https://qiita.ucsd.edu/&quot;},{&quot;title&quot;:&quot;Getting example data — Qiita analysis tutorial 0.2 documentation&quot;,&quot;url&quot;:&quot;https://bioinformatics2-lab.readthedocs.io/en/latest/qiita-create-study.html&quot;},{&quot;title&quot;:&quot;Qiita: rapid, web-enabled microbiome meta-analysis - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC6235622/&quot;},{&quot;title&quot;:&quot;Qiita: rapid, web-enabled microbiome meta-analysis - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/30275573/&quot;},{&quot;title&quot;:&quot;GitHub - knightlab-analyses/american-gut-analyses&quot;,&quot;url&quot;:&quot;https://github.com/knightlab-analyses/american-gut-analyses&quot;},{&quot;title&quot;:&quot;Example meta-analysis in Qiita a, Unweighted UniFrac PCoA meta-analysis... | Download Scientific Diagram&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/figure/Example-meta-analysis-in-Qiita-a-Unweighted-UniFrac-PCoA-meta-analysis-of-three-studies_fig1_327997559&quot;},{&quot;title&quot;:&quot;Data loaded in Qiita and uploaded to EBI A. Monthly studies and sample... | Download Scientific Diagram&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/figure/Data-loaded-in-Qiita-and-uploaded-to-EBI-A-Monthly-studies-and-sample-depositions-to_fig2_327997559&quot;},{&quot;title&quot;:&quot;Qiita: rapid, web-enabled microbiome meta-analysis | Request PDF&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/publication/327997559_Qiita_rapid_web-enabled_microbiome_meta-analysis&quot;},{&quot;title&quot;:&quot;American Gut: an Open Platform for Citizen Science Microbiome Research | mSystems&quot;,&quot;url&quot;:&quot;https://journals.asm.org/doi/10.1128/msystems.00031-18&quot;},{&quot;title&quot;:&quot;Metadata download via redbiom for qiita study 10317 - Other Bioinformatics Tools - QIIME 2 Forum&quot;,&quot;url&quot;:&quot;https://forum.qiime2.org/t/metadata-download-via-redbiom-for-qiita-study-10317/14972&quot;}]
+
+Let me search for the celiac disease study data on Qiita:
+
+Links: [{&quot;title&quot;:&quot;Multi-omics analysis reveals the influence of genetic and environmental risk factors on developing gut microbiota in infants at risk of celiac disease | Microbiome | Full Text&quot;,&quot;url&quot;:&quot;https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-020-00906-w&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/10.1073/pnas.2020322118&quot;},{&quot;title&quot;:&quot;Celiac Disease Microbiome and Metabolomic Study&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study&quot;},{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC4663598/&quot;},{&quot;title&quot;:&quot;Changes in gut microbiome in longitudinal study of infants precede onset of celiac disease&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/news/press-release/changes-in-gut-microbiome-in-longitudinal-study-of-infants-precede-onset-of-celiac-disease&quot;},{&quot;title&quot;:&quot;CDGEMM Shows How Microbes Go Astray in Infants At Risk for Celiac Disease | Celiac Disease Foundation&quot;,&quot;url&quot;:&quot;https://celiac.org/cdgemm-shows-how-microbes-go-astray-in-infants-at-risk-for-celiac-disease/&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC8307711/&quot;},{&quot;title&quot;:&quot;Celiac Disease and the Microbiome | MDPI&quot;,&quot;url&quot;:&quot;https://www.mdpi.com/2072-6643/11/10/2403&quot;},{&quot;title&quot;:&quot;Gut microbiota trajectory in early life may predict development of celiac disease | Microbiome | Full Text&quot;,&quot;url&quot;:&quot;https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-018-0415-6&quot;},{&quot;title&quot;:&quot;Cohort profile: Celiac disease genomic, environmental, microbiome and metabolome study; a prospective longitudinal birth cohort study of children at-risk for celiac disease - PMC&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9994673/&quot;}]
+
+Let me search for accessing this data through Qiita with a study ID:
+
+Links: [{&quot;title&quot;:&quot;Qiita&quot;,&quot;url&quot;:&quot;https://qiita.ucsd.edu/&quot;},{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/26569299/&quot;},{&quot;title&quot;:&quot;GitHub - knightlab-analyses/american-gut-analyses&quot;,&quot;url&quot;:&quot;https://github.com/knightlab-analyses/american-gut-analyses&quot;},{&quot;title&quot;:&quot;(PDF) Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/publication/283786717_Celiac_Disease_Genomic_Environmental_Microbiome_and_Metabolomic_CDGEMM_Study_Design_Approach_to_the_Future_of_Personalized_Prevention_of_Celiac_Disease&quot;},{&quot;title&quot;:&quot;Cohort profile: Celiac disease genomic, environmental, microbiome and metabolome study; a prospective longitudinal birth cohort study of children at-risk for celiac disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/36888627/&quot;},{&quot;title&quot;:&quot;Metadata download via redbiom for qiita study 10317 - Other Bioinformatics Tools - QIIME 2 Forum&quot;,&quot;url&quot;:&quot;https://forum.qiime2.org/t/metadata-download-via-redbiom-for-qiita-study-10317/14972&quot;},{&quot;title&quot;:&quot;&lt;study id&gt;.&lt;sample id&gt; in preprocessed and processed data · Issue #1022 · qiita-spots/qiita&quot;,&quot;url&quot;:&quot;https://github.com/biocore/qiita/issues/1022&quot;},{&quot;title&quot;:&quot;sample template downloads with the study id prepended · Issue #1396 · qiita-spots/qiita&quot;,&quot;url&quot;:&quot;https://github.com/biocore/qiita/issues/1396&quot;},{&quot;title&quot;:&quot;Celiac Disease Microbiome and Metabolomic Study&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study&quot;},{&quot;title&quot;:&quot;American Gut: an Open Platform for Citizen Science Microbiome Research | mSystems&quot;,&quot;url&quot;:&quot;https://journals.asm.org/doi/10.1128/msystems.00031-18&quot;}]
+
+Based on my search results, I can provide you with the following information:
+
+## PRJNA486782 - CDGEMM Study Information
+
+The datasets supporting the conclusions of this article are submitted to the NCBI Short Read Archive (SRA) repository, under BioProjectID PRJNA486782 and SRA accession number SRP158417.
+
+This bioproject is associated with the **CDGEMM (Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic) Study**, which is a large-scale prospective birth cohort study of infants with a first-degree relative with CD.
+
+### Key Study Information:
+
+The study has published multiple papers using this data:
+
+1. Celiac disease (CD) is an autoimmune digestive disorder that occurs in genetically susceptible individuals in response to ingesting gluten, a protein found in wheat, rye, and barley. The study uses multi-omics analysis to investigate how genetic and early environmental risk factors alter the development of the gut microbiota in infants at risk of CD.
+
+2. The study prospectively examines the trajectory of the gut microbiota starting 18 mo before CD onset in 10 infants who developed CD and 10 infants who did not.
+
+### Accessing Data in Qiita:
+
+Unfortunately, my search did not find a specific Qiita study ID number associated with PRJNA486782. While you should be logged into the system to access any studies and files available in Qiita, I could not locate the specific study ID for this dataset.
+
+### For Phyloseq Processing:
+
+The QIIME-DB server is permanently down and users are suggested to migrate their queries over to Qiita. Once there is an official Qiita API with documentation, an interface for phyloseq will be added.
+
+You may need to:
+1. Access the raw data from NCBI SRA (SRP158417)
+2. Contact the Qiita team at qiita.help@gmail.com for assistance locating this study
+3. Check if the data is publicly available on Qiita by searching for &quot;CDGEMM&quot; or the bioproject ID after logging in
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-23-34-312Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-23-34-312Z" class="timestamp-link"><time datetime="2025-12-02T16:23:34.312Z" data-timestamp="2025-12-02T16:23:34.312Z">2025-12-02T16:23:34.312Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;celiac disease microbiome Qiita database study ID&quot;
+
+Links: [{&quot;title&quot;:&quot;Qiita&quot;,&quot;url&quot;:&quot;https://qiita.ucsd.edu/&quot;},{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC4663598/&quot;},{&quot;title&quot;:&quot;Celiac Disease Microbiome and Metabolomic Study&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study&quot;},{&quot;title&quot;:&quot;Celiac Disease and the Microbiome - PMC&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6835875/&quot;},{&quot;title&quot;:&quot;Role of the gut microbiota in the pathogenesis of coeliac disease and potential therapeutic implications - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC7669811/&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/10.1073/pnas.2020322118&quot;},{&quot;title&quot;:&quot;EMP - Earth Microbiome Project&quot;,&quot;url&quot;:&quot;https://qiita.ucsd.edu/emp/&quot;},{&quot;title&quot;:&quot;Qiita: rapid, web-enabled microbiome meta-analysis | Nature Methods&quot;,&quot;url&quot;:&quot;https://www.nature.com/articles/s41592-018-0141-9&quot;},{&quot;title&quot;:&quot;Celiac Disease and the Microbiome | MDPI&quot;,&quot;url&quot;:&quot;https://www.mdpi.com/2072-6643/11/10/2403&quot;},{&quot;title&quot;:&quot;Analysis of blood and fecal microbiome profile in patients with celiac disease - ScienceDirect&quot;,&quot;url&quot;:&quot;https://www.sciencedirect.com/science/article/pii/S2452231718300368&quot;}]
+
+Links: [{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC4663598/&quot;},{&quot;title&quot;:&quot;Celiac Disease Microbiome and Metabolomic Study&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study&quot;},{&quot;title&quot;:&quot;Cohort profile: Celiac disease genomic, environmental, microbiome and metabolome study; a prospective longitudinal birth cohort study of children at-risk for celiac disease | PLOS One&quot;,&quot;url&quot;:&quot;https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0282739&quot;},{&quot;title&quot;:&quot;(PDF) Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic (CDGEMM) Study Design: Approach to the Future of Personalized Prevention of Celiac Disease&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/publication/283786717_Celiac_Disease_Genomic_Environmental_Microbiome_and_Metabolomic_CDGEMM_Study_Design_Approach_to_the_Future_of_Personalized_Prevention_of_Celiac_Disease&quot;},{&quot;title&quot;:&quot;About CDGEMM&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study/about&quot;},{&quot;title&quot;:&quot;Celiac Disease Foundation&quot;,&quot;url&quot;:&quot;https://celiac.org/?option=com_content&amp;amp&amp;view=article&amp;id=6&amp;Itemid=12&quot;},{&quot;title&quot;:&quot;CDGEMM Publications&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study/publications&quot;},{&quot;title&quot;:&quot;CDGEMM Study: Get Involved&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study/study-get-involved&quot;},{&quot;title&quot;:&quot;Center for Celiac Research and Treatment&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/children/celiac-disease&quot;},{&quot;title&quot;:&quot;Celiac Disease Genomic, Environmental, Microbiome, and Metabolomic... | Download Scientific Diagram&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/figure/Celiac-Disease-Genomic-Environmental-Microbiome-and-Metabolomic-CDGEMM-Integrative_fig1_283786717&quot;}]
+
+No links found.
+
+Links: [{&quot;title&quot;:&quot;Qiita&quot;,&quot;url&quot;:&quot;https://qiita.ucsd.edu/&quot;},{&quot;title&quot;:&quot;Celiac Disease Center Research Studies - UChicago Medicine&quot;,&quot;url&quot;:&quot;https://www.uchicagomedicine.org/conditions-services/gastroenterology/celiac-disease/research&quot;},{&quot;title&quot;:&quot;Celiac Disease Program | UC San Diego Health&quot;,&quot;url&quot;:&quot;https://health.ucsd.edu/care/gastroenterology/celiac-food-intolerance/&quot;},{&quot;title&quot;:&quot;New mouse model of celiac disease could lead to new treatments | University of Chicago News&quot;,&quot;url&quot;:&quot;https://news.uchicago.edu/story/breakthrough-mouse-model-celiac-disease-could-lead-new-treatments&quot;},{&quot;title&quot;:&quot;Participate in Research | Celiac Disease Foundation&quot;,&quot;url&quot;:&quot;https://celiac.org/icureceliac/participate-in-research/&quot;},{&quot;title&quot;:&quot;Laboratory of Mucosal Immunology - UC San Diego School of Medicine&quot;,&quot;url&quot;:&quot;http://mucosalimmunology.ucsd.edu/articles.php&quot;},{&quot;title&quot;:&quot;Celiac Disease Research | Beyond Celiac&quot;,&quot;url&quot;:&quot;https://www.beyondceliac.org/research/&quot;},{&quot;title&quot;:&quot;New developments in celiac disease treatments - ScienceDirect&quot;,&quot;url&quot;:&quot;https://www.sciencedirect.com/science/article/pii/S1359644624002381&quot;},{&quot;title&quot;:&quot;Celiac Disease Research News | BeyondCeliac.org&quot;,&quot;url&quot;:&quot;https://www.beyondceliac.org/research/research-news/&quot;},{&quot;title&quot;:&quot;Putting celiac disease in perspective: Pathogenesis, comorbidity and transition of care - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC7079269/&quot;}]
+
+Links: [{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/content/118/29/e2020322118&quot;},{&quot;title&quot;:&quot;Table of Contents — October 12, 2021, 118 (41) | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/toc/pnas/118/41&quot;},{&quot;title&quot;:&quot;Intestinal dysbiosis in celiac disease: Decreased butyrate production may facilitate the onset of the disease | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/full/10.1073/pnas.2113655118&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC8307711/&quot;},{&quot;title&quot;:&quot;Qiita: rapid, web-enabled microbiome meta-analysis - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC6235622/&quot;},{&quot;title&quot;:&quot;Impact of Nutritional Profile on Gut Microbiota Diversity in Patients with Celiac Disease | Current Microbiology&quot;,&quot;url&quot;:&quot;https://link.springer.com/article/10.1007/s00284-022-02820-w&quot;},{&quot;title&quot;:&quot;Gut microbiota in celiac disease: microbes, metabolites, pathways and therapeutics - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC7796936/&quot;},{&quot;title&quot;:&quot;Qiita: rapid, web-enabled microbiome meta-analysis - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/30275573/&quot;},{&quot;title&quot;:&quot;Longitudinal analysis reveals transition barriers between dominant ecological states in the gut microbiome | Proceedings of the National Academy ...&quot;,&quot;url&quot;:&quot;https://www.pnas.org/content/117/24/13839&quot;},{&quot;title&quot;:&quot;A comprehensive overview of microbiome data in the light of machine learning applications: categorization, accessibility, and future directions - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC10900530/&quot;}]
+
+I found information about celiac disease microbiome studies and the Qiita database. Based on the search results, I can provide you with information about data availability for celiac disease microbiome research:
+
+## Key Finding:
+
+The Leonard et al. study on celiac disease microbiome published in PNAS 2021 deposited raw sequence data in the National Center for Biotechnology Information Sequence Read Archive (SRA) repository with BioProjectID PRJNA486782 and SRA accession no. SRP158417.
+
+This study, titled &quot;Microbiome signatures of progression toward celiac disease onset in at-risk children&quot; performed a prospective metagenomic analysis of gut microbiota in infants at risk of CD, with cross-sectional and longitudinal analyses starting from 18 months before CD onset in 10 infants who developed CD and 10 matched controls.
+
+However, I did not find a specific Qiita database study ID number in the search results. To access studies and files in Qiita, users should be logged into the system. The data may be available through NCBI&#x27;s SRA with the accession numbers provided above, or if it has been deposited in Qiita, you would need to search within the Qiita platform directly or contact the study authors for the specific Qiita study ID.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-23-42-161Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-23-42-161Z" class="timestamp-link"><time datetime="2025-12-02T16:23:42.161Z" data-timestamp="2025-12-02T16:23:42.161Z">2025-12-02T16:23:42.161Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user is asking if any of these celiac datasets have pre-processed data like phyloseq objects available, or if they're in Qiita. From my searches, I haven't found evidence that these datasets are in Qiita. Let me search for:</p>
+<ol>
+<li>CuratedMetagenomicData - another database that has pre-processed microbiome data</li>
+<li>MGnify (formerly EBI Metagenomics)</li>
+<li>Any GitHub repositories with processed data</li>
+<li>The specific GitHub repository mentioned in the IgA paper</li>
+</ol></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-23-42-953Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-23-42-953Z" class="timestamp-link"><time datetime="2025-12-02T16:23:42.953Z" data-timestamp="2025-12-02T16:23:42.953Z">2025-12-02T16:23:42.953Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_017X4RVUjrtUGgZdVHZ7woyf"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;PRJNA631001 celiac disease phyloseq github processed data&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-23-43-671Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-23-43-671Z" class="timestamp-link"><time datetime="2025-12-02T16:23:43.671Z" data-timestamp="2025-12-02T16:23:43.671Z">2025-12-02T16:23:43.671Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01FoFYLz27FaZyXKdGLmUUSF"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;\&#34;altindislab/celiac-gut-microbiome\&#34; github phyloseq RDS&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-23-44-391Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-23-44-391Z" class="timestamp-link"><time datetime="2025-12-02T16:23:44.391Z" data-timestamp="2025-12-02T16:23:44.391Z">2025-12-02T16:23:44.391Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01EcoCcqyVZRBHZhxYih5VdF"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;celiac disease CuratedMetagenomicData bioconductor Leonard&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-23-44-850Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-23-44-850Z" class="timestamp-link"><time datetime="2025-12-02T16:23:44.850Z" data-timestamp="2025-12-02T16:23:44.850Z">2025-12-02T16:23:44.850Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Cns8GwXmUoBnR4nRf5LhNJ"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;MGnify EBI celiac disease PRJNA486782 PRJNA631001&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-23-58-633Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-23-58-633Z" class="timestamp-link"><time datetime="2025-12-02T16:23:58.633Z" data-timestamp="2025-12-02T16:23:58.633Z">2025-12-02T16:23:58.633Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;MGnify EBI celiac disease PRJNA486782 PRJNA631001&quot;
+
+Links: [{&quot;title&quot;:&quot;GWAS Search Celiac disease&quot;,&quot;url&quot;:&quot;https://www.ebi.ac.uk/gwas/search?query=Celiac+disease&quot;},{&quot;title&quot;:&quot;GitHub - EBI-Metagenomics/MGnifyR: R package for searching, downloading and analysis of EBI MGnify metagenomics data&quot;,&quot;url&quot;:&quot;https://github.com/EBI-Metagenomics/MGnifyR&quot;},{&quot;title&quot;:&quot;GitHub - EBI-Metagenomics/genomes-catalogue-pipeline: MGnify genome analysis pipeline&quot;,&quot;url&quot;:&quot;https://github.com/EBI-Metagenomics/genomes-catalogue-pipeline&quot;},{&quot;title&quot;:&quot;MGnify – Microbiome Informatics&quot;,&quot;url&quot;:&quot;https://www.ebi.ac.uk/about/teams/microbiome-informatics/mgnify/&quot;},{&quot;title&quot;:&quot;Trait: celiac disease - GWAS Catalog&quot;,&quot;url&quot;:&quot;https://www.ebi.ac.uk/gwas/efotraits/EFO_0001060&quot;},{&quot;title&quot;:&quot;Publication: Multiple common variants for celiac disease ...&quot;,&quot;url&quot;:&quot;https://www.ebi.ac.uk/gwas/publications/20190752&quot;},{&quot;title&quot;:&quot;Celiac Disease - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/20301720/&quot;},{&quot;title&quot;:&quot;Diagnosis of Celiac Disease | Celiac Disease Foundation&quot;,&quot;url&quot;:&quot;https://celiac.org/about-celiac-disease/screening-and-diagnosis/diagnosis/&quot;},{&quot;title&quot;:&quot;Exploring celiac disease candidate pathways by global gene expression profiling and gene network cluster analysis | Scientific Reports&quot;,&quot;url&quot;:&quot;https://www.nature.com/articles/s41598-020-73288-6&quot;},{&quot;title&quot;:&quot;Celiac Disease - GeneReviews® - NCBI Bookshelf&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/books/NBK1727/&quot;}]
+
+I performed a web search for &quot;MGnify EBI celiac disease PRJNA486782 PRJNA631001&quot; but the results didn&#x27;t return specific information about those project accessions. The results showed:
+
+- MGnify provides analysis of public microbiome-derived sequence data, covering amplicon, metagenomic, metatranscriptomic, and assembled contig data
+- General information about celiac disease research at EBI
+- Information about the MGnifyR package for accessing MGnify data
+
+Would you like me to search for those specific project accession numbers (PRJNA486782 and PRJNA631001) separately, or search for them in relation to specific databases like NCBI&#x27;s BioProject?
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-24-06-752Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-24-06-752Z" class="timestamp-link"><time datetime="2025-12-02T16:24:06.752Z" data-timestamp="2025-12-02T16:24:06.752Z">2025-12-02T16:24:06.752Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;&quot;altindislab/celiac-gut-microbiome&quot; github phyloseq RDS&quot;
+
+Links: [{&quot;title&quot;:&quot;GitHub - altindislab/celiac-gut-microbiome&quot;,&quot;url&quot;:&quot;https://github.com/altindislab/celiac-gut-microbiome&quot;},{&quot;title&quot;:&quot;Dynamics of the gut microbiome, IgA response, and plasma metabolome in the development of pediatric celiac disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC9840338/&quot;},{&quot;title&quot;:&quot;GitHub - PMilletich/Celiac_Disease_Pipeline: Gut microbiome markers in subgroups of HLA class II genotyped infants signal future celiac disease in the general population: ABIS study&quot;,&quot;url&quot;:&quot;https://github.com/PMilletich/Celiac_Disease_Pipeline&quot;},{&quot;title&quot;:&quot;Introduction to the microbiome R package&quot;,&quot;url&quot;:&quot;https://microbiome.github.io/tutorials/&quot;},{&quot;title&quot;:&quot;GitHub - microsud/microbiomeutilities: The is mostly a wrapper tool using phyloseq and microbiome R packages.&quot;,&quot;url&quot;:&quot;https://github.com/microsud/microbiomeutilities&quot;},{&quot;title&quot;:&quot;phyloseq: Explore microbiome profiles using R&quot;,&quot;url&quot;:&quot;https://joey711.github.io/phyloseq/&quot;},{&quot;title&quot;:&quot;gut-microbiome · GitHub Topics · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/topics/gut-microbiome&quot;},{&quot;title&quot;:&quot;Altindis Lab&quot;,&quot;url&quot;:&quot;https://altindislab.com/&quot;},{&quot;title&quot;:&quot;Microbiome Analysis 2: Phyloseq&quot;,&quot;url&quot;:&quot;https://mechsci14.github.io/phyloseq_2022/&quot;},{&quot;title&quot;:&quot;GitHub - joey711/phyloseq: phyloseq is a set of classes, wrappers, and tools (in R) to make it easier to import, store, and analyze phylogenetic sequencing data; and to reproducibly share that data and analysis with others. See the phyloseq front page:&quot;,&quot;url&quot;:&quot;https://github.com/joey711/phyloseq&quot;}]
+
+I found information about the **altindislab/celiac-gut-microbiome** GitHub repository:
+
+The gut microbiome analysis codes are available at https://github.com/altindislab/celiac-gut-microbiome. This repository is associated with a research study on celiac disease published in PMC.
+
+## Key Details:
+
+**Associated Research:**
+The study is titled &quot;Dynamics of Gut Microbiome, IgA Response and Plasma Metabolome in Development of Pediatric Celiac Disease,&quot; published in Microbiome, 2023.
+
+**Data Availability:**
+- The 16S rRNA gene sequencing raw data is available through the NCBI Sequence Read Archive Bioproject PRJNA631001
+- All ASV-related data are included in the published article
+
+**Analysis Tools:**
+The study used Phyloseq: an R package for reproducible interactive analysis and graphics of microbiome census data.
+
+The repository contains the analysis code used in the study. While the search results confirm phyloseq was used for analysis, I didn&#x27;t find specific information about phyloseq RDS files in the repository itself. You may need to visit the GitHub repository directly or contact the authors to inquire about the availability of pre-processed phyloseq objects in RDS format.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-24-16-381Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-24-16-381Z" class="timestamp-link"><time datetime="2025-12-02T16:24:16.381Z" data-timestamp="2025-12-02T16:24:16.381Z">2025-12-02T16:24:16.381Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;celiac disease CuratedMetagenomicData bioconductor Leonard&quot;
+
+Links: [{&quot;title&quot;:&quot;Bioconductor - curatedMetagenomicData&quot;,&quot;url&quot;:&quot;https://bioconductor.org/packages/3.20/data/experiment/html/curatedMetagenomicData.html&quot;},{&quot;title&quot;:&quot;[Design of a genomic, environmental, microbial and metabolomic study on celiac disease: an approach to the future of personalized prevention of celiac disease] - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/27362724/&quot;},{&quot;title&quot;:&quot;curatedMetagenomicData vignette: microbial taxonomy and functional data for the human microbiome&quot;,&quot;url&quot;:&quot;https://www.bioconductor.org/packages/release/data/experiment/vignettes/curatedMetagenomicData/inst/doc/curatedMetagenomicData.html&quot;},{&quot;title&quot;:&quot;Bioconductor&quot;,&quot;url&quot;:&quot;https://bioconductor.org/packages/release/data/experiment/manuals/curatedMetagenomicData/man/curatedMetagenomicData.pdf&quot;},{&quot;title&quot;:&quot;Maureen Leonard, M.D., MMSc | Mass General Research Institute&quot;,&quot;url&quot;:&quot;https://researchers.mgh.harvard.edu/profile/7524406/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;RNA sequencing of intestinal mucosa reveals novel pathways functionally linked to celiac disease pathogenesis - PMC&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6472737/&quot;},{&quot;title&quot;:&quot;Dr. Maureen Leonard Appointed Director of the Center for Celiac Research and Treatment at Mass General for Children | Celiac Disease Foundation&quot;,&quot;url&quot;:&quot;https://celiac.org/2025/03/03/leonard-massgen-announcement/&quot;},{&quot;title&quot;:&quot;Maureen LEONARD | Clinical Director, Center For Celiac Research and Treatment | MD, MMSc | Mass General Hospital | Pediatric Gastroenterology and Nutrition | Research profile&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/profile/Maureen-Leonard&quot;},{&quot;title&quot;:&quot;Bioconductor Curatedmetagenomicdata | Anaconda.org&quot;,&quot;url&quot;:&quot;https://anaconda.org/bioconda/bioconductor-curatedmetagenomicdata&quot;},{&quot;title&quot;:&quot;Single cell transcriptomic analysis of the immune cell compartment in the human small intestine and in Celiac disease | Nature Communications&quot;,&quot;url&quot;:&quot;https://www.nature.com/articles/s41467-022-32691-5&quot;}]
+
+Based on the search results, here&#x27;s what I found:
+
+## CuratedMetagenomicData Bioconductor Package
+
+The curatedMetagenomicData package provides standardized, curated human microbiome data for novel analyses, including gene families, marker abundance, marker presence, pathway abundance, pathway coverage, and relative abundance for samples collected from different body sites.(no content)The bacterial, fungal, and archaeal taxonomic abundances for each sample were calculated with MetaPhlAn3, and metabolic functional potential was calculated with HUMAnN3.
+
+## Dr. Maureen Leonard&#x27;s Celiac Disease Research
+
+Dr. Leonard&#x27;s research is focused on predicting and preventing celiac disease through precision medicine.(no content)Leonard has been instrumental in leading studies on celiac disease prediction and prevention, including the CDGEMM study, which examines genetic and environmental factors influencing disease development.(no content)Leonard MM et al. published a multi-omics analysis that reveals the influence of genetic and environmental risk factors on developing gut microbiota in infants at risk of celiac disease, appearing in Microbiome journal in 2020.
+
+## Connection
+
+While the search results show both the CuratedMetagenomicData package and Dr. Leonard&#x27;s extensive celiac disease microbiome research, there&#x27;s no direct indication in these results that Leonard&#x27;s celiac disease data is specifically included in the CuratedMetagenomicData Bioconductor package. The package does contain diverse human microbiome datasets, but the specific studies included would need to be verified through the package documentation or dataset listings.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-24-30-447Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-24-30-447Z" class="timestamp-link"><time datetime="2025-12-02T16:24:30.447Z" data-timestamp="2025-12-02T16:24:30.447Z">2025-12-02T16:24:30.447Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;PRJNA631001 celiac disease phyloseq github processed data&quot;
+
+Links: [{&quot;title&quot;:&quot;GitHub - PMilletich/Celiac_Disease_Pipeline: Gut microbiome markers in subgroups of HLA class II genotyped infants signal future celiac disease in the general population: ABIS study&quot;,&quot;url&quot;:&quot;https://github.com/PMilletich/Celiac_Disease_Pipeline&quot;},{&quot;title&quot;:&quot;GitHub - juearcilaga/Assesing-microbiome-profiles-of-celiac-disease-patients: Case-control study of the microbiome in celiac disease through the analysis of 16S high-throughput sequencing data available in public databases&quot;,&quot;url&quot;:&quot;https://github.com/juearcilaga/Assesing-microbiome-profiles-of-celiac-disease-patients&quot;},{&quot;title&quot;:&quot;GitHub - joey711/phyloseq: phyloseq is a set of classes, wrappers, and tools (in R) to make it easier to import, store, and analyze phylogenetic sequencing data; and to reproducibly share that data and analysis with others. See the phyloseq front page:&quot;,&quot;url&quot;:&quot;https://github.com/joey711/phyloseq&quot;},{&quot;title&quot;:&quot;Importing phyloseq Data - GitHub Pages&quot;,&quot;url&quot;:&quot;https://joey711.github.io/phyloseq/import-data.html&quot;},{&quot;title&quot;:&quot;phyloseq · GitHub Topics · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/topics/phyloseq?o=desc&amp;s=forks&quot;},{&quot;title&quot;:&quot;Microbiome Analysis 2: Phyloseq&quot;,&quot;url&quot;:&quot;https://mechsci14.github.io/phyloseq_2022/&quot;},{&quot;title&quot;:&quot;GitHub - fconstancias/metabaRpipe: an R package to process raw metabarcoding data into a phyloseq object using a single command&quot;,&quot;url&quot;:&quot;https://github.com/fconstancias/metabaRpipe&quot;},{&quot;title&quot;:&quot;phyloseq: Explore microbiome profiles using R&quot;,&quot;url&quot;:&quot;https://joey711.github.io/phyloseq/&quot;},{&quot;title&quot;:&quot;joey711/phyloseq&quot;,&quot;url&quot;:&quot;https://github.com/joey711/phyloseq/issues&quot;},{&quot;title&quot;:&quot;GitHub - mdozmorov/Microbiome_notes: A continually expanding collection of microbiome analysis tools&quot;,&quot;url&quot;:&quot;https://github.com/mdozmorov/Microbiome_notes&quot;}]
+
+Links: [{&quot;title&quot;:&quot;Dynamics of the gut microbiome, IgA response, and plasma metabolome in the development of pediatric celiac disease - PMC&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9840338/&quot;},{&quot;title&quot;:&quot;Lbgi&quot;,&quot;url&quot;:&quot;http://lbgi.fr/bioinfo-bistro/public/genomes/ncbi_genomes/eukaryotes.txt&quot;},{&quot;title&quot;:&quot;Home - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject&quot;},{&quot;title&quot;:&quot;deltaGC/accessions/prok-bac_filt_rand.txt at master · nick-youngblut/deltaGC&quot;,&quot;url&quot;:&quot;https://github.com/nick-youngblut/deltaGC/blob/master/accessions/prok-bac_filt_rand.txt&quot;},{&quot;title&quot;:&quot;BGI_Autism_Genomics_QC_report_adapter/refseq-genbank.csv at master · doerlbh/BGI_Autism_Genomics_QC_report_adapter&quot;,&quot;url&quot;:&quot;https://github.com/doerlbh/BGI_Autism_Genomics_QC_report_adapter/blob/master/refseq-genbank.csv&quot;},{&quot;title&quot;:&quot;Inventory of Supplemental Information Supplemental Figures:&quot;,&quot;url&quot;:&quot;https://pdfs.semanticscholar.org/8989/7f426498f7db79f07917c5b46214d1804164.pdf&quot;},{&quot;title&quot;:&quot;Phycodurus eques (ID 765699) - BioProject - NCBI&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/bioproject/PRJNA765699&quot;},{&quot;title&quot;:&quot;JCI Insight - Single-cell profiling of T and B cell repertoires following SARS-CoV-2 mRNA vaccine&quot;,&quot;url&quot;:&quot;https://insight.jci.org/articles/view/153201&quot;},{&quot;title&quot;:&quot;Genomes Pages - Bacteria&quot;,&quot;url&quot;:&quot;https://www.ebi.ac.uk/genomes/bacteria.html&quot;},{&quot;title&quot;:&quot;GEO Accession viewer&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE151986&quot;}]
+
+Links: [{&quot;title&quot;:&quot;GitHub - altindislab/celiac-gut-microbiome&quot;,&quot;url&quot;:&quot;https://github.com/altindislab/celiac-gut-microbiome&quot;},{&quot;title&quot;:&quot;Altindis Lab&quot;,&quot;url&quot;:&quot;https://altindislab.com/&quot;},{&quot;title&quot;:&quot;Dynamics of the gut microbiome, IgA response, and plasma metabolome in the development of pediatric celiac disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC9840338/&quot;},{&quot;title&quot;:&quot;Children who develop celiac disease are predicted to exhibit distinct metabolic pathways among their gut microbiota years before diagnosis | Microbiology Spectrum&quot;,&quot;url&quot;:&quot;https://journals.asm.org/doi/10.1128/spectrum.01468-24&quot;},{&quot;title&quot;:&quot;gut-microbiome · GitHub Topics · GitHub&quot;,&quot;url&quot;:&quot;https://github.com/topics/gut-microbiome&quot;},{&quot;title&quot;:&quot;GitHub - PMilletich/Celiac_Disease_Pipeline: Gut microbiome markers in subgroups of HLA class II genotyped infants signal future celiac disease in the general population: ABIS study&quot;,&quot;url&quot;:&quot;https://github.com/PMilletich/Celiac_Disease_Pipeline&quot;},{&quot;title&quot;:&quot;Dynamics of the gut microbiome, IgA response, and plasma metabolome in the development of pediatric celiac disease | Microbiome | Full Text&quot;,&quot;url&quot;:&quot;https://microbiomejournal.biomedcentral.com/articles/10.1186/s40168-022-01429-2&quot;},{&quot;title&quot;:&quot;Introduction to the microbiome R package&quot;,&quot;url&quot;:&quot;https://microbiome.github.io/tutorials/&quot;},{&quot;title&quot;:&quot;Role of the gut microbiota in the pathogenesis of coeliac disease and potential therapeutic implications - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC7669811/&quot;},{&quot;title&quot;:&quot;GitHub - microbiome/microbiome: microbiome R package&quot;,&quot;url&quot;:&quot;https://github.com/microbiome/microbiome&quot;}]
+
+I&#x27;ve performed the web search for PRJNA631001 celiac disease phyloseq github processed data. Here&#x27;s what I found:
+
+## Key Findings:
+
+The 16S rRNA gene sequencing raw data is available through the NCBI Sequence Read Archive Bioproject PRJNA631001, which is associated with a study on pediatric celiac disease.
+
+### GitHub Repository:
+The gut microbiome analysis codes are available at https://github.com/altindislab/celiac-gut-microbiome
+
+### Study Details:
+This data is from a prospective cohort study (ABIS) examining fecal samples from children who developed celiac disease (CD progressors) and healthy children matched by age, HLA genotype, breastfeeding duration, and gluten-exposure time, using 16S sequencing and immunoglobulin-A sequencing (IgA-seq).
+
+### Processed Data:
+All ASV-related data analyzed in this study are included in the published article (Additional file 2: Tables S2), and the plasma metabolomics data are included in the published article (Additional file 2: Table S8).
+
+The study appears to use phyloseq-based workflows for microbiome analysis, though the GitHub repository link provided in the search results didn&#x27;t show detailed contents. The processed data tables are available in the supplementary materials of the published paper rather than as phyloseq objects directly on GitHub.
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-24-35-053Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-24-35-053Z" class="timestamp-link"><time datetime="2025-12-02T16:24:35.053Z" data-timestamp="2025-12-02T16:24:35.053Z">2025-12-02T16:24:35.053Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Let me check the GitHub repository directly to see what files are available.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-24-36-730Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-24-36-730Z" class="timestamp-link"><time datetime="2025-12-02T16:24:36.730Z" data-timestamp="2025-12-02T16:24:36.730Z">2025-12-02T16:24:36.730Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01TPxgZR2M6ihQE4qJ6rM8n8"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://github.com/altindislab/celiac-gut-microbiome&#34;,
+  &#34;prompt&#34;: &#34;List all files and folders in this repository, especially looking for any R scripts, RDS files, processed data files, or phyloseq objects. Also note what the README says about data availability.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-24-37-408Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-24-37-408Z" class="timestamp-link"><time datetime="2025-12-02T16:24:37.408Z" data-timestamp="2025-12-02T16:24:37.408Z">2025-12-02T16:24:37.408Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_013wZj9Mv9HbmmD7opNkZzJ4"><div class="tool-header"><span class="tool-icon">⚙</span> WebFetch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;url&#34;: &#34;https://github.com/PMilletich/Celiac_Disease_Pipeline&#34;,
+  &#34;prompt&#34;: &#34;List all files and folders in this repository, especially looking for any R scripts, RDS files, processed data files, or phyloseq objects. Also note what the README says about data availability.&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-24-42-132Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-24-42-132Z" class="timestamp-link"><time datetime="2025-12-02T16:24:42.132Z" data-timestamp="2025-12-02T16:24:42.132Z">2025-12-02T16:24:42.132Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Repository Contents Summary
+
+Based on the GitHub page for `altindislab/celiac-gut-microbiome`, here&#x27;s what&#x27;s available:
+
+## Directory Structure
+The repository contains two main folders:
+- **ICI/** - directory (contents not detailed on this page)
+- **R_Scripts/** - directory (contents not detailed on this page)
+
+## File Information
+- **Language**: R (100% of codebase)
+- **Total commits**: 2
+- **Status**: Public repository
+
+## README &amp; Documentation
+No README file is visible on the main page. The repository shows &quot;No description, website, or topics provided,&quot; indicating minimal documentation about the project&#x27;s purpose, data sources, or availability.
+
+## Notable Limitations
+The page doesn&#x27;t display:
+- Specific R script names or purposes
+- Details about RDS files or phyloseq objects
+- Information regarding processed data files
+- Documentation about data accessibility or licensing
+- Project description or methodology
+
+To access detailed file listings and understand the data structure, you would need to browse the individual directories on GitHub or clone the repository locally.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-24-42-770Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-24-42-770Z" class="timestamp-link"><time datetime="2025-12-02T16:24:42.770Z" data-timestamp="2025-12-02T16:24:42.770Z">2025-12-02T16:24:42.770Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre># Repository Contents Analysis
+
+## Files and Folders
+
+The repository contains **9 files**, all R scripts:
+
+1. **README.md** - Documentation file
+2. **Step1_Subsetting.R** - Sample filtering script
+3. **Step2_Confounder.R** - Confounder analysis
+4. **Step3_DESeq_TotalAbundance.R.R** - Differential abundance analysis
+5. **Step3_Deseq_RelativeAbundance.R** - Relative abundance analysis
+6. **Step4_Merge_DESeq.R** - DESeq results consolidation
+7. **Step5_PIME.R** - PIME statistical analysis
+8. **Step6_Prevalence.R** - Prevalence calculations
+9. **Step7_Confounders.R** - Confounder validation
+
+## Data Availability
+
+The README provides no explicit statements about raw data availability or where to access the phyloseq objects, metadata files, or processed datasets. The documentation describes expected inputs and outputs for each step but does not indicate whether these data files are included in the repository or must be obtained separately from the ABIS study source.
+
+## Language
+
+The repository is **100% R**, containing statistical analysis workflows for microbiome research related to celiac disease prediction in infants.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-24-47-387Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-24-47-387Z" class="timestamp-link"><time datetime="2025-12-02T16:24:47.387Z" data-timestamp="2025-12-02T16:24:47.387Z">2025-12-02T16:24:47.387Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Let me check if there's a more direct way to access these datasets. Let me look at the supplementary materials from the papers directly to see what's available.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-24-48-601Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-24-48-601Z" class="timestamp-link"><time datetime="2025-12-02T16:24:48.601Z" data-timestamp="2025-12-02T16:24:48.601Z">2025-12-02T16:24:48.601Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01BCJyEygJnk6pnkrtsDMyxq"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;\&#34;supplementary data\&#34; celiac Leonard PNAS 2021 S1 S2 S3 download excel&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-24-48-836Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-24-48-836Z" class="timestamp-link"><time datetime="2025-12-02T16:24:48.836Z" data-timestamp="2025-12-02T16:24:48.836Z">2025-12-02T16:24:48.836Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01SLnRrJBV4npyE9zN6peKRA"><div class="tool-header"><span class="tool-icon">⚙</span> WebSearch</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;query&#34;: &#34;microbiome phyloseq tutorial creating object from count table taxonomy&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-25-16-222Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-25-16-222Z" class="timestamp-link"><time datetime="2025-12-02T16:25:16.222Z" data-timestamp="2025-12-02T16:25:16.222Z">2025-12-02T16:25:16.222Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;microbiome phyloseq tutorial creating object from count table taxonomy&quot;
+
+Links: [{&quot;title&quot;:&quot;Lab 7: Phyloseq&quot;,&quot;url&quot;:&quot;https://web.stanford.edu/class/bios221/labs/phyloseq/lab_phyloseq.html&quot;},{&quot;title&quot;:&quot;Demo: phyloseq – An R package for microbiome census data&quot;,&quot;url&quot;:&quot;http://joey711.github.io/phyloseq-demo/phyloseq-demo.html&quot;},{&quot;title&quot;:&quot;Microbiome data processing&quot;,&quot;url&quot;:&quot;https://microbiome.github.io/tutorials/Preprocessing.html&quot;},{&quot;title&quot;:&quot;Introduction to Phyloseq | Academic&quot;,&quot;url&quot;:&quot;https://www.nicholas-ollberding.com/post/introduction-to-phyloseq/&quot;},{&quot;title&quot;:&quot;An introduction to the downstream analysis with R and phyloseq — micca 1.7.0 documentation&quot;,&quot;url&quot;:&quot;https://micca.readthedocs.io/en/latest/phyloseq.html&quot;},{&quot;title&quot;:&quot;phyloseq Section 02 - Explore microbiome data&quot;,&quot;url&quot;:&quot;https://evomics.org/wp-content/uploads/2016/01/phyloseq-Lab-01-Answers.html&quot;},{&quot;title&quot;:&quot;Tutorial on Microbiome Data Analysis&quot;,&quot;url&quot;:&quot;https://microbiome.github.io/tutorials/Tutorial.html&quot;},{&quot;title&quot;:&quot;BCREGMEGD_Microbiome_sequencing_workshop_2020/Tutorial_phyloseq.md at master · carden24/BCREGMEGD_Microbiome_sequencing_workshop_2020&quot;,&quot;url&quot;:&quot;https://github.com/carden24/BCREGMEGD_Microbiome_sequencing_workshop_2020/blob/master/Tutorial_phyloseq.md&quot;},{&quot;title&quot;:&quot;Nat Pombubpa Lab - Phyloseq Microbiome Analysis Tutorial&quot;,&quot;url&quot;:&quot;https://natpombubpa-lab.github.io/resources/Microbiome_Analysis_Phyloseq.html&quot;},{&quot;title&quot;:&quot;Chapter 5 Phyloseq Object Processing | Microbiome in R&quot;,&quot;url&quot;:&quot;https://microbiome.netlify.app/phyloseq-object-processing.html&quot;}]
+
+I found several helpful tutorials about creating phyloseq objects from count tables and taxonomy data for microbiome analysis. Here&#x27;s what the search revealed:
+
+## Creating Phyloseq Objects
+
+A phyloseq object contains OTU table (taxa abundances), sample metadata, taxonomy table (mapping between OTUs and higher-level taxonomic classifications), and phylogenetic tree (relations between the taxa).
+
+### Importing from BIOM Files
+
+The import_biom() function returns a phyloseq object which includes the OTU table (which contains the OTU counts for each sample), the sample data matrix (containing the metadata for each sample), the taxonomy table (the predicted taxonomy for each OTU), the phylogenetic tree, and the OTU representative sequences.(no content)The import_biom function allows you to simultaneously import an associated phylogenetic tree file and reference sequence file (e.g. fasta).
+
+### Key Resources Found
+
+1. **Stanford Phyloseq Lab** - Shows importing BIOM files with tree and sequence files
+2. **Phyloseq Demo** (joey711.github.io) - Official phyloseq demonstrations with multiple examples
+3. **Microbiome GitHub Tutorial** - Data preprocessing and object manipulation
+4. **Nicholas Ollberding&#x27;s Introduction** - Follows DADA2 pipeline into phyloseq
+5. **Micca Documentation** - Shows complete workflow from BIOM import
+
+Components of a phyloseq object, like the OTU Table, can be accessed by special accessor functions, or &quot;accessors&#x27;&#x27;, which return specific information about phylogenetic sequencing data, if present.
+
+Would you like me to search for more specific information about creating phyloseq objects from separate count and taxonomy files (not BIOM format)?
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-02T16-25-36-200Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-02T16-25-36-200Z" class="timestamp-link"><time datetime="2025-12-02T16:25:36.200Z" data-timestamp="2025-12-02T16:25:36.200Z">2025-12-02T16:25:36.200Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Web search results for query: &quot;&quot;supplementary data&quot; celiac Leonard PNAS 2021 S1 S2 S3 download excel&quot;
+
+Links: [{&quot;title&quot;:&quot;(PDF) Multiple common variants for celiac disease influencing immune gene expression&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/publication/48322150_Multiple_common_variants_for_celiac_disease_influencing_immune_gene_expression&quot;},{&quot;title&quot;:&quot;Information for authors | PNAS Nexus | Oxford Academic&quot;,&quot;url&quot;:&quot;https://academic.oup.com/pnasnexus/pages/general-instructions&quot;},{&quot;title&quot;:&quot;(PDF) Supplementary Data 1&quot;,&quot;url&quot;:&quot;https://www.researchgate.net/publication/306413855_Supplementary_Data_1&quot;},{&quot;title&quot;:&quot;4D-DIA Proteomics Uncovers New Insights into Host Salivary Response Following SARS-CoV-2 Omicron Infection | Journal of Proteome Research&quot;,&quot;url&quot;:&quot;https://pubs.acs.org/doi/10.1021/acs.jproteome.4c00630&quot;}]
+
+Links: [{&quot;title&quot;:&quot;Intestinal dysbiosis in celiac disease: Decreased butyrate production may facilitate the onset of the disease | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/full/10.1073/pnas.2113655118&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/10.1073/pnas.2020322118&quot;},{&quot;title&quot;:&quot;Intestinal dysbiosis in celiac disease: Decreased butyrate production may facilitate the onset of the disease - PMC&quot;,&quot;url&quot;:&quot;https://pmc.ncbi.nlm.nih.gov/articles/PMC8522264/&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study - PMC&quot;,&quot;url&quot;:&quot;https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8307711/&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study - PubMed&quot;,&quot;url&quot;:&quot;https://pubmed.ncbi.nlm.nih.gov/34253606/&quot;},{&quot;title&quot;:&quot;[PDF] Celiac Disease and Nonceliac Gluten Sensitivity: A Review | Semantic Scholar&quot;,&quot;url&quot;:&quot;https://www.semanticscholar.org/paper/Celiac-Disease-and-Nonceliac-Gluten-Sensitivity:-A-Leonard-Sapone/c9563d37c0c91e9026fe9fa44e7220b7c28ddcf6&quot;},{&quot;title&quot;:&quot;MGfC Researchers Advancing Discoveries into Celiac Disease Receive New NIH Funding&quot;,&quot;url&quot;:&quot;https://www.massgeneral.org/news/article/mghfc-researchers-celiac-disease-new-funding&quot;},{&quot;title&quot;:&quot;Effective shutdown in the expression of celiac disease-related wheat gliadin T-cell epitopes by RNA interference | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/content/107/39/17023/tab-article-info&quot;},{&quot;title&quot;:&quot;Reply to Chen and Vitetta: Unraveling the complex interactions among organisms in the microbiome is necessary to identify unique signatures predicting CD onset | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/content/118/41/e2114053118&quot;},{&quot;title&quot;:&quot;Structural basis for HLA-DQ2-mediated presentation of gluten epitopes in celiac disease | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/10.1073/pnas.0306885101&quot;}]
+
+Links: [{&quot;title&quot;:&quot;PNAS Template for Supplementary Information - Overleaf, Online LaTeX Editor&quot;,&quot;url&quot;:&quot;https://www.overleaf.com/latex/templates/pnas-template-for-supplementary-information/wqfsfqwyjtsd&quot;},{&quot;title&quot;:&quot;Pnas&quot;,&quot;url&quot;:&quot;https://www.pnas.org/content/pnas/suppl/2021/07/08/2020322118.DCSupplemental/pnas.2020322118.sd02.xlsx&quot;},{&quot;title&quot;:&quot;PNAS-Template-for-Supplementary-Information/pnassupportinginfo.sty at master · geoHeil/PNAS-Template-for-Supplementary-Information&quot;,&quot;url&quot;:&quot;https://github.com/geoHeil/PNAS-Template-for-Supplementary-Information/blob/master/pnassupportinginfo.sty&quot;},{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/abs/10.1073/pnas.2020322118&quot;},{&quot;title&quot;:&quot;Supplementary Material Can Now Appear Online | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/10.1073/pnas.95.21.12073&quot;},{&quot;title&quot;:&quot;Information for authors | PNAS Nexus | Oxford Academic&quot;,&quot;url&quot;:&quot;https://academic.oup.com/pnasnexus/pages/general-instructions&quot;},{&quot;title&quot;:&quot;tex/pnassupportinginfo.sty at master · ccnlab/tex&quot;,&quot;url&quot;:&quot;https://github.com/ccnlab/tex/blob/master/pnassupportinginfo.sty&quot;},{&quot;title&quot;:&quot;PNAS Information for Authors REVISED April 2008 PURPOSE AND SCOPE&quot;,&quot;url&quot;:&quot;https://www.medwave.cl/medios/servicios/mednet/PNAS.pdf&quot;},{&quot;title&quot;:&quot;GitHub - geoHeil/PNAS-Template-for-Supplementary-Information: based on the official template&quot;,&quot;url&quot;:&quot;https://github.com/geoHeil/PNAS-Template-for-Supplementary-Information&quot;},{&quot;title&quot;:&quot;LaTeX templates — PNAS - Official Templates&quot;,&quot;url&quot;:&quot;https://www.overleaf.com/latex/templates/tagged/pnas-official&quot;}]
+
+Links: [{&quot;title&quot;:&quot;PNAS Template for Supplementary Information - Overleaf, Online LaTeX Editor&quot;,&quot;url&quot;:&quot;https://www.overleaf.com/latex/templates/pnas-template-for-supplementary-information/wqfsfqwyjtsd&quot;},{&quot;title&quot;:&quot;PNAS-Template-for-Supplementary-Information/pnassupportinginfo.sty at master · geoHeil/PNAS-Template-for-Supplementary-Information&quot;,&quot;url&quot;:&quot;https://github.com/geoHeil/PNAS-Template-for-Supplementary-Information/blob/master/pnassupportinginfo.sty&quot;},{&quot;title&quot;:&quot;PNAS Information for Authors REVISED August 2005 PURPOSE AND SCOPE&quot;,&quot;url&quot;:&quot;https://people.brandeis.edu/~hari/private/pnas_authorinfo.pdf&quot;},{&quot;title&quot;:&quot;Information for authors | PNAS Nexus | Oxford Academic&quot;,&quot;url&quot;:&quot;https://academic.oup.com/pnasnexus/pages/general-instructions&quot;},{&quot;title&quot;:&quot;GitHub - geoHeil/PNAS-Template-for-Supplementary-Information: based on the official template&quot;,&quot;url&quot;:&quot;https://github.com/geoHeil/PNAS-Template-for-Supplementary-Information&quot;},{&quot;title&quot;:&quot;GitHub - christopherkenny/pnas-si: Quarto Template for PNAS SI&quot;,&quot;url&quot;:&quot;https://github.com/christopherkenny/pnas-si&quot;},{&quot;title&quot;:&quot;Supplementary Material Can Now Appear Online | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/10.1073/pnas.95.21.12073&quot;},{&quot;title&quot;:&quot;Pnas&quot;,&quot;url&quot;:&quot;https://www.pnas.org/content/pnas/suppl/2021/07/08/2020322118.DCSupplemental/pnas.2020322118.sd02.xlsx&quot;},{&quot;title&quot;:&quot;How to Submit a Manuscript – PNAS Submission Guidelines&quot;,&quot;url&quot;:&quot;https://www.pnas.org/author-center/submitting-your-manuscript&quot;},{&quot;title&quot;:&quot;PNAS Information for Authors REVISED April 2008 PURPOSE AND SCOPE&quot;,&quot;url&quot;:&quot;https://www.medwave.cl/medios/servicios/mednet/PNAS.pdf&quot;}]
+
+Links: [{&quot;title&quot;:&quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study | PNAS&quot;,&quot;url&quot;:&quot;https://www.pnas.org/doi/abs/10.1073/pnas.2020322118&quot;}]
+
+I found the PNAS 2021 paper by Leonard et al. on celiac disease. The paper is titled &quot;Microbiome signatures of progression toward celiac disease onset in at-risk children in a longitudinal prospective cohort study&quot; by M. M. Leonard et al. and was published in Proc Natl Acad Sci U S A on July 20, 2021 with article number e2020322118.
+
+The PMC version mentions multiple &quot;Supplementary File&quot; entries, and I found a direct link to one of the supplementary data files (Dataset S2) in Excel format at:
+
+https://www.pnas.org/content/pnas/suppl/2021/07/08/2020322118.DCSupplemental/pnas.2020322118.sd02.xlsx
+
+Based on the PNAS naming convention, the other supplementary data files (S1, S3, etc.) should follow a similar URL pattern:
+- Dataset S1 (SD01): https://www.pnas.org/content/pnas/suppl/2021/07/08/2020322118.DCSupplemental/pnas.2020322118.sd01.xlsx
+- Dataset S3 (SD03): https://www.pnas.org/content/pnas/suppl/2021/07/08/2020322118.DCSupplemental/pnas.2020322118.sd03.xlsx
+
+The supplementary information can typically be accessed from the full article page at: https://www.pnas.org/doi/10.1073/pnas.2020322118
+
+
+REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-25-45-535Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-25-45-535Z" class="timestamp-link"><time datetime="2025-12-02T16:25:45.535Z" data-timestamp="2025-12-02T16:25:45.535Z">2025-12-02T16:25:45.535Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Based on my research, I should now provide a comprehensive summary to the user about what data is available and in what format. The key findings are:</p>
+<ol>
+<li><strong>No ready-to-use phyloseq objects</strong> - The datasets are NOT available as pre-processed phyloseq objects in databases like Qiita or CuratedMetagenomicData</li>
+<li><strong>Raw data is available</strong> - Through NCBI SRA (PRJNA486782 and PRJNA631001)</li>
+<li><strong>Supplementary data tables</strong> - Available from the PNAS paper as Excel files</li>
+<li><strong>GitHub code repositories</strong> - Analysis code is available but not the processed data</li>
+<li><strong>What they would need to do</strong> - Download raw data and process it, OR use the supplementary tables to create phyloseq objects</li>
+</ol>
+<p>Let me provide a comprehensive answer.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-02T16-26-15-521Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-02T16-26-15-521Z" class="timestamp-link"><time datetime="2025-12-02T16:26:15.521Z" data-timestamp="2025-12-02T16:26:15.521Z">2025-12-02T16:26:15.521Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Based on my research, <strong>none of these celiac disease datasets have ready-to-use phyloseq objects available</strong> in aggregated databases like Qiita or CuratedMetagenomicData. However, there are several ways to access and work with the data:</p>
+<h2>Current Data Availability Status</h2>
+<h3>❌ NOT Available As:</h3>
+<ul>
+<li>Pre-processed phyloseq RDS objects</li>
+<li>Qiita database entries (I couldn't find these studies in Qiita)</li>
+<li>CuratedMetagenomicData packages</li>
+<li>MGnify processed datasets</li>
+</ul>
+<h3>✅ Available As:</h3>
+<h4>1. <strong>Raw Sequencing Data (NCBI SRA)</strong></h4>
+<p><strong>Leonard et al. 2021 PNAS Study:</strong>
+- BioProject: <strong>PRJNA486782</strong>
+- SRA: <strong>SRP158417</strong>
+- Format: Shotgun metagenomic sequencing (Illumina HiSeq 4000, 2×150bp)
+- Samples: 118 fecal samples</p>
+<p><strong>Girdhar et al. 2023 Microbiome Study:</strong>
+- BioProject: <strong>PRJNA631001</strong>
+- Format: 16S rRNA (V4 region, MiSeq) + IgA-seq
+- GitHub: https://github.com/altindislab/celiac-gut-microbiome (code only, no data files)</p>
+<h4>2. <strong>Supplementary Data Tables (Excel/CSV)</strong></h4>
+<p>The PNAS 2021 paper has downloadable supplementary datasets:
+- <strong>Dataset S1-S6</strong> available at: https://www.pnas.org/doi/10.1073/pnas.2020322118
+- Direct download example: https://www.pnas.org/content/pnas/suppl/2021/07/08/2020322118.DCSupplemental/pnas.2020322118.sd02.xlsx</p>
+<p>These contain:
+- Taxonomic profiling (species/strain level)
+- Functional pathway annotations
+- Metabolite measurements
+- Metadata</p>
+<h4>3. <strong>Analysis Code (GitHub)</strong></h4>
+<p>Two repositories with analysis pipelines:
+- <a href="https://github.com/altindislab/celiac-gut-microbiome">altindislab/celiac-gut-microbiome</a> - Minimal documentation, R scripts only
+- <a href="https://github.com/PMilletich/Celiac_Disease_Pipeline">PMilletich/Celiac_Disease_Pipeline</a> - 7-step pipeline with PIME analysis</p>
+<hr />
+<h2>Your Options for Re-analysis</h2>
+<h3>Option 1: <strong>Build phyloseq from Supplementary Tables</strong> ⭐ (Recommended - Fastest)</h3>
+<p>Download the supplementary Excel files from PNAS and create a phyloseq object:</p>
+<pre><code class="language-r"># Download supplementary tables from PNAS paper
+# Import count table, taxonomy table, and metadata
+# Create phyloseq object manually
+
+library(phyloseq)
+library(readxl)
+
+# Example structure:
+otu_table &lt;- read_excel(&quot;pnas.2020322118.sd01.xlsx&quot;) # OTU/ASV counts
+tax_table &lt;- read_excel(&quot;pnas.2020322118.sd02.xlsx&quot;) # Taxonomy
+metadata &lt;- read_excel(&quot;pnas.2020322118.sd03.xlsx&quot;)  # Sample metadata
+
+# Build phyloseq object (need to format properly)
+ps &lt;- phyloseq(
+  otu_table(otu_mat, taxa_are_rows = TRUE),
+  tax_table(tax_mat),
+  sample_data(metadata_df)
+)
+</code></pre>
+<p><strong>Pros:</strong> Quick, already processed by authors<br />
+<strong>Cons:</strong> Limited to what's in supplementary files</p>
+<h3>Option 2: <strong>Process Raw Data from SRA</strong></h3>
+<p>Download raw FASTQ files and run DADA2 or metaphlan pipeline:</p>
+<pre><code class="language-bash"># Download from SRA
+prefetch PRJNA486782
+fastq-dump --split-files SRR*
+
+# Then process with DADA2 (16S) or MetaPhlAn (shotgun)
+</code></pre>
+<p><strong>Pros:</strong> Full control, can reanalyze differently<br />
+<strong>Cons:</strong> Time-consuming, computationally intensive</p>
+<h3>Option 3: <strong>Contact Authors Directly</strong></h3>
+<p>Email Dr. Maureen Leonard or co-authors to request:
+- Pre-processed phyloseq objects
+- Complete processed data files
+- Additional unpublished data</p>
+<hr />
+<h2>Recommended Approach</h2>
+<p>Given your interest in <strong>re-analyzing</strong> the data, I'd suggest:</p>
+<ol>
+<li><strong>Start with supplementary tables</strong> from the PNAS paper to build a phyloseq object</li>
+<li><strong>Validate</strong> by comparing your diversity metrics to published figures</li>
+<li><strong>If needed</strong>, download raw data for deeper analysis (e.g., strain-level)</li>
+</ol>
+<p>Would you like me to:
+1. <strong>Download the supplementary files</strong> and help you create a phyloseq object?
+2. <strong>Write a script</strong> to download data from SRA and process it?
+3. <strong>Set up a tutorial-style analysis</strong> similar to your existing vaginal microbiome tutorial?</p>
+<h2>Sources:</h2>
+<ul>
+<li><a href="https://www.pnas.org/doi/10.1073/pnas.2020322118">Leonard et al. 2021 PNAS paper</a></li>
+<li><a href="https://www.pnas.org/content/pnas/suppl/2021/07/08/2020322118.DCSupplemental/pnas.2020322118.sd02.xlsx">PNAS Supplementary Data S2 (direct download)</a></li>
+<li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9840338/">Girdhar et al. 2023 Microbiome paper - PMC</a></li>
+<li><a href="https://github.com/altindislab/celiac-gut-microbiome">altindislab/celiac-gut-microbiome GitHub</a></li>
+<li><a href="https://github.com/PMilletich/Celiac_Disease_Pipeline">PMilletich Celiac Disease Pipeline GitHub</a></li>
+<li><a href="https://qiita.ucsd.edu/">Qiita Database</a></li>
+<li><a href="https://bioconductor.org/packages/3.20/data/experiment/html/curatedMetagenomicData.html">CuratedMetagenomicData Bioconductor</a></li>
+<li><a href="https://www.ebi.ac.uk/about/teams/microbiome-informatics/mgnify/">MGnify - EBI</a></li>
+<li><a href="https://www.massgeneral.org/children/celiac-disease/genomic-environmental-microbiome-and-metabolomic-study/about">CDGEMM Study - Mass General</a></li>
+<li><a href="https://web.stanford.edu/class/bios221/labs/phyloseq/lab_phyloseq.html">Phyloseq Tutorial - Stanford</a></li>
+</ul></div></div></div>
+        
+
+<div class="pagination"><a href="index.html" class="index-link">Index</a></div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

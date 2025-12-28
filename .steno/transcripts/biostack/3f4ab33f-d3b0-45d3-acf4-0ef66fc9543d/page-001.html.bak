@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 1</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 1/1</h1>
+        
+
+<div class="pagination"><a href="index.html" class="index-link">Index</a></div>
+
+        
+<div class="message user" id="msg-2025-12-21T21-24-31-889Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-21T21-24-31-889Z" class="timestamp-link"><time datetime="2025-12-21T21:24:31.889Z" data-timestamp="2025-12-21T21:24:31.889Z">2025-12-21T21:24:31.889Z</time></a></div><div class="message-content">
+<div class="user-content"><p>I need to calculate Aitchison distance between my microbiome samples.
+  Can you add a primitive for this? My data is in .biostack/data/counts.csv</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-39-202Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-39-202Z" class="timestamp-link"><time datetime="2025-12-21T21:24:39.202Z" data-timestamp="2025-12-21T21:24:39.202Z">2025-12-21T21:24:39.202Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants to add an Aitchison distance primitive for microbiome data. Aitchison distance is a common metric for compositional data analysis - it's the Euclidean distance after CLR (centered log-ratio) transformation.</p>
+<p>Let me first read the briefing file as instructed, then explore the codebase to understand how primitives are structured, and then implement the new primitive.</p>
+<p>I should:
+1. Read the briefing file
+2. Look at existing distance/diversity primitives to understand the pattern
+3. Implement the Aitchison distance primitive
+4. Add tests</p>
+<p>Let me start by reading the briefing and exploring the codebase structure.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-39-741Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-39-741Z" class="timestamp-link"><time datetime="2025-12-21T21:24:39.741Z" data-timestamp="2025-12-21T21:24:39.741Z">2025-12-21T21:24:39.741Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>I'll help you add an Aitchison distance primitive. Let me first read the briefing and explore the existing primitive structure.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-40-315Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-40-315Z" class="timestamp-link"><time datetime="2025-12-21T21:24:40.315Z" data-timestamp="2025-12-21T21:24:40.315Z">2025-12-21T21:24:40.315Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01RZjgMkB2qrBxeEoQ2Nq3Ns"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/scotthandley/Code/biostack/.biostack/briefing.md&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-40-784Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-40-784Z" class="timestamp-link"><time datetime="2025-12-21T21:24:40.784Z" data-timestamp="2025-12-21T21:24:40.784Z">2025-12-21T21:24:40.784Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01GMo3We3kXe8gsK5tY6HcNV"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/scotthandley/Code/biostack/.biostack/data/counts.csv&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-41-186Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-41-186Z" class="timestamp-link"><time datetime="2025-12-21T21:24:41.186Z" data-timestamp="2025-12-21T21:24:41.186Z">2025-12-21T21:24:41.186Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_0186XA9PeSbMB4bCaH8H57FX"><div class="tool-header"><span class="tool-icon">⚙</span> Glob</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pattern&#34;: &#34;**/diversity/*.rs&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-21T21-24-41-233Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-21T21-24-41-233Z" class="timestamp-link"><time datetime="2025-12-21T21:24:41.233Z" data-timestamp="2025-12-21T21:24:41.233Z">2025-12-21T21:24:41.233Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→# Session Briefing
+     2→## Status: Analysis**Generated:** 2025-12-21 18:51 UTC
+     3→## Where We Left Off
+     4→32 operations completed.
+     5→
+     6→## Data State
+     7→| File | Type | Quality |
+     8→|------|------|--------|
+     9→| transformed_counts.csv | csv | - |
+    10→| alpha_diversity.json.provenance.json | json | - |
+    11→| filter_mask.json.provenance.json | json | - |
+    12→| ordination.json.provenance.json | json | - |
+    13→| diversity_metadata.csv | csv | - |
+    14→| counts.csv | csv | 100% |
+    15→| transformed_counts.meta.json | json | - |
+    16→| recommendations.json.provenance.json | json | - |
+    17→| groups.txt.provenance.json | json | - |
+    18→| richness_evenness_ordination.json | json | - |
+    19→| filter_mask.json | json | - |
+    20→| p_values.json | json | - |
+    21→| distance_matrix.csv.provenance.json | json | - |
+    22→| plot.ggspec.provenance.json | json | - |
+    23→| alpha_diversity.json | json | - |
+    24→| diversity_counts.csv | csv | 100% |
+    25→| ordination.json | json | - |
+    26→| characteristics.json.provenance.json | json | - |
+    27→| plot.plot.provenance.json | json | - |
+    28→| groups.txt | txt | - |
+    29→| metadata.meta.json | json | - |
+    30→| plot.plot | plot | - |
+    31→| filtered_counts.csv.provenance.json | json | - |
+    32→| filtered_counts.csv | csv | 100% |
+    33→| test_statistics.json | json | - |
+    34→| metadata.csv | csv | - |
+    35→| distance_matrix.csv | csv | 100% |
+    36→| plot.ggspec | ggspec | - |
+    37→| metadata.csv.provenance.json | json | - |
+    38→| test_statistics.json.provenance.json | json | - |
+    39→| counts.csv.provenance.json | json | - |
+    40→| plot.html | html | - |
+    41→| recommendations.json | json | - |
+    42→| characteristics.json | json | - |
+    43→| size_factors.json | json | - |
+    44→| p_values.json.provenance.json | json | - |
+    45→
+    46→## Recommended Next Steps
+    47→*Based on last operation: beta_diversity*
+    48→
+    49→1. **pcoa** - Principal Coordinates Analysis (classical MDS) for distance matrices. Projects samples into reduced space preserving distances.
+    50→2. **nmds** - Non-metric Multidimensional Scaling for distance matrices. Preserves rank order of distances; robust to non-metric data.
+    51→3. **permanova** - PERMANOVA: Test whether groups differ in multivariate space using permutation-based F-test on a distance matrix.
+    52→
+    53→## Warnings
+    54→None - Data quality is acceptable.
+    55→
+    56→## How to Execute Commands
+    57→Write YAML files to `.biostack/commands/pending/` with this format:
+    58→
+    59→**Example - Beta Diversity:**
+    60→```yaml
+    61→primitive: beta_diversity
+    62→params:
+    63→  metric: bray_curtis
+    64→inputs:
+    65→  counts: counts.csv
+    66→```
+    67→
+    68→**Example - PERMANOVA (testing group differences):**
+    69→```yaml
+    70→primitive: permanova
+    71→params:
+    72→  grouping_column: Use  # Column name in metadata
+    73→  n_permutations: 999
+    74→inputs:
+    75→  distance_matrix: distance_matrix.csv
+    76→  metadata: metadata.csv
+    77→```
+    78→
+    79→**Important:**
+    80→- File extension must be `.yaml` (not `.json`)
+    81→- Use `primitive:` key (not `operation:`)
+    82→- Input slot names: `counts`, `metadata`, `distance_matrix`, `design`
+    83→- Use `bio schema &lt;primitive&gt;` to see required params and inputs
+    84→
+    85→## Workflow Instructions (CRITICAL)
+    86→
+    87→**The daemon processes commands automatically.** When you write a YAML file to `pending/`, the daemon executes it within seconds.
+    88→
+    89→**For sequential/dependent operations:**
+    90→1. Write ONE command file at a time
+    91→2. Wait 2-3 seconds for execution
+    92→3. Check `.biostack/results/` for the result JSON
+    93→4. Only then write the next dependent command
+    94→
+    95→**Common dependencies:**
+    96→- `permanova` needs `distance_matrix.csv` → run `beta_diversity` first
+    97→- `pcoa`/`nmds` need `distance_matrix.csv` → run `beta_diversity` first
+    98→- `wald`/`lrt` need `glm_fits` → run `fit_glm` first
+    99→- Most primitives need `counts.csv` → ensure it exists in `.biostack/data/`
+   100→
+   101→**Independent operations can be written together:**
+   102→- `alpha_diversity` and `beta_diversity` (both only need counts)
+   103→- `diagnose` and any normalization primitive
+   104→
+   105→**Checking results:**
+   106→- Results appear in `.biostack/results/&lt;timestamp&gt;_&lt;primitive&gt;.json`
+   107→- Check `status` field: &quot;success&quot; or &quot;error&quot;
+   108→- Output files appear in `.biostack/data/` (e.g., `distance_matrix.csv`)
+   109→
+   110→---
+   111→*Generated by bioengine at 2025-12-21 18:51:02*
+   112→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-21T21-24-41-233Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-21T21-24-41-233Z" class="timestamp-link"><time datetime="2025-12-21T21:24:41.233Z" data-timestamp="2025-12-21T21:24:41.233Z">2025-12-21T21:24:41.233Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→feature,S01,S02,S03,S04,S05,S06,S07,S08,S09,S10,S11,S12,S13,S14,S15,S16,S17,S18,S19,S20
+     2→taxa_1,120,95,80,150,45,200,85,60,110,75,30,180,55,90,140,25,105,70,160,50
+     3→taxa_2,100,80,70,130,40,180,75,55,95,65,25,160,50,80,125,20,90,60,145,45
+     4→taxa_3,85,70,60,110,35,155,65,48,82,55,22,140,42,70,108,18,78,52,125,38
+     5→taxa_4,70,58,50,92,30,130,55,40,68,46,18,118,36,58,90,15,65,43,105,32
+     6→taxa_5,55,45,40,75,24,105,44,32,55,37,14,95,28,46,72,12,52,34,85,25
+     7→taxa_6,42,35,31,58,19,82,35,25,43,29,11,74,22,36,56,9,41,27,66,20
+     8→taxa_7,32,27,24,45,15,64,27,20,33,22,8,58,17,28,44,7,32,21,52,15
+     9→taxa_8,24,20,18,34,11,49,21,15,25,17,6,44,13,21,33,5,24,16,40,12
+    10→taxa_9,18,15,14,26,8,38,16,12,19,13,5,34,10,16,26,4,19,12,31,9
+    11→taxa_10,13,11,10,20,6,29,12,9,15,10,4,26,8,12,20,3,14,9,24,7
+    12→taxa_11,0,8,8,15,5,22,9,7,11,7,3,20,6,9,15,2,11,7,18,5
+    13→taxa_12,0,0,6,12,4,17,7,5,9,6,2,15,5,7,12,2,8,5,14,4
+    14→taxa_13,0,0,0,9,3,13,5,4,7,4,0,12,4,5,9,0,6,4,11,3
+    15→taxa_14,0,0,0,0,2,10,4,3,5,3,0,9,3,4,7,0,5,3,8,2
+    16→taxa_15,0,0,0,0,0,8,3,2,4,2,0,7,2,3,5,0,4,2,6,0
+    17→taxa_16,0,0,0,0,0,0,2,0,3,0,0,5,0,2,4,0,3,0,5,0
+    18→taxa_17,0,0,0,0,0,0,0,0,0,0,0,4,0,0,3,0,2,0,4,0
+    19→taxa_18,0,0,0,0,0,0,0,0,0,0,0,3,0,0,2,0,0,0,3,0
+    20→taxa_19,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,2,0
+    21→taxa_20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+    22→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-21T21-24-43-143Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-21T21-24-43-143Z" class="timestamp-link"><time datetime="2025-12-21T21:24:43.143Z" data-timestamp="2025-12-21T21:24:43.143Z">2025-12-21T21:24:43.143Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>/Users/scotthandley/Code/biostack/bioforge/src/diversity/beta.rs
+/Users/scotthandley/Code/biostack/bioforge/src/diversity/distance_matrix.rs
+/Users/scotthandley/Code/biostack/bioforge/src/diversity/comparison.rs
+/Users/scotthandley/Code/biostack/bioforge/src/diversity/alpha.rs
+/Users/scotthandley/Code/biostack/bioforge/src/diversity/mod.rs</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-46-506Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-46-506Z" class="timestamp-link"><time datetime="2025-12-21T21:24:46.506Z" data-timestamp="2025-12-21T21:24:46.506Z">2025-12-21T21:24:46.506Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Good, I have the context. Now let me look at the existing beta diversity implementation to understand how distance metrics are implemented, and also look at the primitive structure.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-46-861Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-46-861Z" class="timestamp-link"><time datetime="2025-12-21T21:24:46.861Z" data-timestamp="2025-12-21T21:24:46.861Z">2025-12-21T21:24:46.861Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01EVSLadn5QLRycVK2PmTaic"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/scotthandley/Code/biostack/bioforge/src/diversity/beta.rs&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-47-364Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-47-364Z" class="timestamp-link"><time datetime="2025-12-21T21:24:47.364Z" data-timestamp="2025-12-21T21:24:47.364Z">2025-12-21T21:24:47.364Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01FTMy84q3Pt2gjpS7d6XGGh"><div class="tool-header"><span class="tool-icon">⚙</span> Glob</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pattern&#34;: &#34;**/primitive/*.rs&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-21T21-24-47-397Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-21T21-24-47-397Z" class="timestamp-link"><time datetime="2025-12-21T21:24:47.397Z" data-timestamp="2025-12-21T21:24:47.397Z">2025-12-21T21:24:47.397Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→//! Beta diversity metrics (between-sample dissimilarity).
+     2→//!
+     3→//! Beta diversity measures the dissimilarity between samples. These metrics
+     4→//! quantify how different community compositions are across samples.
+     5→//!
+     6→//! ## Metric Types
+     7→//!
+     8→//! - **Abundance-based**: Use count information (Bray-Curtis)
+     9→//! - **Presence/absence**: Binary (Jaccard)
+    10→//! - **Compositional**: Account for constant-sum constraint (Aitchison)
+    11→//!
+    12→//! ## References
+    13→//!
+    14→//! - Bray, J.R. &amp; Curtis, J.T. (1957). An ordination of the upland forest
+    15→//!   communities of southern Wisconsin. Ecological Monographs, 27, 325-349.
+    16→//! - Jaccard, P. (1912). The distribution of the flora in the alpine zone.
+    17→//!   New Phytologist, 11, 37-50.
+    18→//! - Aitchison, J. (1986). The Statistical Analysis of Compositional Data.
+    19→
+    20→use crate::Result;
+    21→
+    22→/// Beta diversity metrics available.
+    23→#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    24→pub enum BetaMetric {
+    25→    /// Bray-Curtis dissimilarity (abundance-weighted).
+    26→    BrayCurtis,
+    27→    /// Jaccard distance (presence/absence).
+    28→    Jaccard,
+    29→    /// Sørensen-Dice dissimilarity.
+    30→    Sorensen,
+    31→    /// Aitchison distance (compositional, CLR + Euclidean).
+    32→    Aitchison,
+    33→    /// Euclidean distance.
+    34→    Euclidean,
+    35→    /// Manhattan distance.
+    36→    Manhattan,
+    37→    /// Canberra distance.
+    38→    Canberra,
+    39→    /// Morisita-Horn index.
+    40→    MorisitaHorn,
+    41→}
+    42→
+    43→/// Calculate Bray-Curtis dissimilarity between two samples.
+    44→///
+    45→/// BC = 1 - 2*sum(min(x_i, y_i)) / (sum(x) + sum(y))
+    46→///
+    47→/// Ranges from 0 (identical) to 1 (completely different).
+    48→///
+    49→/// # Arguments
+    50→///
+    51→/// * `x` - Count vector for sample 1
+    52→/// * `y` - Count vector for sample 2
+    53→///
+    54→/// # Example
+    55→///
+    56→/// ```
+    57→/// use bioforge::diversity::bray_curtis;
+    58→///
+    59→/// let x = vec![10, 20, 30, 0];
+    60→/// let y = vec![15, 25, 25, 5];
+    61→/// let bc = bray_curtis(&amp;x, &amp;y).unwrap();
+    62→/// assert!(bc &gt;= 0.0 &amp;&amp; bc &lt;= 1.0);
+    63→/// ```
+    64→pub fn bray_curtis(x: &amp;[u64], y: &amp;[u64]) -&gt; Result&lt;f64&gt; {
+    65→    if x.len() != y.len() {
+    66→        return Err(crate::BioforgeError::DimensionMismatch(
+    67→            &quot;samples must have same number of features&quot;.into(),
+    68→        ));
+    69→    }
+    70→
+    71→    let sum_x: u64 = x.iter().sum();
+    72→    let sum_y: u64 = y.iter().sum();
+    73→
+    74→    if sum_x == 0 &amp;&amp; sum_y == 0 {
+    75→        return Ok(0.0); // Both empty, identical
+    76→    }
+    77→
+    78→    let sum_min: u64 = x.iter().zip(y.iter()).map(|(&amp;a, &amp;b)| a.min(b)).sum();
+    79→
+    80→    let bc = 1.0 - 2.0 * sum_min as f64 / (sum_x + sum_y) as f64;
+    81→
+    82→    Ok(bc)
+    83→}
+    84→
+    85→/// Calculate Jaccard distance between two samples.
+    86→///
+    87→/// Based on presence/absence (binary).
+    88→/// J = 1 - |A ∩ B| / |A ∪ B|
+    89→///
+    90→/// # Arguments
+    91→///
+    92→/// * `x` - Count vector for sample 1
+    93→/// * `y` - Count vector for sample 2
+    94→///
+    95→/// # Example
+    96→///
+    97→/// ```
+    98→/// use bioforge::diversity::jaccard;
+    99→///
+   100→/// let x = vec![10, 20, 0, 0];  // Species 1, 2 present
+   101→/// let y = vec![0, 15, 25, 0];  // Species 2, 3 present
+   102→/// let j = jaccard(&amp;x, &amp;y).unwrap();
+   103→/// // Intersection = 1 (species 2), Union = 3 (species 1, 2, 3)
+   104→/// // Jaccard similarity = 1/3, distance = 2/3
+   105→/// ```
+   106→pub fn jaccard(x: &amp;[u64], y: &amp;[u64]) -&gt; Result&lt;f64&gt; {
+   107→    if x.len() != y.len() {
+   108→        return Err(crate::BioforgeError::DimensionMismatch(
+   109→            &quot;samples must have same number of features&quot;.into(),
+   110→        ));
+   111→    }
+   112→
+   113→    let mut intersection = 0;
+   114→    let mut union = 0;
+   115→
+   116→    for (&amp;a, &amp;b) in x.iter().zip(y.iter()) {
+   117→        let a_present = a &gt; 0;
+   118→        let b_present = b &gt; 0;
+   119→
+   120→        if a_present &amp;&amp; b_present {
+   121→            intersection += 1;
+   122→        }
+   123→        if a_present || b_present {
+   124→            union += 1;
+   125→        }
+   126→    }
+   127→
+   128→    if union == 0 {
+   129→        return Ok(0.0); // Both empty
+   130→    }
+   131→
+   132→    Ok(1.0 - intersection as f64 / union as f64)
+   133→}
+   134→
+   135→/// Calculate Sørensen-Dice dissimilarity.
+   136→///
+   137→/// SD = 1 - 2|A ∩ B| / (|A| + |B|)
+   138→///
+   139→/// Similar to Jaccard but gives more weight to shared species.
+   140→pub fn sorensen(x: &amp;[u64], y: &amp;[u64]) -&gt; Result&lt;f64&gt; {
+   141→    if x.len() != y.len() {
+   142→        return Err(crate::BioforgeError::DimensionMismatch(
+   143→            &quot;samples must have same number of features&quot;.into(),
+   144→        ));
+   145→    }
+   146→
+   147→    let mut intersection = 0;
+   148→    let mut size_a = 0;
+   149→    let mut size_b = 0;
+   150→
+   151→    for (&amp;a, &amp;b) in x.iter().zip(y.iter()) {
+   152→        if a &gt; 0 {
+   153→            size_a += 1;
+   154→        }
+   155→        if b &gt; 0 {
+   156→            size_b += 1;
+   157→        }
+   158→        if a &gt; 0 &amp;&amp; b &gt; 0 {
+   159→            intersection += 1;
+   160→        }
+   161→    }
+   162→
+   163→    if size_a + size_b == 0 {
+   164→        return Ok(0.0);
+   165→    }
+   166→
+   167→    Ok(1.0 - 2.0 * intersection as f64 / (size_a + size_b) as f64)
+   168→}
+   169→
+   170→/// Calculate Aitchison distance between two samples.
+   171→///
+   172→/// Aitchison distance is the Euclidean distance between CLR-transformed
+   173→/// compositions. It&#x27;s the appropriate distance metric for compositional data.
+   174→///
+   175→/// # Arguments
+   176→///
+   177→/// * `x` - Count vector for sample 1
+   178→/// * `y` - Count vector for sample 2
+   179→/// * `pseudocount` - Value to add to zeros (default: 0.5)
+   180→///
+   181→/// # Note
+   182→///
+   183→/// Zeros are handled by adding a pseudocount before CLR transformation.
+   184→pub fn aitchison(x: &amp;[u64], y: &amp;[u64], pseudocount: Option&lt;f64&gt;) -&gt; Result&lt;f64&gt; {
+   185→    if x.len() != y.len() {
+   186→        return Err(crate::BioforgeError::DimensionMismatch(
+   187→            &quot;samples must have same number of features&quot;.into(),
+   188→        ));
+   189→    }
+   190→
+   191→    let pseudo = pseudocount.unwrap_or(0.5);
+   192→
+   193→    // CLR transform: log(x_i / geometric_mean(x))
+   194→    let clr_x = clr_transform(x, pseudo)?;
+   195→    let clr_y = clr_transform(y, pseudo)?;
+   196→
+   197→    // Euclidean distance between CLR vectors
+   198→    let dist: f64 = clr_x
+   199→        .iter()
+   200→        .zip(clr_y.iter())
+   201→        .map(|(&amp;a, &amp;b)| (a - b).powi(2))
+   202→        .sum::&lt;f64&gt;()
+   203→        .sqrt();
+   204→
+   205→    Ok(dist)
+   206→}
+   207→
+   208→/// Helper function for CLR transformation.
+   209→fn clr_transform(counts: &amp;[u64], pseudocount: f64) -&gt; Result&lt;Vec&lt;f64&gt;&gt; {
+   210→    let n = counts.len();
+   211→    if n == 0 {
+   212→        return Ok(vec![]);
+   213→    }
+   214→
+   215→    // Add pseudocount and convert to proportions
+   216→    let values: Vec&lt;f64&gt; = counts.iter().map(|&amp;x| x as f64 + pseudocount).collect();
+   217→    let total: f64 = values.iter().sum();
+   218→
+   219→    if total &lt;= 0.0 {
+   220→        return Err(crate::BioforgeError::InvalidParameter(
+   221→            &quot;total count must be positive&quot;.into(),
+   222→        ));
+   223→    }
+   224→
+   225→    let proportions: Vec&lt;f64&gt; = values.iter().map(|&amp;x| x / total).collect();
+   226→
+   227→    // Geometric mean of proportions
+   228→    let log_sum: f64 = proportions.iter().map(|&amp;p| p.ln()).sum();
+   229→    let geom_mean = (log_sum / n as f64).exp();
+   230→
+   231→    // CLR = log(p_i / geom_mean)
+   232→    let clr: Vec&lt;f64&gt; = proportions.iter().map(|&amp;p| (p / geom_mean).ln()).collect();
+   233→
+   234→    Ok(clr)
+   235→}
+   236→
+   237→/// Calculate Euclidean distance between two samples.
+   238→pub fn euclidean(x: &amp;[u64], y: &amp;[u64]) -&gt; Result&lt;f64&gt; {
+   239→    if x.len() != y.len() {
+   240→        return Err(crate::BioforgeError::DimensionMismatch(
+   241→            &quot;samples must have same number of features&quot;.into(),
+   242→        ));
+   243→    }
+   244→
+   245→    let dist: f64 = x
+   246→        .iter()
+   247→        .zip(y.iter())
+   248→        .map(|(&amp;a, &amp;b)| {
+   249→            let diff = a as f64 - b as f64;
+   250→            diff * diff
+   251→        })
+   252→        .sum::&lt;f64&gt;()
+   253→        .sqrt();
+   254→
+   255→    Ok(dist)
+   256→}
+   257→
+   258→/// Calculate Manhattan distance between two samples.
+   259→pub fn manhattan(x: &amp;[u64], y: &amp;[u64]) -&gt; Result&lt;f64&gt; {
+   260→    if x.len() != y.len() {
+   261→        return Err(crate::BioforgeError::DimensionMismatch(
+   262→            &quot;samples must have same number of features&quot;.into(),
+   263→        ));
+   264→    }
+   265→
+   266→    let dist: f64 = x
+   267→        .iter()
+   268→        .zip(y.iter())
+   269→        .map(|(&amp;a, &amp;b)| (a as f64 - b as f64).abs())
+   270→        .sum();
+   271→
+   272→    Ok(dist)
+   273→}
+   274→
+   275→/// Calculate Canberra distance between two samples.
+   276→///
+   277→/// Canberra = sum(|x_i - y_i| / (|x_i| + |y_i|))
+   278→pub fn canberra(x: &amp;[u64], y: &amp;[u64]) -&gt; Result&lt;f64&gt; {
+   279→    if x.len() != y.len() {
+   280→        return Err(crate::BioforgeError::DimensionMismatch(
+   281→            &quot;samples must have same number of features&quot;.into(),
+   282→        ));
+   283→    }
+   284→
+   285→    let dist: f64 = x
+   286→        .iter()
+   287→        .zip(y.iter())
+   288→        .map(|(&amp;a, &amp;b)| {
+   289→            let denom = a as f64 + b as f64;
+   290→            if denom &gt; 0.0 {
+   291→                (a as f64 - b as f64).abs() / denom
+   292→            } else {
+   293→                0.0
+   294→            }
+   295→        })
+   296→        .sum();
+   297→
+   298→    Ok(dist)
+   299→}
+   300→
+   301→/// Calculate Morisita-Horn index.
+   302→///
+   303→/// A similarity index that is relatively independent of sample size.
+   304→pub fn morisita_horn(x: &amp;[u64], y: &amp;[u64]) -&gt; Result&lt;f64&gt; {
+   305→    if x.len() != y.len() {
+   306→        return Err(crate::BioforgeError::DimensionMismatch(
+   307→            &quot;samples must have same number of features&quot;.into(),
+   308→        ));
+   309→    }
+   310→
+   311→    let n_x: f64 = x.iter().sum::&lt;u64&gt;() as f64;
+   312→    let n_y: f64 = y.iter().sum::&lt;u64&gt;() as f64;
+   313→
+   314→    if n_x == 0.0 || n_y == 0.0 {
+   315→        return Ok(1.0); // No overlap possible
+   316→    }
+   317→
+   318→    // Sum of products
+   319→    let sum_xy: f64 = x
+   320→        .iter()
+   321→        .zip(y.iter())
+   322→        .map(|(&amp;a, &amp;b)| a as f64 * b as f64)
+   323→        .sum();
+   324→
+   325→    // Sum of squares
+   326→    let sum_x2: f64 = x.iter().map(|&amp;a| (a as f64).powi(2)).sum();
+   327→    let sum_y2: f64 = y.iter().map(|&amp;b| (b as f64).powi(2)).sum();
+   328→
+   329→    let lambda_x = sum_x2 / (n_x * n_x);
+   330→    let lambda_y = sum_y2 / (n_y * n_y);
+   331→
+   332→    let denom = (lambda_x + lambda_y) * n_x * n_y;
+   333→    if denom &lt;= 0.0 {
+   334→        return Ok(1.0);
+   335→    }
+   336→
+   337→    let similarity = 2.0 * sum_xy / denom;
+   338→
+   339→    // Return dissimilarity
+   340→    Ok(1.0 - similarity.min(1.0))
+   341→}
+   342→
+   343→/// Calculate beta diversity using a specified metric.
+   344→///
+   345→/// # Arguments
+   346→///
+   347→/// * `x` - Count vector for sample 1
+   348→/// * `y` - Count vector for sample 2
+   349→/// * `metric` - Which distance metric to use
+   350→pub fn beta_diversity(x: &amp;[u64], y: &amp;[u64], metric: BetaMetric) -&gt; Result&lt;f64&gt; {
+   351→    match metric {
+   352→        BetaMetric::BrayCurtis =&gt; bray_curtis(x, y),
+   353→        BetaMetric::Jaccard =&gt; jaccard(x, y),
+   354→        BetaMetric::Sorensen =&gt; sorensen(x, y),
+   355→        BetaMetric::Aitchison =&gt; aitchison(x, y, None),
+   356→        BetaMetric::Euclidean =&gt; euclidean(x, y),
+   357→        BetaMetric::Manhattan =&gt; manhattan(x, y),
+   358→        BetaMetric::Canberra =&gt; canberra(x, y),
+   359→        BetaMetric::MorisitaHorn =&gt; morisita_horn(x, y),
+   360→    }
+   361→}
+   362→
+   363→#[cfg(test)]
+   364→mod tests {
+   365→    use super::*;
+   366→
+   367→    #[test]
+   368→    fn test_bray_curtis_identical() {
+   369→        let x = vec![10, 20, 30, 40];
+   370→        let bc = bray_curtis(&amp;x, &amp;x).unwrap();
+   371→        assert!((bc - 0.0).abs() &lt; 1e-10);
+   372→    }
+   373→
+   374→    #[test]
+   375→    fn test_bray_curtis_no_overlap() {
+   376→        let x = vec![10, 20, 0, 0];
+   377→        let y = vec![0, 0, 30, 40];
+   378→        let bc = bray_curtis(&amp;x, &amp;y).unwrap();
+   379→        assert!((bc - 1.0).abs() &lt; 1e-10);
+   380→    }
+   381→
+   382→    #[test]
+   383→    fn test_bray_curtis_partial_overlap() {
+   384→        let x = vec![10, 20, 30, 0];
+   385→        let y = vec![15, 25, 25, 5];
+   386→        let bc = bray_curtis(&amp;x, &amp;y).unwrap();
+   387→        assert!(bc &gt; 0.0 &amp;&amp; bc &lt; 1.0);
+   388→    }
+   389→
+   390→    #[test]
+   391→    fn test_jaccard_identical() {
+   392→        let x = vec![10, 20, 30, 40];
+   393→        let j = jaccard(&amp;x, &amp;x).unwrap();
+   394→        assert!((j - 0.0).abs() &lt; 1e-10);
+   395→    }
+   396→
+   397→    #[test]
+   398→    fn test_jaccard_no_overlap() {
+   399→        let x = vec![10, 20, 0, 0];
+   400→        let y = vec![0, 0, 30, 40];
+   401→        let j = jaccard(&amp;x, &amp;y).unwrap();
+   402→        assert!((j - 1.0).abs() &lt; 1e-10);
+   403→    }
+   404→
+   405→    #[test]
+   406→    fn test_jaccard_partial_overlap() {
+   407→        // Species 1, 2 in x; Species 2, 3 in y
+   408→        let x = vec![10, 20, 0, 0];
+   409→        let y = vec![0, 15, 25, 0];
+   410→        let j = jaccard(&amp;x, &amp;y).unwrap();
+   411→        // Intersection = 1, Union = 3, J = 1 - 1/3 = 2/3
+   412→        assert!((j - 2.0 / 3.0).abs() &lt; 1e-10);
+   413→    }
+   414→
+   415→    #[test]
+   416→    fn test_sorensen_identical() {
+   417→        let x = vec![10, 20, 30, 40];
+   418→        let s = sorensen(&amp;x, &amp;x).unwrap();
+   419→        assert!((s - 0.0).abs() &lt; 1e-10);
+   420→    }
+   421→
+   422→    #[test]
+   423→    fn test_aitchison_identical() {
+   424→        let x = vec![10, 20, 30, 40];
+   425→        let a = aitchison(&amp;x, &amp;x, None).unwrap();
+   426→        assert!((a - 0.0).abs() &lt; 1e-10);
+   427→    }
+   428→
+   429→    #[test]
+   430→    fn test_aitchison_different() {
+   431→        let x = vec![10, 20, 30, 40];
+   432→        let y = vec![40, 30, 20, 10];
+   433→        let a = aitchison(&amp;x, &amp;y, None).unwrap();
+   434→        assert!(a &gt; 0.0);
+   435→    }
+   436→
+   437→    #[test]
+   438→    fn test_euclidean() {
+   439→        let x = vec![0, 3, 0];
+   440→        let y = vec![4, 0, 0];
+   441→        let e = euclidean(&amp;x, &amp;y).unwrap();
+   442→        assert!((e - 5.0).abs() &lt; 1e-10); // 3-4-5 triangle
+   443→    }
+   444→
+   445→    #[test]
+   446→    fn test_manhattan() {
+   447→        let x = vec![1, 2, 3];
+   448→        let y = vec![4, 5, 6];
+   449→        let m = manhattan(&amp;x, &amp;y).unwrap();
+   450→        assert!((m - 9.0).abs() &lt; 1e-10); // |1-4| + |2-5| + |3-6| = 9
+   451→    }
+   452→
+   453→    #[test]
+   454→    fn test_canberra() {
+   455→        let x = vec![1, 2, 3];
+   456→        let y = vec![1, 2, 3];
+   457→        let c = canberra(&amp;x, &amp;y).unwrap();
+   458→        assert!((c - 0.0).abs() &lt; 1e-10);
+   459→    }
+   460→
+   461→    #[test]
+   462→    fn test_morisita_horn_identical() {
+   463→        let x = vec![10, 20, 30, 40];
+   464→        let mh = morisita_horn(&amp;x, &amp;x).unwrap();
+   465→        assert!((mh - 0.0).abs() &lt; 1e-10);
+   466→    }
+   467→
+   468→    #[test]
+   469→    fn test_dimension_mismatch() {
+   470→        let x = vec![1, 2, 3];
+   471→        let y = vec![1, 2];
+   472→        assert!(bray_curtis(&amp;x, &amp;y).is_err());
+   473→        assert!(jaccard(&amp;x, &amp;y).is_err());
+   474→    }
+   475→
+   476→    #[test]
+   477→    fn test_beta_diversity_dispatch() {
+   478→        let x = vec![10, 20, 30, 40];
+   479→        let y = vec![15, 25, 25, 35];
+   480→
+   481→        let bc = beta_diversity(&amp;x, &amp;y, BetaMetric::BrayCurtis).unwrap();
+   482→        let j = beta_diversity(&amp;x, &amp;y, BetaMetric::Jaccard).unwrap();
+   483→
+   484→        assert!(bc &gt;= 0.0 &amp;&amp; bc &lt;= 1.0);
+   485→        assert!(j &gt;= 0.0 &amp;&amp; j &lt;= 1.0);
+   486→    }
+   487→}
+   488→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-21T21-24-47-990Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-21T21-24-47-990Z" class="timestamp-link"><time datetime="2025-12-21T21:24:47.990Z" data-timestamp="2025-12-21T21:24:47.990Z">2025-12-21T21:24:47.990Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>/Users/scotthandley/Code/biostack/bioforge/src/primitive/schema.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/category.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/spec.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/registry.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/slots.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/type_registry.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/mod.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/traits.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/requirements.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/context.rs</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-53-346Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-53-346Z" class="timestamp-link"><time datetime="2025-12-21T21:24:53.346Z" data-timestamp="2025-12-21T21:24:53.346Z">2025-12-21T21:24:53.346Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The Aitchison distance function already exists in <code>beta.rs</code>. It's already part of the <code>BetaMetric</code> enum and is supported by the <code>beta_diversity</code> function. The user is asking for a primitive, but Aitchison is already available as a metric option in the <code>beta_diversity</code> primitive.</p>
+<p>Let me check if there's a dedicated <code>beta_diversity</code> primitive and how it's exposed.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-54-475Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-54-475Z" class="timestamp-link"><time datetime="2025-12-21T21:24:54.475Z" data-timestamp="2025-12-21T21:24:54.475Z">2025-12-21T21:24:54.475Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Aitchison distance is already implemented in <code>beta.rs:184-206</code>. Let me check how the <code>beta_diversity</code> primitive exposes metrics and whether Aitchison is available as an option.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-55-223Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-55-223Z" class="timestamp-link"><time datetime="2025-12-21T21:24:55.223Z" data-timestamp="2025-12-21T21:24:55.223Z">2025-12-21T21:24:55.223Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Sy9X1i9VREEG4sYJujwzCJ"><div class="tool-header"><span class="tool-icon">⚙</span> Grep</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pattern&#34;: &#34;beta_diversity&#34;,
+  &#34;path&#34;: &#34;/Users/scotthandley/Code/biostack/bioforge/src/primitive&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-55-871Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-55-871Z" class="timestamp-link"><time datetime="2025-12-21T21:24:55.871Z" data-timestamp="2025-12-21T21:24:55.871Z">2025-12-21T21:24:55.871Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01226kvStGuoXnzpRz8E6XbS"><div class="tool-header"><span class="tool-icon">⚙</span> Glob</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;pattern&#34;: &#34;**/builtins/**/*.rs&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-21T21-24-56-318Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-21T21-24-56-318Z" class="timestamp-link"><time datetime="2025-12-21T21:24:56.318Z" data-timestamp="2025-12-21T21:24:56.318Z">2025-12-21T21:24:56.318Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Found 6 files
+bioforge/src/primitive/requirements.rs
+bioforge/src/primitive/builtins/diversity.rs
+bioforge/src/primitive/slots.rs
+bioforge/src/primitive/registry.rs
+bioforge/src/primitive/builtins/mod.rs
+bioforge/src/primitive/spec.rs</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-21T21-24-56-724Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-21T21-24-56-724Z" class="timestamp-link"><time datetime="2025-12-21T21:24:56.724Z" data-timestamp="2025-12-21T21:24:56.724Z">2025-12-21T21:24:56.724Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/mod.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/filter.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/normalize.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/transform.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/diversity.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/test.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/correct.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/model.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/ordination.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/diagnose.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/viz.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/lefse.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/indicator_species.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/simper.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/mrpp.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/plot.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/dbrda.rs
+/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/macro_test.rs</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-24-59-887Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-24-59-887Z" class="timestamp-link"><time datetime="2025-12-21T21:24:59.887Z" data-timestamp="2025-12-21T21:24:59.887Z">2025-12-21T21:24:59.887Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Let me look at the diversity builtins to see how beta_diversity is currently configured and what metrics are available.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-25-00-633Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-25-00-633Z" class="timestamp-link"><time datetime="2025-12-21T21:25:00.633Z" data-timestamp="2025-12-21T21:25:00.633Z">2025-12-21T21:25:00.633Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01P4gxssHjWT6krB7MmpaLnD"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/scotthandley/Code/biostack/bioforge/src/primitive/builtins/diversity.rs&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-21T21-25-00-662Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-21T21-25-00-662Z" class="timestamp-link"><time datetime="2025-12-21T21:25:00.662Z" data-timestamp="2025-12-21T21:25:00.662Z">2025-12-21T21:25:00.662Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→//! Diversity primitives for alpha and beta diversity computation.
+     2→
+     3→use crate::data::{CountMatrix, SampleMetadata};
+     4→use crate::diversity::{
+     5→    alpha_diversity_summary, AlphaDiversityResults, AlphaDiversitySummary, Anosim, BetaMetric,
+     6→    ComparisonConfig, DistanceMatrix, Permanova,
+     7→};
+     8→use crate::primitive::{slots, ExecutionContext};
+     9→use crate::Result;
+    10→use std::collections::HashMap;
+    11→
+    12→/// Alpha diversity primitive.
+    13→///
+    14→/// Computes within-sample diversity metrics for all samples in a count matrix.
+    15→///
+    16→/// # Parameters
+    17→///
+    18→/// - `metrics` (string, default &quot;all&quot;): Which metrics to compute
+    19→///   - &quot;all&quot; - compute all metrics
+    20→///   - &quot;shannon&quot; - Shannon entropy only
+    21→///   - &quot;simpson&quot; - Simpson diversity only
+    22→///   - &quot;observed&quot; - Observed richness only
+    23→///   - &quot;chao1&quot; - Chao1 estimator only
+    24→///
+    25→/// # Inputs
+    26→///
+    27→/// - `Counts`: Raw count matrix
+    28→///
+    29→/// # Outputs
+    30→///
+    31→/// - `AlphaDiversity`: Map of metric name to vector of values (one per sample)
+    32→#[bioforge_macros::primitive(
+    33→    name = &quot;alpha_diversity&quot;,
+    34→    category = Diversity,
+    35→    description = &quot;Compute within-sample (alpha) diversity metrics including Shannon, Simpson, Chao1, and observed richness.&quot;,
+    36→    spec = &quot;specs/alpha_diversity.toml&quot;
+    37→)]
+    38→pub struct AlphaDiversityPrimitive;
+    39→
+    40→impl AlphaDiversityPrimitive {
+    41→    fn execute_impl(&amp;self, ctx: &amp;mut ExecutionContext) -&gt; Result&lt;()&gt; {
+    42→        let counts = ctx
+    43→            .get_str::&lt;CountMatrix&gt;(slots::COUNTS)
+    44→            .ok_or_else(|| crate::BioforgeError::MissingData(&quot;counts&quot;.to_string()))?
+    45→            .clone();
+    46→
+    47→        let metrics_param: String = ctx.param_or(&quot;metrics&quot;, &quot;all&quot;.to_string());
+    48→
+    49→        let n_samples = counts.n_samples();
+    50→        let sample_ids: Vec&lt;String&gt; = counts
+    51→            .sample_ids()
+    52→            .iter()
+    53→            .map(|id| id.as_str().to_string())
+    54→            .collect();
+    55→        let dense = counts.to_dense();
+    56→
+    57→        // Compute alpha diversity for each sample
+    58→        let mut metrics: HashMap&lt;String, Vec&lt;f64&gt;&gt; = HashMap::new();
+    59→
+    60→        // Transpose counts (from features x samples to samples x features)
+    61→        let mut sample_counts: Vec&lt;Vec&lt;u64&gt;&gt; = vec![vec![0; counts.n_features()]; n_samples];
+    62→        for (i, row) in dense.iter().enumerate() {
+    63→            for (j, &amp;count) in row.iter().enumerate() {
+    64→                sample_counts[j][i] = count as u64;
+    65→            }
+    66→        }
+    67→
+    68→        // Compute summaries for each sample
+    69→        let summaries: Vec&lt;AlphaDiversitySummary&gt; = sample_counts
+    70→            .iter()
+    71→            .map(|sample| alpha_diversity_summary(sample))
+    72→            .collect();
+    73→
+    74→        // Extract requested metrics
+    75→        match metrics_param.as_str() {
+    76→            &quot;all&quot; =&gt; {
+    77→                metrics.insert(
+    78→                    &quot;observed&quot;.to_string(),
+    79→                    summaries.iter().map(|s| s.observed as f64).collect(),
+    80→                );
+    81→                metrics.insert(
+    82→                    &quot;shannon&quot;.to_string(),
+    83→                    summaries.iter().map(|s| s.shannon).collect(),
+    84→                );
+    85→                metrics.insert(
+    86→                    &quot;simpson&quot;.to_string(),
+    87→                    summaries.iter().map(|s| s.simpson).collect(),
+    88→                );
+    89→                metrics.insert(
+    90→                    &quot;chao1&quot;.to_string(),
+    91→                    summaries.iter().map(|s| s.chao1).collect(),
+    92→                );
+    93→                metrics.insert(
+    94→                    &quot;pielou&quot;.to_string(),
+    95→                    summaries.iter().map(|s| s.pielou).collect(),
+    96→                );
+    97→            }
+    98→            &quot;shannon&quot; =&gt; {
+    99→                metrics.insert(
+   100→                    &quot;shannon&quot;.to_string(),
+   101→                    summaries.iter().map(|s| s.shannon).collect(),
+   102→                );
+   103→            }
+   104→            &quot;simpson&quot; =&gt; {
+   105→                metrics.insert(
+   106→                    &quot;simpson&quot;.to_string(),
+   107→                    summaries.iter().map(|s| s.simpson).collect(),
+   108→                );
+   109→            }
+   110→            &quot;observed&quot; =&gt; {
+   111→                metrics.insert(
+   112→                    &quot;observed&quot;.to_string(),
+   113→                    summaries.iter().map(|s| s.observed as f64).collect(),
+   114→                );
+   115→            }
+   116→            &quot;chao1&quot; =&gt; {
+   117→                metrics.insert(
+   118→                    &quot;chao1&quot;.to_string(),
+   119→                    summaries.iter().map(|s| s.chao1).collect(),
+   120→                );
+   121→            }
+   122→            _ =&gt; {
+   123→                // Default to all
+   124→                metrics.insert(
+   125→                    &quot;shannon&quot;.to_string(),
+   126→                    summaries.iter().map(|s| s.shannon).collect(),
+   127→                );
+   128→            }
+   129→        }
+   130→
+   131→        let results = AlphaDiversityResults::new(sample_ids, metrics);
+   132→        let n_metrics_computed = results.n_metrics();
+   133→        ctx.set_str(slots::ALPHA_DIVERSITY, results);
+   134→
+   135→        ctx.provenance()
+   136→            .field(&quot;metrics&quot;, metrics_param)
+   137→            .field(&quot;n_samples&quot;, n_samples)
+   138→            .field(&quot;n_metrics_computed&quot;, n_metrics_computed)
+   139→            .record(&quot;alpha_diversity&quot;);
+   140→
+   141→        Ok(())
+   142→    }
+   143→}
+   144→
+   145→/// Beta diversity primitive.
+   146→///
+   147→/// Computes between-sample diversity as a distance matrix.
+   148→///
+   149→/// # Parameters
+   150→///
+   151→/// - `metric` (string, default &quot;bray_curtis&quot;): Distance metric
+   152→///   - &quot;bray_curtis&quot; - Bray-Curtis dissimilarity
+   153→///   - &quot;jaccard&quot; - Jaccard distance
+   154→///   - &quot;euclidean&quot; - Euclidean distance
+   155→///   - &quot;aitchison&quot; - Aitchison distance (CLR + Euclidean)
+   156→///
+   157→/// # Inputs
+   158→///
+   159→/// - `Counts`: Raw count matrix
+   160→///
+   161→/// # Outputs
+   162→///
+   163→/// - `BetaDiversity`: Pairwise distance matrix
+   164→/// - `DistanceMatrix`: Same as BetaDiversity (for ordination)
+   165→#[bioforge_macros::primitive(
+   166→    name = &quot;beta_diversity&quot;,
+   167→    category = Diversity,
+   168→    description = &quot;Compute between-sample (beta) diversity as a pairwise distance matrix. Supports Bray-Curtis, Jaccard, Euclidean, and Aitchison distances.&quot;,
+   169→    spec = &quot;specs/beta_diversity.toml&quot;
+   170→)]
+   171→pub struct BetaDiversityPrimitive;
+   172→
+   173→impl BetaDiversityPrimitive {
+   174→    fn execute_impl(&amp;self, ctx: &amp;mut ExecutionContext) -&gt; Result&lt;()&gt; {
+   175→        let counts = ctx
+   176→            .get_str::&lt;CountMatrix&gt;(slots::COUNTS)
+   177→            .ok_or_else(|| crate::BioforgeError::MissingData(&quot;counts&quot;.to_string()))?
+   178→            .clone();
+   179→
+   180→        let metric_str: String = ctx.param_or(&quot;metric&quot;, &quot;bray_curtis&quot;.to_string());
+   181→
+   182→        let metric = match metric_str.as_str() {
+   183→            &quot;bray_curtis&quot; =&gt; BetaMetric::BrayCurtis,
+   184→            &quot;jaccard&quot; =&gt; BetaMetric::Jaccard,
+   185→            &quot;euclidean&quot; =&gt; BetaMetric::Euclidean,
+   186→            &quot;aitchison&quot; =&gt; BetaMetric::Aitchison,
+   187→            &quot;manhattan&quot; =&gt; BetaMetric::Manhattan,
+   188→            _ =&gt; BetaMetric::BrayCurtis,
+   189→        };
+   190→
+   191→        let n_samples = counts.n_samples();
+   192→        let sample_ids = counts.sample_ids().to_vec();
+   193→        let dense = counts.to_dense();
+   194→
+   195→        // Transpose counts (from features x samples to samples x features)
+   196→        let mut sample_counts: Vec&lt;Vec&lt;u64&gt;&gt; = vec![vec![0; counts.n_features()]; n_samples];
+   197→        for (i, row) in dense.iter().enumerate() {
+   198→            for (j, &amp;count) in row.iter().enumerate() {
+   199→                sample_counts[j][i] = count as u64;
+   200→            }
+   201→        }
+   202→
+   203→        // Create distance matrix using from_counts
+   204→        let dist_matrix = DistanceMatrix::from_counts(&amp;sample_counts, &amp;sample_ids, metric)?;
+   205→
+   206→        ctx.set_str(slots::BETA_DIVERSITY, dist_matrix.clone());
+   207→        ctx.set_str(slots::DISTANCE_MATRIX, dist_matrix);
+   208→
+   209→        ctx.provenance()
+   210→            .field(&quot;metric&quot;, metric_str)
+   211→            .field(&quot;n_samples&quot;, n_samples)
+   212→            .record(&quot;beta_diversity&quot;);
+   213→
+   214→        Ok(())
+   215→    }
+   216→}
+   217→
+   218→/// PERMANOVA primitive (Permutational Multivariate Analysis of Variance).
+   219→///
+   220→/// Tests whether groups differ in multivariate space based on a distance matrix.
+   221→///
+   222→/// # Parameters
+   223→///
+   224→/// - `grouping_column` (string, required): Name of the metadata column containing group assignments
+   225→/// - `n_permutations` (integer, default 999): Number of permutations
+   226→/// - `seed` (integer, optional): Random seed for reproducibility
+   227→///
+   228→/// # Inputs
+   229→///
+   230→/// - `DistanceMatrix`: Pairwise distance matrix between samples
+   231→/// - `Metadata`: Sample metadata containing the grouping variable
+   232→///
+   233→/// # Outputs
+   234→///
+   235→/// - `PValues`: P-value from permutation test
+   236→/// - `TestStatistics`: F-statistic
+   237→#[bioforge_macros::primitive(
+   238→    name = &quot;permanova&quot;,
+   239→    category = Test,
+   240→    description = &quot;PERMANOVA: Test whether groups differ in multivariate space using permutation-based F-test on a distance matrix.&quot;,
+   241→    spec = &quot;specs/permanova.toml&quot;
+   242→)]
+   243→pub struct PermanovaPrimitive;
+   244→
+   245→impl PermanovaPrimitive {
+   246→    /// Implementation of the permanova primitive.
+   247→    fn execute_impl(&amp;self, ctx: &amp;mut ExecutionContext) -&gt; Result&lt;()&gt; {
+   248→        let dm = ctx
+   249→            .get_str::&lt;DistanceMatrix&gt;(slots::DISTANCE_MATRIX)
+   250→            .ok_or_else(|| crate::BioforgeError::MissingData(&quot;distance_matrix&quot;.to_string()))?
+   251→            .clone();
+   252→
+   253→        // Get grouping column name from params
+   254→        let grouping_column: String = ctx.param(&quot;grouping_column&quot;)
+   255→            .ok_or_else(|| crate::BioforgeError::InvalidParameter(&quot;grouping_column is required&quot;.to_string()))?;
+   256→
+   257→        // Extract groups from metadata
+   258→        let metadata = ctx
+   259→            .get_str::&lt;SampleMetadata&gt;(slots::METADATA)
+   260→            .ok_or_else(|| crate::BioforgeError::MissingData(&quot;metadata&quot;.to_string()))?;
+   261→
+   262→        let groups = metadata.extract_groups(&amp;grouping_column)?;
+   263→
+   264→        let n_permutations: i64 = ctx.param_or(&quot;n_permutations&quot;, 999);
+   265→        let seed_val: i64 = ctx.param_or(&quot;seed&quot;, -1);
+   266→        let seed: Option&lt;u64&gt; = if seed_val &gt;= 0 {
+   267→            Some(seed_val as u64)
+   268→        } else {
+   269→            None
+   270→        };
+   271→
+   272→        let config = ComparisonConfig::new()
+   273→            .n_permutations(n_permutations as usize)
+   274→            .seed_option(seed);
+   275→
+   276→        let result = Permanova::test(&amp;dm, &amp;groups, &amp;config)?;
+   277→
+   278→        // Store results - single p-value and F-statistic
+   279→        ctx.set_str(slots::P_VALUES, vec![result.p_value]);
+   280→        ctx.set_str(slots::TEST_STATISTICS, vec![result.f_statistic]);
+   281→
+   282→        // Record provenance using the fluent API
+   283→        ctx.provenance()
+   284→            .field(&quot;n_samples&quot;, result.n_samples)
+   285→            .field(&quot;n_groups&quot;, result.n_groups)
+   286→            .field(&quot;f_statistic&quot;, result.f_statistic)
+   287→            .field(&quot;p_value&quot;, result.p_value)
+   288→            .field(&quot;r_squared&quot;, result.r_squared)
+   289→            .field(&quot;n_permutations&quot;, result.n_permutations)
+   290→            .field(&quot;df_between&quot;, result.df_between)
+   291→            .field(&quot;df_within&quot;, result.df_within)
+   292→            .record(&quot;permanova&quot;);
+   293→
+   294→        Ok(())
+   295→    }
+   296→}
+   297→
+   298→/// ANOSIM primitive (Analysis of Similarities).
+   299→///
+   300→/// Tests whether within-group similarity is greater than between-group similarity.
+   301→///
+   302→/// # Parameters
+   303→///
+   304→/// - `grouping_column` (string, required): Name of the metadata column containing group assignments
+   305→/// - `n_permutations` (integer, default 999): Number of permutations
+   306→/// - `seed` (integer, optional): Random seed for reproducibility
+   307→///
+   308→/// # Inputs
+   309→///
+   310→/// - `DistanceMatrix`: Pairwise distance matrix between samples
+   311→/// - `Metadata`: Sample metadata containing the grouping variable
+   312→///
+   313→/// # Outputs
+   314→///
+   315→/// - `PValues`: P-value from permutation test
+   316→/// - `TestStatistics`: R statistic (-1 to 1)
+   317→#[bioforge_macros::primitive(
+   318→    name = &quot;anosim&quot;,
+   319→    category = Test,
+   320→    description = &quot;ANOSIM: Test whether within-group similarity exceeds between-group similarity using rank-based R statistic with permutation test.&quot;,
+   321→    spec = &quot;specs/anosim.toml&quot;
+   322→)]
+   323→pub struct AnosimPrimitive;
+   324→
+   325→impl AnosimPrimitive {
+   326→    fn execute_impl(&amp;self, ctx: &amp;mut ExecutionContext) -&gt; Result&lt;()&gt; {
+   327→        let dm = ctx
+   328→            .get_str::&lt;DistanceMatrix&gt;(slots::DISTANCE_MATRIX)
+   329→            .ok_or_else(|| crate::BioforgeError::MissingData(&quot;distance_matrix&quot;.to_string()))?
+   330→            .clone();
+   331→
+   332→        // Get grouping column name from params
+   333→        let grouping_column: String = ctx.param(&quot;grouping_column&quot;)
+   334→            .ok_or_else(|| crate::BioforgeError::InvalidParameter(&quot;grouping_column is required&quot;.to_string()))?;
+   335→
+   336→        // Extract groups from metadata
+   337→        let metadata = ctx
+   338→            .get_str::&lt;SampleMetadata&gt;(slots::METADATA)
+   339→            .ok_or_else(|| crate::BioforgeError::MissingData(&quot;metadata&quot;.to_string()))?;
+   340→
+   341→        let groups = metadata.extract_groups(&amp;grouping_column)?;
+   342→
+   343→        let n_permutations: i64 = ctx.param_or(&quot;n_permutations&quot;, 999);
+   344→        let seed_val: i64 = ctx.param_or(&quot;seed&quot;, -1);
+   345→        let seed: Option&lt;u64&gt; = if seed_val &gt;= 0 {
+   346→            Some(seed_val as u64)
+   347→        } else {
+   348→            None
+   349→        };
+   350→
+   351→        let config = ComparisonConfig::new()
+   352→            .n_permutations(n_permutations as usize)
+   353→            .seed_option(seed);
+   354→
+   355→        let result = Anosim::test(&amp;dm, &amp;groups, &amp;config)?;
+   356→
+   357→        // Store results - single p-value and R statistic
+   358→        ctx.set_str(slots::P_VALUES, vec![result.p_value]);
+   359→        ctx.set_str(slots::TEST_STATISTICS, vec![result.r_statistic]);
+   360→
+   361→        ctx.provenance()
+   362→            .field(&quot;n_samples&quot;, result.n_samples)
+   363→            .field(&quot;n_groups&quot;, result.n_groups)
+   364→            .field(&quot;r_statistic&quot;, result.r_statistic)
+   365→            .field(&quot;p_value&quot;, result.p_value)
+   366→            .field(&quot;n_permutations&quot;, result.n_permutations)
+   367→            .field(&quot;interpretation&quot;, result.interpret_r())
+   368→            .field(&quot;mean_rank_within&quot;, result.mean_rank_within)
+   369→            .field(&quot;mean_rank_between&quot;, result.mean_rank_between)
+   370→            .record(&quot;anosim&quot;);
+   371→
+   372→        Ok(())
+   373→    }
+   374→}
+   375→
+   376→#[cfg(test)]
+   377→mod tests {
+   378→    use super::*;
+   379→    use crate::data::{FeatureId, SampleId};
+   380→    use crate::primitive::{slots, Category, ParamValue, Primitive};
+   381→
+   382→    fn create_test_matrix() -&gt; CountMatrix {
+   383→        // Create a matrix with varying counts for diversity testing
+   384→        let counts: Vec&lt;Vec&lt;i64&gt;&gt; = vec![
+   385→            vec![100, 120, 110, 50, 80, 20],  // gene_1: abundant
+   386→            vec![50, 45, 55, 48, 52, 50],     // gene_2: even
+   387→            vec![200, 210, 195, 0, 0, 0],     // gene_3: present in half
+   388→            vec![0, 0, 0, 150, 140, 160],     // gene_4: present in other half
+   389→            vec![10, 8, 12, 15, 11, 9],       // gene_5: low abundance
+   390→            vec![5, 3, 7, 2, 4, 6],           // gene_6: rare
+   391→        ];
+   392→
+   393→        let feature_ids: Vec&lt;FeatureId&gt; = (1..=6)
+   394→            .map(|i| FeatureId::new(format!(&quot;gene_{}&quot;, i)))
+   395→            .collect();
+   396→
+   397→        let sample_ids: Vec&lt;SampleId&gt; = vec![&quot;s1&quot;, &quot;s2&quot;, &quot;s3&quot;, &quot;s4&quot;, &quot;s5&quot;, &quot;s6&quot;]
+   398→            .into_iter()
+   399→            .map(SampleId::new)
+   400→            .collect();
+   401→
+   402→        CountMatrix::from_dense(&amp;counts, feature_ids, sample_ids).unwrap()
+   403→    }
+   404→
+   405→    #[test]
+   406→    fn test_alpha_diversity_primitive() {
+   407→        let primitive = AlphaDiversityPrimitive;
+   408→        assert_eq!(primitive.name(), &quot;alpha_diversity&quot;);
+   409→        assert_eq!(primitive.category(), Category::Diversity);
+   410→
+   411→        let counts = create_test_matrix();
+   412→        let mut ctx = ExecutionContext::new();
+   413→        ctx.set_str(slots::COUNTS, counts.clone());
+   414→        ctx.set_feature_ids(counts.feature_ids().to_vec());
+   415→        ctx.set_sample_ids(counts.sample_ids().to_vec());
+   416→
+   417→        let result = primitive.execute(&amp;mut ctx);
+   418→        assert!(result.is_ok(), &quot;Alpha diversity failed: {:?}&quot;, result);
+   419→
+   420→        let alpha = ctx
+   421→            .get_str::&lt;AlphaDiversityResults&gt;(slots::ALPHA_DIVERSITY)
+   422→            .unwrap();
+   423→        assert!(alpha.get_metric(&quot;shannon&quot;).is_some());
+   424→        assert!(alpha.get_metric(&quot;simpson&quot;).is_some());
+   425→        assert_eq!(alpha.get_metric(&quot;shannon&quot;).unwrap().len(), 6); // 6 samples
+   426→        assert_eq!(alpha.n_samples(), 6);
+   427→    }
+   428→
+   429→    #[test]
+   430→    fn test_alpha_diversity_specific_metric() {
+   431→        let primitive = AlphaDiversityPrimitive;
+   432→        let counts = create_test_matrix();
+   433→
+   434→        let mut ctx = ExecutionContext::new();
+   435→        ctx.set_str(slots::COUNTS, counts.clone());
+   436→        ctx.set_feature_ids(counts.feature_ids().to_vec());
+   437→        ctx.set_sample_ids(counts.sample_ids().to_vec());
+   438→        ctx.set_param(&quot;metrics&quot;, ParamValue::String(&quot;shannon&quot;.to_string()));
+   439→
+   440→        let result = primitive.execute(&amp;mut ctx);
+   441→        assert!(result.is_ok());
+   442→
+   443→        let alpha = ctx
+   444→            .get_str::&lt;AlphaDiversityResults&gt;(slots::ALPHA_DIVERSITY)
+   445→            .unwrap();
+   446→        assert!(alpha.get_metric(&quot;shannon&quot;).is_some());
+   447→        assert_eq!(alpha.n_metrics(), 1); // Only shannon
+   448→    }
+   449→
+   450→    #[test]
+   451→    fn test_beta_diversity_primitive() {
+   452→        let primitive = BetaDiversityPrimitive;
+   453→        assert_eq!(primitive.name(), &quot;beta_diversity&quot;);
+   454→        assert_eq!(primitive.category(), Category::Diversity);
+   455→
+   456→        let counts = create_test_matrix();
+   457→        let mut ctx = ExecutionContext::new();
+   458→        ctx.set_str(slots::COUNTS, counts.clone());
+   459→        ctx.set_feature_ids(counts.feature_ids().to_vec());
+   460→        ctx.set_sample_ids(counts.sample_ids().to_vec());
+   461→
+   462→        let result = primitive.execute(&amp;mut ctx);
+   463→        assert!(result.is_ok(), &quot;Beta diversity failed: {:?}&quot;, result);
+   464→
+   465→        let dist = ctx.get_str::&lt;DistanceMatrix&gt;(slots::DISTANCE_MATRIX).unwrap();
+   466→        assert_eq!(dist.n_samples(), 6);
+   467→
+   468→        // Diagonal should be zero
+   469→        for i in 0..6 {
+   470→            assert!((dist.get(i, i).unwrap() - 0.0).abs() &lt; 1e-10);
+   471→        }
+   472→
+   473→        // Off-diagonal should be positive
+   474→        assert!(dist.get(0, 1).unwrap() &gt;= 0.0);
+   475→    }
+   476→
+   477→    #[test]
+   478→    fn test_beta_diversity_jaccard() {
+   479→        let primitive = BetaDiversityPrimitive;
+   480→        let counts = create_test_matrix();
+   481→
+   482→        let mut ctx = ExecutionContext::new();
+   483→        ctx.set_str(slots::COUNTS, counts.clone());
+   484→        ctx.set_feature_ids(counts.feature_ids().to_vec());
+   485→        ctx.set_sample_ids(counts.sample_ids().to_vec());
+   486→        ctx.set_param(&quot;metric&quot;, ParamValue::String(&quot;jaccard&quot;.to_string()));
+   487→
+   488→        let result = primitive.execute(&amp;mut ctx);
+   489→        assert!(result.is_ok());
+   490→
+   491→        let dist = ctx.get_str::&lt;DistanceMatrix&gt;(slots::DISTANCE_MATRIX).unwrap();
+   492→        // Jaccard is bounded [0, 1]
+   493→        for i in 0..6 {
+   494→            for j in 0..6 {
+   495→                let d = dist.get(i, j).unwrap();
+   496→                assert!(d &gt;= 0.0 &amp;&amp; d &lt;= 1.0);
+   497→            }
+   498→        }
+   499→    }
+   500→
+   501→    #[test]
+   502→    fn test_permanova_primitive() {
+   503→        use crate::data::{SampleMetadata, Variable};
+   504→
+   505→        let primitive = PermanovaPrimitive;
+   506→        assert_eq!(primitive.name(), &quot;permanova&quot;);
+   507→        assert_eq!(primitive.category(), Category::Test);
+   508→
+   509→        // First compute beta diversity to get distance matrix
+   510→        let counts = create_test_matrix();
+   511→        let mut ctx = ExecutionContext::new();
+   512→        ctx.set_str(slots::COUNTS, counts.clone());
+   513→        ctx.set_feature_ids(counts.feature_ids().to_vec());
+   514→        ctx.set_sample_ids(counts.sample_ids().to_vec());
+   515→
+   516→        let beta = BetaDiversityPrimitive;
+   517→        beta.execute(&amp;mut ctx).unwrap();
+   518→
+   519→        // Create metadata with group assignments (first 3 vs last 3)
+   520→        let sample_ids = counts.sample_ids().to_vec();
+   521→        let mut metadata = SampleMetadata::new(sample_ids).unwrap();
+   522→        let group_var = Variable::categorical(
+   523→            &quot;group&quot;,
+   524→            &amp;[Some(&quot;A&quot;), Some(&quot;A&quot;), Some(&quot;A&quot;), Some(&quot;B&quot;), Some(&quot;B&quot;), Some(&quot;B&quot;)],
+   525→        );
+   526→        metadata.add_variable(group_var).unwrap();
+   527→
+   528→        ctx.set_str(slots::METADATA, metadata);
+   529→        ctx.set_param(&quot;grouping_column&quot;, ParamValue::String(&quot;group&quot;.to_string()));
+   530→        ctx.set_param(&quot;n_permutations&quot;, ParamValue::Integer(99));
+   531→        ctx.set_param(&quot;seed&quot;, ParamValue::Integer(42));
+   532→
+   533→        let result = primitive.execute(&amp;mut ctx);
+   534→        assert!(result.is_ok(), &quot;PERMANOVA failed: {:?}&quot;, result);
+   535→
+   536→        // Check outputs
+   537→        let p_values = ctx.get_str::&lt;Vec&lt;f64&gt;&gt;(slots::P_VALUES).unwrap();
+   538→        assert_eq!(p_values.len(), 1);
+   539→        assert!(p_values[0] &gt;= 0.0 &amp;&amp; p_values[0] &lt;= 1.0);
+   540→
+   541→        let test_stats = ctx.get_str::&lt;Vec&lt;f64&gt;&gt;(slots::TEST_STATISTICS).unwrap();
+   542→        assert_eq!(test_stats.len(), 1);
+   543→        assert!(test_stats[0] &gt;= 0.0); // F-statistic is non-negative
+   544→    }
+   545→
+   546→    #[test]
+   547→    fn test_anosim_primitive() {
+   548→        use crate::data::{SampleMetadata, Variable};
+   549→
+   550→        let primitive = AnosimPrimitive;
+   551→        assert_eq!(primitive.name(), &quot;anosim&quot;);
+   552→        assert_eq!(primitive.category(), Category::Test);
+   553→
+   554→        // First compute beta diversity to get distance matrix
+   555→        let counts = create_test_matrix();
+   556→        let mut ctx = ExecutionContext::new();
+   557→        ctx.set_str(slots::COUNTS, counts.clone());
+   558→        ctx.set_feature_ids(counts.feature_ids().to_vec());
+   559→        ctx.set_sample_ids(counts.sample_ids().to_vec());
+   560→
+   561→        let beta = BetaDiversityPrimitive;
+   562→        beta.execute(&amp;mut ctx).unwrap();
+   563→
+   564→        // Create metadata with group assignments (first 3 vs last 3)
+   565→        let sample_ids = counts.sample_ids().to_vec();
+   566→        let mut metadata = SampleMetadata::new(sample_ids).unwrap();
+   567→        let group_var = Variable::categorical(
+   568→            &quot;group&quot;,
+   569→            &amp;[Some(&quot;A&quot;), Some(&quot;A&quot;), Some(&quot;A&quot;), Some(&quot;B&quot;), Some(&quot;B&quot;), Some(&quot;B&quot;)],
+   570→        );
+   571→        metadata.add_variable(group_var).unwrap();
+   572→
+   573→        ctx.set_str(slots::METADATA, metadata);
+   574→        ctx.set_param(&quot;grouping_column&quot;, ParamValue::String(&quot;group&quot;.to_string()));
+   575→        ctx.set_param(&quot;n_permutations&quot;, ParamValue::Integer(99));
+   576→        ctx.set_param(&quot;seed&quot;, ParamValue::Integer(42));
+   577→
+   578→        let result = primitive.execute(&amp;mut ctx);
+   579→        assert!(result.is_ok(), &quot;ANOSIM failed: {:?}&quot;, result);
+   580→
+   581→        // Check outputs
+   582→        let p_values = ctx.get_str::&lt;Vec&lt;f64&gt;&gt;(slots::P_VALUES).unwrap();
+   583→        assert_eq!(p_values.len(), 1);
+   584→        assert!(p_values[0] &gt;= 0.0 &amp;&amp; p_values[0] &lt;= 1.0);
+   585→
+   586→        let test_stats = ctx.get_str::&lt;Vec&lt;f64&gt;&gt;(slots::TEST_STATISTICS).unwrap();
+   587→        assert_eq!(test_stats.len(), 1);
+   588→        // R statistic is bounded [-1, 1]
+   589→        assert!(test_stats[0] &gt;= -1.0 &amp;&amp; test_stats[0] &lt;= 1.0);
+   590→    }
+   591→
+   592→    #[test]
+   593→    fn test_permanova_detects_group_difference() {
+   594→        use crate::data::{SampleMetadata, Variable};
+   595→
+   596→        // Use the test matrix which has clear group structure
+   597→        // (gene_3 present only in first 3, gene_4 only in last 3)
+   598→        let counts = create_test_matrix();
+   599→        let mut ctx = ExecutionContext::new();
+   600→        ctx.set_str(slots::COUNTS, counts.clone());
+   601→        ctx.set_feature_ids(counts.feature_ids().to_vec());
+   602→        ctx.set_sample_ids(counts.sample_ids().to_vec());
+   603→
+   604→        let beta = BetaDiversityPrimitive;
+   605→        beta.execute(&amp;mut ctx).unwrap();
+   606→
+   607→        // Create metadata with group assignments (first 3 vs last 3)
+   608→        let sample_ids = counts.sample_ids().to_vec();
+   609→        let mut metadata = SampleMetadata::new(sample_ids).unwrap();
+   610→        let group_var = Variable::categorical(
+   611→            &quot;group&quot;,
+   612→            &amp;[Some(&quot;A&quot;), Some(&quot;A&quot;), Some(&quot;A&quot;), Some(&quot;B&quot;), Some(&quot;B&quot;), Some(&quot;B&quot;)],
+   613→        );
+   614→        metadata.add_variable(group_var).unwrap();
+   615→
+   616→        ctx.set_str(slots::METADATA, metadata);
+   617→        ctx.set_param(&quot;grouping_column&quot;, ParamValue::String(&quot;group&quot;.to_string()));
+   618→        ctx.set_param(&quot;n_permutations&quot;, ParamValue::Integer(999));
+   619→        ctx.set_param(&quot;seed&quot;, ParamValue::Integer(42));
+   620→
+   621→        let primitive = PermanovaPrimitive;
+   622→        primitive.execute(&amp;mut ctx).unwrap();
+   623→
+   624→        let test_stats = ctx.get_str::&lt;Vec&lt;f64&gt;&gt;(slots::TEST_STATISTICS).unwrap();
+   625→        // F-statistic should be high due to clear group separation
+   626→        assert!(test_stats[0] &gt; 1.0, &quot;F-statistic should indicate group difference&quot;);
+   627→    }
+   628→}
+   629→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-25-06-310Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-25-06-310Z" class="timestamp-link"><time datetime="2025-12-21T21:25:06.310Z" data-timestamp="2025-12-21T21:25:06.310Z">2025-12-21T21:25:06.310Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I can see that the <code>beta_diversity</code> primitive already supports Aitchison distance - it's right there at line 156 in the documentation and line 186 in the implementation:</p>
+<pre><code class="language-rust">&quot;aitchison&quot; =&gt; BetaMetric::Aitchison,
+</code></pre>
+<p>The Aitchison distance function itself is already implemented in <code>beta.rs</code> at lines 170-206.</p>
+<p>So the user doesn't need a new primitive - they can just use <code>beta_diversity</code> with <code>metric: aitchison</code>. Let me show them how to use it with their data.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-25-10-741Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-25-10-741Z" class="timestamp-link"><time datetime="2025-12-21T21:25:10.741Z" data-timestamp="2025-12-21T21:25:10.741Z">2025-12-21T21:25:10.741Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Aitchison distance is already available in BioStack. The <code>beta_diversity</code> primitive supports it via the <code>metric: aitchison</code> parameter (see <code>diversity.rs:155-156</code> and <code>diversity.rs:186</code>).</p>
+<p>The underlying implementation is in <code>bioforge/src/diversity/beta.rs:184-206</code> - it applies CLR transformation then calculates Euclidean distance, which is the correct Aitchison distance formula.</p>
+<p>To calculate Aitchison distances for your samples, create this command:</p>
+<pre><code class="language-yaml"># .biostack/commands/pending/aitchison.yaml
+primitive: beta_diversity
+params:
+  metric: aitchison
+inputs:
+  counts: counts.csv
+</code></pre>
+<p>Let me create that for you.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-25-12-080Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-25-12-080Z" class="timestamp-link"><time datetime="2025-12-21T21:25:12.080Z" data-timestamp="2025-12-21T21:25:12.080Z">2025-12-21T21:25:12.080Z</time></a></div><div class="message-content"><div class="file-tool write-tool" data-tool-id="toolu_01KJYZV4LaCRgYMmqMuyoRno">
+<div class="file-tool-header write-header"><span class="file-tool-icon">📝</span> Write <span class="file-tool-path">aitchison.yaml</span></div>
+<div class="file-tool-fullpath">/Users/scotthandley/Code/biostack/.biostack/commands/pending/aitchison.yaml</div>
+<div class="truncatable"><div class="truncatable-content"><pre class="file-content">primitive: beta_diversity
+params:
+  metric: aitchison
+inputs:
+  counts: counts.csv
+</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2025-12-21T21-25-12-436Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-21T21-25-12-436Z" class="timestamp-link"><time datetime="2025-12-21T21:25:12.436Z" data-timestamp="2025-12-21T21:25:12.436Z">2025-12-21T21:25:12.436Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>File created successfully at: /Users/scotthandley/Code/biostack/.biostack/commands/pending/aitchison.yaml</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-25-15-924Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-25-15-924Z" class="timestamp-link"><time datetime="2025-12-21T21:25:15.924Z" data-timestamp="2025-12-21T21:25:15.924Z">2025-12-21T21:25:15.924Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The daemon processed the command and created the distance matrix. I should report this to the user and suggest next steps.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-21T21-25-20-766Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-21T21-25-20-766Z" class="timestamp-link"><time datetime="2025-12-21T21:25:20.766Z" data-timestamp="2025-12-21T21:25:20.766Z">2025-12-21T21:25:20.766Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done. The Aitchison distance matrix has been computed and saved to <code>.biostack/data/distance_matrix.csv</code>.</p>
+<p><strong>Aitchison distance</strong> is ideal for compositional microbiome data - it applies CLR (centered log-ratio) transformation to handle the constant-sum constraint, then calculates Euclidean distance in the transformed space.</p>
+<p><strong>Suggested next steps:</strong></p>
+<ol>
+<li>
+<p><strong>PERMANOVA</strong> - Test if sample groups differ significantly:
+   <code>yaml
+   primitive: permanova
+   params:
+     grouping_column: &lt;your_group_column&gt;
+     n_permutations: 999
+   inputs:
+     distance_matrix: distance_matrix.csv
+     metadata: metadata.csv</code></p>
+</li>
+<li>
+<p><strong>PCoA</strong> - Visualize samples in reduced dimensions:
+   <code>yaml
+   primitive: pcoa
+   inputs:
+     distance_matrix: distance_matrix.csv</code></p>
+</li>
+<li>
+<p><strong>ANOSIM</strong> - Alternative test comparing within vs between-group similarity</p>
+</li>
+</ol>
+<p>Would you like me to run any of these analyses?</p></div></div></div>
+        
+
+<div class="pagination"><a href="index.html" class="index-link">Index</a></div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

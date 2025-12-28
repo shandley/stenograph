@@ -1,0 +1,3236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 1</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+<link rel="stylesheet" href="../../steno-transcript.css">
+</head>
+<body>
+<button class="theme-toggle" onclick="document.body.classList.toggle('dark')" style="position:fixed;top:1rem;right:1rem;z-index:1000;padding:0.5rem 1rem;border:1px solid #ddd;border-radius:0.5rem;background:#fff;cursor:pointer;font-size:0.875rem;">Toggle Dark Mode</button>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 1/1</h1>
+        
+
+<div class="pagination"><a href="index.html" class="index-link">Index</a></div>
+
+        
+<div class="message user" id="msg-2025-12-28T17-06-21-869Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-28T17-06-21-869Z" class="timestamp-link"><time datetime="2025-12-28T17:06:21.869Z" data-timestamp="2025-12-28T17:06:21.869Z">2025-12-28T17:06:21.869Z</time></a></div><div class="message-content">
+<div class="user-content"><p>steno:transcript +generate</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-06-27-212Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-06-27-212Z" class="timestamp-link"><time datetime="2025-12-28T17:06:27.212Z" data-timestamp="2025-12-28T17:06:27.212Z">2025-12-28T17:06:27.212Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user is invoking the steno skill with the command <code>steno:transcript +generate</code>. I need to use the Skill tool to execute this.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-06-27-668Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-06-27-668Z" class="timestamp-link"><time datetime="2025-12-28T17:06:27.668Z" data-timestamp="2025-12-28T17:06:27.668Z">2025-12-28T17:06:27.668Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_017zQSfRcFRug9MjyVLXxjva"><div class="tool-header"><span class="tool-icon">⚙</span> Skill</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;skill&#34;: &#34;steno&#34;,
+  &#34;args&#34;: &#34;steno:transcript +generate&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-28T17-06-27-778Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-28T17-06-27-778Z" class="timestamp-link"><time datetime="2025-12-28T17:06:27.778Z" data-timestamp="2025-12-28T17:06:27.778Z">2025-12-28T17:06:27.778Z</time></a></div><div class="message-content"><div class="tool-result tool-error"><div class="truncatable"><div class="truncatable-content"><pre>Bash command failed for pattern &quot;!`):
+   - Remove node and all dependents
+   - Delete created files
+   - Revert modified files (if backup exists)
+
+**File handling:**
+
+For hard undo, steno needs file backups. When a command modifies a file:
+- Before: Save `&quot;: [stderr]
+(eval):1: parse error near `)&#x27;</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-06-34-036Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-06-34-036Z" class="timestamp-link"><time datetime="2025-12-28T17:06:34.036Z" data-timestamp="2025-12-28T17:06:34.036Z">2025-12-28T17:06:34.036Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The skill execution failed due to a parsing error. Let me read the skill file to understand what the transcript command should do, and then execute it manually.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-06-34-543Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-06-34-543Z" class="timestamp-link"><time datetime="2025-12-28T17:06:34.543Z" data-timestamp="2025-12-28T17:06:34.543Z">2025-12-28T17:06:34.543Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Let me read the skill file to understand the transcript command and execute it properly:</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-06-34-908Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-06-34-908Z" class="timestamp-link"><time datetime="2025-12-28T17:06:34.908Z" data-timestamp="2025-12-28T17:06:34.908Z">2025-12-28T17:06:34.908Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01TfhWHc9uGsmwTXvdoFxsgk"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/scotthandley/Code/steno-graph/.claude/skills/steno/SKILL.md&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-28T17-06-35-123Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-28T17-06-35-123Z" class="timestamp-link"><time datetime="2025-12-28T17:06:35.123Z" data-timestamp="2025-12-28T17:06:35.123Z">2025-12-28T17:06:35.123Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→---
+     2→name: steno
+     3→description: Execute stenographic shorthand commands for efficient coding. Triggers on verb-colon-target patterns (dx, mk, ch, viz, stat, fork, switch, compare, merge, abandon) and steno-colon commands for session management. Branching commands (fork, switch, compare, merge, abandon) operate on .steno/graph.json, NOT git.
+     4→---
+     5→
+     6→# Steno: Stenographic Command Interface
+     7→
+     8→You understand and execute stenographic shorthand for efficient coding and data analysis.
+     9→
+    10→## Recognition
+    11→
+    12→Execute steno commands when you see this pattern:
+    13→```
+    14→[mode][verb]:[target] [@refs] [+additions] [-exclusions] [.flags] [precision]
+    15→```
+    16→
+    17→**Trigger patterns:**
+    18→- verb:target - like dx:@file.csv or mk:api
+    19→- verb:type @file - like viz:pca @data.csv
+    20→- ?mode topic - like ?plan architecture
+    21→- Commands with precision markers: ~deep ~ ! ?
+    22→- steno:command - session management
+    23→- fork:name - create branch
+    24→- switch:name - switch branch
+    25→- compare:branch-a branch-b - compare branches
+    26→- merge:branch - adopt branch into current
+    27→- abandon:branch - discard branch
+    28→
+    29→## Core Verbs
+    30→
+    31→| Verb | Meaning | Action |
+    32→|------|---------|--------|
+    33→| `dx` | Diagnose/explore | Read, analyze, summarize |
+    34→| `mk` | Make/create | Create new file, component, feature |
+    35→| `ch` | Change/modify | Edit existing code |
+    36→| `rm` | Remove/delete | Delete code, files, features |
+    37→| `fnd` | Find/search | Search codebase |
+    38→| `viz` | Visualize | Generate visualization or analysis |
+    39→| `stat` | Statistics | Run statistical test or analysis |
+    40→| `ts` | Test | Run or create tests |
+    41→| `doc` | Document | Generate documentation |
+    42→
+    43→## Branching Verbs
+    44→
+    45→| Verb | Meaning | Action |
+    46→|------|---------|--------|
+    47→| `fork` | Create branch | fork:name - create new branch from current node |
+    48→| `switch` | Switch branch | switch:name - switch to existing branch |
+    49→| `compare` | Compare branches | compare:a b - show differences between branches |
+    50→| `merge` | Merge branch | merge:name - adopt branch work into current branch |
+    51→| `abandon` | Abandon branch | abandon:name - discard branch without merging |
+    52→
+    53→These are NOT git commands. They operate on the steno graph in .steno/graph.json.
+    54→
+    55→## Modifiers
+    56→
+    57→| Syntax | Meaning | Example |
+    58→|--------|---------|---------|
+    59→| `@file.ext` | File reference | `dx:@data.csv` |
+    60→| `@name` | Named reference or bookmark | `ch:@auth-module` |
+    61→| `@branch:ref` | Cross-branch reference | `viz:diff @deseq2:^ @ancombc:^` |
+    62→| `+feature` | Add/include | `mk:api +auth +cache` |
+    63→| `-thing` | Exclude/without | `ch:@config -logging` |
+    64→| `.flag` | Apply flag | `.ts` (TypeScript), `.dry` (dry run) |
+    65→| `.flag:value` | Flag with qualifier | .plot:png or .ts:edge |
+    66→
+    67→## Precision Markers
+    68→
+    69→| Marker | Meaning | Your behavior |
+    70→|--------|---------|---------------|
+    71→| ~ | Flexible | Use your judgment |
+    72→| ! | Exact/literal | Do exactly what&#x27;s specified |
+    73→| ? | Clarify | Ask before acting |
+    74→| ~deep | Extended thinking | Think deeply, consider alternatives |
+    75→
+    76→## Modes (prefix with ?)
+    77→
+    78→| Mode | Meaning | Your behavior |
+    79→|------|---------|---------------|
+    80→| ?plan | Planning | Outline approach before executing |
+    81→| ?sketch | Sketch | Create rough implementation for review |
+    82→| ?challenge | Challenge | Critique, find issues, push back |
+    83→| ?explore | Explore | Investigate options, think aloud |
+    84→
+    85→---
+    86→
+    87→## Session Tracking
+    88→
+    89→Steno tracks commands in `.steno/` for cross-session memory and stale detection.
+    90→
+    91→### On Session Start
+    92→
+    93→When you first see a steno command in a session:
+    94→
+    95→1. Check if `.steno/graph.json` exists
+    96→2. If yes, briefly note the last session:
+    97→   ```
+    98→   &gt; Previous session (Dec 26, 3 commands)
+    99→   &gt; Last: viz:pca @normalized.csv
+   100→   ```
+   101→3. Check for stale outputs (files that changed since commands ran)
+   102→
+   103→### After Each Command
+   104→
+   105→After executing a steno command, log it to `.steno/current-session.json`:
+   106→
+   107→1. Read the file (create if missing, with empty `nodes` array)
+   108→2. Determine the next node ID from the file or start at `n_001`
+   109→3. Append a node:
+   110→   ```json
+   111→   {
+   112→     &quot;id&quot;: &quot;n_001&quot;,
+   113→     &quot;timestamp&quot;: &quot;2024-12-27T14:30:22Z&quot;,
+   114→     &quot;raw&quot;: &quot;dx:@samples.csv&quot;,
+   115→     &quot;status&quot;: &quot;complete&quot;,
+   116→     &quot;inputs&quot;: [&quot;samples.csv&quot;],
+   117→     &quot;outputs&quot;: [],
+   118→     &quot;summary&quot;: &quot;18 samples, 5 genes, 2 conditions&quot;
+   119→   }
+   120→   ```
+   121→4. Write back to the file
+   122→
+   123→### Node Structure
+   124→
+   125→```json
+   126→{
+   127→  &quot;id&quot;: &quot;n_001&quot;,
+   128→  &quot;timestamp&quot;: &quot;ISO timestamp&quot;,
+   129→  &quot;raw&quot;: &quot;the original command&quot;,
+   130→  &quot;status&quot;: &quot;complete|failed&quot;,
+   131→  &quot;inputs&quot;: [&quot;files read&quot;],
+   132→  &quot;outputs&quot;: [&quot;files created or modified&quot;],
+   133→  &quot;summary&quot;: &quot;brief description of result&quot;
+   134→}
+   135→```
+   136→
+   137→### Tracking Inputs/Outputs
+   138→
+   139→- **Inputs**: Files explicitly referenced (`@file`) plus any files you read
+   140→- **Outputs**: Files you create or modify
+   141→- **Summary**: One-line description of the result
+   142→
+   143→---
+   144→
+   145→## Reference Resolution
+   146→
+   147→### The `^` Reference (Previous Output)
+   148→
+   149→When you see `^` in a command:
+   150→
+   151→1. Read `.steno/current-session.json`
+   152→2. Find the last node
+   153→3. Use its outputs as input for this command
+   154→
+   155→Example:
+   156→```
+   157→dx:@samples.csv           # outputs: analyzed samples.csv
+   158→ch:^ +normalize           # ^ = samples.csv from previous
+   159→viz:pca ^                 # ^ = normalized output from previous
+   160→```
+   161→
+   162→If the previous node has no outputs, use its inputs.
+   163→
+   164→### The `@name` Reference (Bookmark)
+   165→
+   166→When you see `@name` that isn&#x27;t a file path:
+   167→
+   168→1. Check if it&#x27;s a file that exists - if so, use the file
+   169→2. Otherwise, check `.steno/graph.json` bookmarks
+   170→3. If found, resolve to that node&#x27;s outputs
+   171→
+   172→Example:
+   173→```
+   174→stat:ttest @baseline-pca @new-samples
+   175→# @baseline-pca resolves to outputs of bookmarked node
+   176→# @new-samples is a file reference
+   177→```
+   178→
+   179→### Cross-Branch References (`@branch:ref`)
+   180→
+   181→Reference outputs from other branches without switching:
+   182→
+   183→| Syntax | Meaning |
+   184→|--------|---------|
+   185→| `@branch:^` | Last output from branch |
+   186→| `@branch:n_001` | Specific node from branch |
+   187→| `@branch:-1` | Last node (same as ^) |
+   188→| `@branch:-2` | Second-to-last node |
+   189→
+   190→**Examples:**
+   191→
+   192→```
+   193→# Compare results from two method branches
+   194→stat:compare @deseq2:^ @ancombc:^
+   195→
+   196→# Use output from experiment branch on main
+   197→switch:main
+   198→viz:pca @experiment:n_004
+   199→
+   200→# Reference specific node from another branch
+   201→ch:@caching:n_003 +redis
+   202→```
+   203→
+   204→**Resolution process:**
+   205→
+   206→1. Parse `@branch:ref` format (colon separates branch from reference)
+   207→2. Look up branch in `.steno/graph.json`
+   208→3. Resolve the reference within that branch:
+   209→   - `^` or `-1`: Last node on that branch
+   210→   - `-N`: Nth from last on that branch
+   211→   - `n_XXX`: Specific node ID
+   212→4. Return that node&#x27;s outputs (or inputs if no outputs)
+   213→
+   214→**Distinguishing from files:**
+   215→
+   216→The parser checks in order:
+   217→1. Does `@path` exist as a file? → Use file
+   218→2. Does `@name` contain `:` with valid branch? → Cross-branch ref
+   219→3. Is `@name` a bookmark? → Bookmark ref
+   220→4. Error: reference not found
+   221→
+   222→Example disambiguation:
+   223→```
+   224→@data:clean.csv      # File &quot;data:clean.csv&quot; if exists, else branch &quot;data&quot; node &quot;clean.csv&quot;
+   225→@experiment:^        # Branch &quot;experiment&quot;, last node
+   226→@deseq2:n_018        # Branch &quot;deseq2&quot;, node n_018
+   227→```
+   228→
+   229→---
+   230→
+   231→## Session Commands
+   232→
+   233→### steno:help
+   234→
+   235→Show quick reference for steno commands.
+   236→
+   237→```
+   238→&gt; steno:help
+   239→
+   240→VERBS: dx mk ch rm fnd viz stat ts doc
+   241→REFS:  @file.csv  ^  @bookmark  @branch:^
+   242→MODS:  +add  -exclude  .flag  .flag:value
+   243→PREC:  ~flexible  !exact  ?clarify  ~deep
+   244→
+   245→SESSION:
+   246→  steno:history   - command history
+   247→  steno:stale     - check for stale outputs
+   248→  steno:refresh   - re-run stale commands
+   249→  steno:bookmark  - save reference
+   250→  steno:graph     - show workflow tree
+   251→  steno:undo      - undo last command (! for hard)
+   252→  steno:redo      - restore undone command
+   253→  steno:export    - export workflow (.md .json .sh)
+   254→  steno:import    - import workflow (! to confirm)
+   255→  steno:reset     - clear all state (requires !)
+   256→
+   257→POWER:
+   258→  steno:alias     - create/list/remove aliases (supports {params})
+   259→  steno:search    - search command history
+   260→  steno:replay    - re-run command sequences
+   261→  steno:template  - reusable command workflows
+   262→  steno:diff      - compare nodes/branches/bookmarks
+   263→  steno:transcript - generate/link conversation transcripts
+   264→```
+   265→
+   266→### steno:history
+   267→
+   268→Show command history across sessions.
+   269→
+   270→```
+   271→&gt; steno:history
+   272→
+   273→Session Dec 27 (current, 2 commands):
+   274→  n_004: viz:pca @normalized.csv -&gt; pca_plot.png
+   275→  n_003: ch:@samples.csv +normalize -&gt; normalized.csv
+   276→
+   277→Session Dec 26 (3 commands):
+   278→  n_002: dx:@samples.csv
+   279→  n_001: mk:analysis-script
+   280→```
+   281→
+   282→Read from `.steno/graph.json` and `.steno/current-session.json`.
+   283→
+   284→### steno:stale
+   285→
+   286→Check for outputs that may be stale (input files changed).
+   287→
+   288→```
+   289→&gt; steno:stale
+   290→
+   291→Checking file modifications...
+   292→
+   293→Stale:
+   294→  n_002: ch:@samples.csv +normalize
+   295→         input samples.csv modified since execution
+   296→
+   297→Affected downstream:
+   298→  n_003: viz:pca ^ (depends on n_002)
+   299→
+   300→Run steno:refresh to re-run stale commands.
+   301→```
+   302→
+   303→Compare file modification times to node timestamps.
+   304→
+   305→### steno:refresh
+   306→
+   307→Re-run stale commands in dependency order.
+   308→
+   309→```
+   310→&gt; steno:refresh
+   311→
+   312→Re-running n_002: ch:@samples.csv +normalize
+   313→  Updated normalized.csv
+   314→
+   315→Re-running n_003: viz:pca ^
+   316→  Updated pca_plot.png
+   317→
+   318→2 nodes refreshed.
+   319→```
+   320→
+   321→### steno:bookmark &lt;name&gt;
+   322→
+   323→Save the last command as a named reference.
+   324→
+   325→```
+   326→&gt; viz:pca @samples.csv
+   327→
+   328→[creates pca_plot.png]
+   329→
+   330→&gt; steno:bookmark baseline-pca
+   331→
+   332→Bookmarked n_003 as &quot;baseline-pca&quot;
+   333→Reference with @baseline-pca
+   334→```
+   335→
+   336→Add to `.steno/graph.json` bookmarks:
+   337→```json
+   338→{
+   339→  &quot;bookmarks&quot;: {
+   340→    &quot;baseline-pca&quot;: &quot;n_003&quot;
+   341→  }
+   342→}
+   343→```
+   344→
+   345→### steno:clear
+   346→
+   347→Clear current session (start fresh).
+   348→
+   349→```
+   350→&gt; steno:clear
+   351→
+   352→Current session cleared. Previous sessions preserved in graph.json.
+   353→```
+   354→
+   355→### steno:undo
+   356→
+   357→Undo the last command or a specific node.
+   358→
+   359→**Soft undo (default)** — removes from graph, keeps files:
+   360→
+   361→```
+   362→&gt; steno:undo
+   363→
+   364→Undoing n_005: ch:@data.csv +normalize
+   365→  Removed from session graph.
+   366→  Files kept: normalized.csv
+   367→
+   368→  Dependent nodes (will be orphaned):
+   369→    n_006: viz:pca ^
+   370→
+   371→  Use steno:redo to restore.
+   372→```
+   373→
+   374→**Hard undo** — also reverts file changes:
+   375→
+   376→```
+   377→&gt; steno:undo!
+   378→
+   379→Undoing n_005: ch:@data.csv +normalize
+   380→  Removed from session graph.
+   381→  Deleted: normalized.csv
+   382→  Reverted: data.csv (restored from before edit)
+   383→
+   384→  Dependent nodes removed: n_006
+   385→```
+   386→
+   387→**Undo specific node:**
+   388→
+   389→```
+   390→&gt; steno:undo n_003
+   391→
+   392→Undoing n_003: viz:heatmap @samples.csv
+   393→  Removed from session graph.
+   394→  Files kept: heatmap.png
+   395→```
+   396→
+   397→**Behavior:**
+   398→
+   399→1. Read `.steno/current-session.json`
+   400→2. Find target node (last if none specified)
+   401→3. Check for dependent nodes (nodes that reference this one via `^`)
+   402→4. Soft undo:
+   403→   - Remove node from session
+   404→   - Move to `undone` array (for redo)
+   405→   - List created files (user can delete manually)
+   406→   - Warn about orphaned dependents
+   407→5. Hard undo (`!`):
+   408→   - Remove node and all dependents
+   409→   - Delete created files
+   410→   - Revert modified files (if backup exists)
+   411→
+   412→**File handling:**
+   413→
+   414→For hard undo, steno needs file backups. When a command modifies a file:
+   415→- Before: Save `.steno/backups/{node_id}/{filename}`
+   416→- After: Record in node&#x27;s `backups` field
+   417→
+   418→```json
+   419→{
+   420→  &quot;id&quot;: &quot;n_005&quot;,
+   421→  &quot;raw&quot;: &quot;ch:@data.csv +normalize&quot;,
+   422→  &quot;outputs&quot;: [&quot;normalized.csv&quot;],
+   423→  &quot;modified&quot;: [&quot;data.csv&quot;],
+   424→  &quot;backups&quot;: {
+   425→    &quot;data.csv&quot;: &quot;.steno/backups/n_005/data.csv&quot;
+   426→  }
+   427→}
+   428→```
+   429→
+   430→Hard undo restores from backup and deletes outputs.
+   431→
+   432→### steno:redo
+   433→
+   434→Restore the last undone node.
+   435→
+   436→```
+   437→&gt; steno:redo
+   438→
+   439→Restoring n_005: ch:@data.csv +normalize
+   440→  Added back to session graph.
+   441→
+   442→  Note: Files were not deleted, so outputs still exist.
+   443→```
+   444→
+   445→**Behavior:**
+   446→
+   447→1. Check `undone` array in current session
+   448→2. Pop the last undone node
+   449→3. Add it back to the session
+   450→4. Note: Does not re-execute the command, just restores tracking
+   451→
+   452→If files were deleted (hard undo), redo just restores tracking:
+   453→
+   454→```
+   455→&gt; steno:redo
+   456→
+   457→Restoring n_005: ch:@data.csv +normalize
+   458→  Added back to session graph.
+   459→
+   460→  ⚠ Files were deleted. Re-run command to recreate:
+   461→    ch:@data.csv +normalize
+   462→```
+   463→
+   464→### steno:export
+   465→
+   466→Export workflow for sharing or documentation.
+   467→
+   468→**Default (Markdown):**
+   469→
+   470→```
+   471→&gt; steno:export
+   472→
+   473→Exported to workflow.md
+   474→
+   475→# Steno Workflow Export
+   476→**Project:** /Users/me/microbiome-analysis
+   477→**Exported:** 2025-12-27T15:30:00Z
+   478→**Nodes:** 15
+   479→
+   480→## Workflow
+   481→
+   482→### 1. n_005: dx:@counts.csv
+   483→- **Status:** complete
+   484→- **Inputs:** counts.csv
+   485→- **Summary:** 18 samples × 15 ASVs, IBD study
+   486→
+   487→### 2. n_006: ch:^ +normalize .method:clr
+   488→- **Status:** complete
+   489→- **Inputs:** counts.csv
+   490→- **Outputs:** counts_clr.csv
+   491→- **Summary:** CLR transformed, centered log-ratio
+   492→
+   493→...
+   494→
+   495→## Branches
+   496→
+   497→- **main** (12 nodes)
+   498→- **deseq2** (1 node, from n_017)
+   499→- **ancombc** (1 node, from n_017)
+   500→
+   501→## Bookmarks
+   502→
+   503→- `@baseline-diff` → n_017
+   504→```
+   505→
+   506→**Export formats:**
+   507→
+   508→| Command | Format | Use Case |
+   509→|---------|--------|----------|
+   510→| `steno:export` | Markdown | Documentation, sharing |
+   511→| `steno:export .json` | JSON | Import to another project |
+   512→| `steno:export .sh` | Shell script | Replay commands |
+   513→| `steno:export .html` | HTML | Interactive web view |
+   514→| `steno:export +transcript` | Markdown | With embedded conversations |
+   515→| `steno:export .html +transcript` | HTML | Interactive with search |
+   516→
+   517→**JSON export:**
+   518→
+   519→```
+   520→&gt; steno:export .json
+   521→
+   522→Exported to workflow.json
+   523→```
+   524→
+   525→```json
+   526→{
+   527→  &quot;version&quot;: &quot;1.1&quot;,
+   528→  &quot;exported&quot;: &quot;2025-12-27T15:30:00Z&quot;,
+   529→  &quot;project&quot;: &quot;/Users/me/microbiome-analysis&quot;,
+   530→  &quot;sessions&quot;: [...],
+   531→  &quot;branches&quot;: [...],
+   532→  &quot;bookmarks&quot;: {...}
+   533→}
+   534→```
+   535→
+   536→**Script export:**
+   537→
+   538→```
+   539→&gt; steno:export .sh
+   540→
+   541→Exported to workflow.sh
+   542→```
+   543→
+   544→```bash
+   545→#!/bin/bash
+   546→# Steno workflow export
+   547→# Project: /Users/me/microbiome-analysis
+   548→# Exported: 2025-12-27T15:30:00Z
+   549→
+   550→# Replay these commands in Claude Code:
+   551→# dx:@counts.csv
+   552→# ch:^ +normalize .method:clr
+   553→# stat:alpha @counts.csv .metrics:shannon,chao1
+   554→# ...
+   555→```
+   556→
+   557→**Export options:**
+   558→
+   559→| Option | Effect |
+   560→|--------|--------|
+   561→| `steno:export workflow.md` | Custom filename |
+   562→| `steno:export @main` | Export only main branch |
+   563→| `steno:export @deseq2` | Export specific branch |
+   564→| `steno:export +full` | Include file contents |
+   565→
+   566→**Branch export:**
+   567→
+   568→```
+   569→&gt; steno:export @deseq2
+   570→
+   571→Exported branch &quot;deseq2&quot; to deseq2-workflow.md
+   572→
+   573→Includes:
+   574→- Parent chain (main: n_001 → n_017)
+   575→- Branch nodes (n_018)
+   576→- Branch-specific bookmarks
+   577→```
+   578→
+   579→**Full export (with file contents):**
+   580→
+   581→```
+   582→&gt; steno:export +full
+   583→
+   584→Exported to workflow-full.md
+   585→
+   586→Includes embedded file contents for:
+   587→- counts.csv (18 rows)
+   588→- counts_clr.csv (18 rows)
+   589→- metadata.csv (19 rows)
+   590→```
+   591→
+   592→---
+   593→
+   594→#### Rich Export with Transcripts (Phase 3)
+   595→
+   596→Embed conversation context directly in exports using `+transcript`.
+   597→
+   598→**Markdown export with embedded transcripts:**
+   599→
+   600→```
+   601→&gt; steno:export +transcript
+   602→
+   603→Exported to workflow-with-context.md
+   604→
+   605→# Steno Workflow Export
+   606→**Project:** /Users/me/api-project
+   607→**Exported:** 2025-12-28T16:00:00Z
+   608→**Nodes:** 8 (5 with transcripts)
+   609→
+   610→## Workflow
+   611→
+   612→### 1. n_005: ch:@api.ts +auth
+   613→
+   614→**Command:** `ch:@api.ts +auth`
+   615→**Result:** Added JWT authentication
+   616→
+   617→&lt;details&gt;
+   618→&lt;summary&gt;📝 View conversation (12 messages)&lt;/summary&gt;
+   619→
+   620→**User:** ch:@api.ts +auth
+   621→
+   622→**Claude:** I&#x27;ll add JWT authentication to api.ts. Let me first read the current implementation...
+   623→
+   624→[Reading api.ts...]
+   625→
+   626→I see this is an Express API. I&#x27;ll add:
+   627→1. JWT middleware for token validation
+   628→2. Login endpoint to issue tokens
+   629→3. Protected route wrapper
+   630→
+   631→[Full conversation excerpt]
+   632→
+   633→&lt;/details&gt;
+   634→
+   635→---
+   636→
+   637→### 2. n_006: ts:@api.test.ts
+   638→...
+   639→```
+   640→
+   641→**HTML export with interactive transcripts:**
+   642→
+   643→```
+   644→&gt; steno:export .html +transcript
+   645→
+   646→Exported to workflow.html
+   647→
+   648→Features:
+   649→  - Interactive transcript toggles
+   650→  - Full-text search across commands and conversations
+   651→  - Branch visualization with clickable nodes
+   652→  - Syntax highlighting for code blocks
+   653→```
+   654→
+   655→The generated HTML includes:
+   656→
+   657→```html
+   658→&lt;div class=&quot;steno-workflow&quot;&gt;
+   659→  &lt;div class=&quot;search-bar&quot;&gt;
+   660→    &lt;input type=&quot;text&quot; placeholder=&quot;Search commands and conversations...&quot;&gt;
+   661→  &lt;/div&gt;
+   662→
+   663→  &lt;div class=&quot;node&quot; id=&quot;n_005&quot;&gt;
+   664→    &lt;div class=&quot;command&quot;&gt;ch:@api.ts +auth&lt;/div&gt;
+   665→    &lt;div class=&quot;summary&quot;&gt;Added JWT authentication&lt;/div&gt;
+   666→    &lt;button class=&quot;transcript-toggle&quot; onclick=&quot;toggleTranscript(&#x27;n_005&#x27;)&quot;&gt;
+   667→      📝 Show conversation
+   668→    &lt;/button&gt;
+   669→    &lt;div class=&quot;transcript&quot; id=&quot;transcript-n_005&quot; hidden&gt;
+   670→      &lt;div class=&quot;message user&quot;&gt;ch:@api.ts +auth&lt;/div&gt;
+   671→      &lt;div class=&quot;message assistant&quot;&gt;
+   672→        I&#x27;ll add JWT authentication to api.ts...
+   673→      &lt;/div&gt;
+   674→      &lt;!-- Full conversation --&gt;
+   675→    &lt;/div&gt;
+   676→  &lt;/div&gt;
+   677→&lt;/div&gt;
+   678→```
+   679→
+   680→**Search functionality:**
+   681→
+   682→The HTML export includes JavaScript for searching:
+   683→- Filter nodes by command text
+   684→- Search within transcript content
+   685→- Highlight matching terms
+   686→- Jump to matched nodes
+   687→
+   688→**Transcript export options:**
+   689→
+   690→| Command | Format | Features |
+   691→|---------|--------|----------|
+   692→| `steno:export +transcript` | Markdown | `&lt;details&gt;` blocks for conversations |
+   693→| `steno:export .html +transcript` | HTML | Interactive toggles, search, syntax highlighting |
+   694→| `steno:export +transcript +full` | Markdown | Transcripts + file contents |
+   695→| `steno:export .html +transcript @branch` | HTML | Branch-specific with transcripts |
+   696→
+   697→**When transcripts not configured:**
+   698→
+   699→```
+   700→&gt; steno:export +transcript
+   701→
+   702→⚠ Transcripts not configured.
+   703→  Set up first: steno:transcript +link &lt;path&gt;
+   704→  Or generate: steno:transcript +generate
+   705→
+   706→Exporting without transcripts...
+   707→  Exported to workflow.md (no conversation context)
+   708→```
+   709→
+   710→**Partial transcript availability:**
+   711→
+   712→```
+   713→&gt; steno:export +transcript
+   714→
+   715→Exported to workflow-with-context.md
+   716→
+   717→Note: 3 of 8 nodes missing transcript links.
+   718→  n_001, n_002, n_003 - created before transcript linking
+   719→
+   720→Run steno:transcript +link &lt;path&gt; to rescan archive.
+   721→```
+   722→
+   723→### steno:import
+   724→
+   725→Import a workflow from JSON export.
+   726→
+   727→```
+   728→&gt; steno:import workflow.json
+   729→
+   730→Importing workflow from workflow.json...
+   731→
+   732→  Nodes: 15
+   733→  Branches: 3
+   734→  Bookmarks: 2
+   735→
+   736→  ⚠ This will merge into your current session.
+   737→  Existing bookmarks with same names will be overwritten.
+   738→
+   739→  Type &quot;steno:import! workflow.json&quot; to confirm.
+   740→```
+   741→
+   742→```
+   743→&gt; steno:import! workflow.json
+   744→
+   745→Imported workflow.json
+   746→  Added: 15 nodes, 3 branches, 2 bookmarks
+   747→  Merged into current session.
+   748→```
+   749→
+   750→**Import options:**
+   751→
+   752→| Option | Effect |
+   753→|--------|--------|
+   754→| `steno:import workflow.json` | Preview import |
+   755→| `steno:import! workflow.json` | Confirm and import |
+   756→| `steno:import workflow.json +replay` | Re-execute commands |
+   757→
+   758→**Replay mode:**
+   759→
+   760→```
+   761→&gt; steno:import! workflow.json +replay
+   762→
+   763→Replaying workflow...
+   764→
+   765→  n_001: dx:@counts.csv
+   766→    → 18 samples × 15 ASVs
+   767→
+   768→  n_002: ch:^ +normalize .method:clr
+   769→    → Created counts_clr.csv
+   770→
+   771→  ...
+   772→
+   773→Replay complete: 15 commands executed.
+   774→```
+   775→
+   776→### steno:status
+   777→
+   778→Show current session status.
+   779→
+   780→```
+   781→&gt; steno:status
+   782→
+   783→Session: sess_20241227 (started 2h ago)
+   784→Nodes: 4
+   785→Last command: viz:pca @normalized.csv
+   786→Bookmarks: baseline-pca, initial-dx
+   787→Stale: 0
+   788→```
+   789→
+   790→### steno:new-session
+   791→
+   792→Archive current session and start fresh.
+   793→
+   794→```
+   795→&gt; steno:new-session
+   796→
+   797→Archived session sess_20241227 (4 nodes) to graph.json
+   798→Starting new session: sess_20241228_143022
+   799→```
+   800→
+   801→This command:
+   802→1. Reads `current-session.json`
+   803→2. Appends the session to `graph.json` sessions array
+   804→3. Creates fresh `current-session.json` with new session ID
+   805→4. Preserves all bookmarks
+   806→
+   807→Use this when starting a new logical unit of work.
+   808→
+   809→### steno:graph
+   810→
+   811→Show the workflow graph as an ASCII tree.
+   812→
+   813→```
+   814→&gt; steno:graph
+   815→
+   816→main
+   817→├── n_001 dx:@samples.csv
+   818→├── n_002 viz:heatmap ^
+   819→│   └── experiment (merged)
+   820→│       └── n_004 dx:@samples.csv
+   821→└── n_003 ch:^ +cluster
+   822→```
+   823→
+   824→**Show transcript availability:**
+   825→
+   826→```
+   827→&gt; steno:graph +transcript
+   828→
+   829→main
+   830→├── n_001 dx:@samples.csv [📝]
+   831→├── n_002 viz:heatmap ^ [📝]
+   832→│   └── experiment (merged)
+   833→│       └── n_004 dx:@samples.csv [📝]
+   834→└── n_003 ch:^ +cluster
+   835→
+   836→[📝] = transcript available
+   837→3 of 4 nodes linked to transcripts.
+   838→
+   839→Tip: Click node ID to view transcript (steno:transcript n_XXX)
+   840→```
+   841→
+   842→**When no transcripts configured:**
+   843→
+   844→```
+   845→&gt; steno:graph +transcript
+   846→
+   847→main
+   848→├── n_001 dx:@samples.csv
+   849→├── n_002 viz:heatmap ^
+   850→└── n_003 ch:^ +cluster
+   851→
+   852→No transcripts linked.
+   853→Set up: steno:transcript +link &lt;path&gt;
+   854→```
+   855→
+   856→**Behavior:**
+   857→1. Read `.steno/graph.json` and `.steno/current-session.json`
+   858→2. Build tree structure from branches and nodes
+   859→3. Render as ASCII tree with box-drawing characters
+   860→4. With `+transcript`: Check `.steno/transcript-links.json` and show [📝] indicator
+   861→
+   862→**Rendering rules:**
+   863→- Use box-drawing: ├── for middle items, └── for last item, │ for vertical continuation
+   864→- Show branch name with status in parentheses: (current), (merged), (abandoned)
+   865→- Show node ID and raw command
+   866→- Indent child branches under their parent node
+   867→- Mark current branch with asterisk if not main
+   868→- With `+transcript`: Append [📝] to nodes with linked transcripts
+   869→
+   870→**Tree structure:**
+   871→- Main branch nodes are the trunk
+   872→- Child branches fork from their parentNode
+   873→- Nodes on child branches are indented under the branch name
+   874→
+   875→### steno:alias
+   876→
+   877→Create, list, or remove command aliases for frequently used patterns.
+   878→
+   879→**Create an alias:**
+   880→
+   881→```
+   882→&gt; steno:alias setup &quot;dx:@package.json &amp;&amp; ch:@tsconfig.json +strict&quot;
+   883→
+   884→Alias &quot;setup&quot; created.
+   885→Use: setup
+   886→```
+   887→
+   888→**List aliases:**
+   889→
+   890→```
+   891→&gt; steno:alias
+   892→
+   893→Aliases:
+   894→  setup    → dx:@package.json &amp;&amp; ch:@tsconfig.json +strict
+   895→  qa       → ts:@tests/ &amp;&amp; doc:@api/
+   896→  deploy   → ts:@tests/ &amp;&amp; mk:build +prod
+   897→```
+   898→
+   899→**Remove an alias:**
+   900→
+   901→```
+   902→&gt; steno:alias -setup
+   903→
+   904→Alias &quot;setup&quot; removed.
+   905→```
+   906→
+   907→**Use an alias:**
+   908→
+   909→```
+   910→&gt; setup
+   911→
+   912→Running alias &quot;setup&quot;...
+   913→  → dx:@package.json
+   914→  → ch:@tsconfig.json +strict
+   915→```
+   916→
+   917→**Behavior:**
+   918→1. Aliases stored in `.steno/aliases.json`:
+   919→   ```json
+   920→   {
+   921→     &quot;setup&quot;: &quot;dx:@package.json &amp;&amp; ch:@tsconfig.json +strict&quot;,
+   922→     &quot;qa&quot;: &quot;ts:@tests/ &amp;&amp; doc:@api/&quot;
+   923→   }
+   924→   ```
+   925→2. When a non-verb input matches an alias, expand and execute
+   926→3. Aliases can chain multiple commands with `&amp;&amp;`
+   927→4. Aliases can include modifiers and references
+   928→5. Use `-name` to remove an alias
+   929→
+   930→**Alias rules:**
+   931→- Names must be alphanumeric (no special characters)
+   932→- Names cannot conflict with verbs (dx, mk, ch, etc.)
+   933→- Aliases expand before any other parsing
+   934→- Nested aliases not supported (keeps it simple)
+   935→
+   936→### steno:search
+   937→
+   938→Search command history by pattern or filter.
+   939→
+   940→**Search by pattern:**
+   941→
+   942→```
+   943→&gt; steno:search validation
+   944→
+   945→Found 3 matches:
+   946→  n_012: ch:@auth.ts +validation (Dec 27)
+   947→         → Added input validation
+   948→  n_008: ch:@api.py +validation (Dec 26)
+   949→         → Added request validation
+   950→  n_003: ?plan validation-strategy (Dec 25)
+   951→         → Outlined validation approach
+   952→```
+   953→
+   954→**Search by verb:**
+   955→
+   956→```
+   957→&gt; steno:search :viz
+   958→
+   959→Found 5 viz commands:
+   960→  n_015: viz:heatmap @counts.csv
+   961→  n_011: viz:pca @normalized.csv
+   962→  n_007: viz:boxplot @results.csv
+   963→  ...
+   964→```
+   965→
+   966→**Search by modifier:**
+   967→
+   968→```
+   969→&gt; steno:search +auth
+   970→
+   971→Found 4 commands with +auth:
+   972→  n_018: mk:middleware +auth +jwt
+   973→  n_014: ch:@routes.ts +auth
+   974→  n_009: mk:api +auth +cache
+   975→  n_002: ?plan +auth
+   976→```
+   977→
+   978→**Search by file reference:**
+   979→
+   980→```
+   981→&gt; steno:search @config
+   982→
+   983→Found 2 commands referencing config files:
+   984→  n_010: ch:@config.json +logging
+   985→  n_004: dx:@config.yaml
+   986→```
+   987→
+   988→**Search options:**
+   989→
+   990→| Option | Effect |
+   991→|--------|--------|
+   992→| `steno:search pattern` | Search raw commands |
+   993→| `steno:search :verb` | Filter by verb |
+   994→| `steno:search +modifier` | Filter by modifier |
+   995→| `steno:search @file` | Filter by file reference |
+   996→| `steno:search @branch:pattern` | Search specific branch |
+   997→| `steno:search -n 10` | Limit results |
+   998→| `steno:search --failed` | Show only failed commands |
+   999→
+  1000→**Behavior:**
+  1001→1. Search across all sessions in graph.json and current-session.json
+  1002→2. Pattern matches against raw command and summary
+  1003→3. Results sorted by recency (newest first)
+  1004→4. Show node ID, command, date, and summary
+  1005→5. Limit to 20 results by default
+  1006→
+  1007→### steno:replay
+  1008→
+  1009→Re-run a sequence of commands from history.
+  1010→
+  1011→**Replay single command:**
+  1012→
+  1013→```
+  1014→&gt; steno:replay n_005
+  1015→
+  1016→Replaying n_005: ch:@data.csv +normalize
+  1017→  → Updated normalized.csv
+  1018→```
+  1019→
+  1020→**Replay range:**
+  1021→
+  1022→```
+  1023→&gt; steno:replay n_003..n_007
+  1024→
+  1025→Replaying 5 commands...
+  1026→
+  1027→  n_003: dx:@data.csv
+  1028→         → 18 samples analyzed
+  1029→
+  1030→  n_004: ch:^ +filter
+  1031→         → Filtered to 15 samples
+  1032→
+  1033→  n_005: ch:^ +normalize
+  1034→         → Created normalized.csv
+  1035→
+  1036→  n_006: viz:pca ^
+  1037→         → Created pca_plot.png
+  1038→
+  1039→  n_007: steno:bookmark baseline
+  1040→         → Bookmarked as &quot;baseline&quot;
+  1041→
+  1042→Replay complete: 5 commands executed.
+  1043→```
+  1044→
+  1045→**Replay from bookmark:**
+  1046→
+  1047→```
+  1048→&gt; steno:replay @baseline..
+  1049→
+  1050→Replaying from bookmark &quot;baseline&quot; to current...
+  1051→  4 commands replayed.
+  1052→```
+  1053→
+  1054→**Replay options:**
+  1055→
+  1056→| Option | Effect |
+  1057→|--------|--------|
+  1058→| `steno:replay n_XXX` | Replay single node |
+  1059→| `steno:replay n_XXX..n_YYY` | Replay range (inclusive) |
+  1060→| `steno:replay @bookmark..` | From bookmark to end |
+  1061→| `steno:replay ..n_XXX` | From start to node |
+  1062→| `steno:replay @branch:n_XXX..` | Replay branch from node |
+  1063→| `steno:replay +dry` | Show commands without executing |
+  1064→| `steno:replay +skip-failed` | Skip previously failed nodes |
+  1065→
+  1066→**Dry run:**
+  1067→
+  1068→```
+  1069→&gt; steno:replay n_003..n_007 +dry
+  1070→
+  1071→Would replay 5 commands:
+  1072→  n_003: dx:@data.csv
+  1073→  n_004: ch:^ +filter
+  1074→  n_005: ch:^ +normalize
+  1075→  n_006: viz:pca ^
+  1076→  n_007: steno:bookmark baseline
+  1077→
+  1078→Use steno:replay n_003..n_007 to execute.
+  1079→```
+  1080→
+  1081→**Behavior:**
+  1082→1. Look up nodes in graph.json/current-session.json
+  1083→2. Execute each command in order
+  1084→3. `^` references resolve to the replayed command&#x27;s output (not original)
+  1085→4. New nodes created for replay (preserves original history)
+  1086→5. Failed commands stop replay unless +skip-failed
+  1087→
+  1088→**Replay vs Import:**
+  1089→- `steno:replay`: Re-execute from local history
+  1090→- `steno:import +replay`: Execute from exported workflow file
+  1091→
+  1092→### steno:template
+  1093→
+  1094→Create, list, use, and share reusable command sequences.
+  1095→
+  1096→**List available templates:**
+  1097→
+  1098→```
+  1099→&gt; steno:template
+  1100→
+  1101→Built-in templates:
+  1102→  react-component  - Create React component with tests
+  1103→  api-endpoint     - Create REST endpoint with validation
+  1104→  refactor         - Safe refactoring workflow
+  1105→
+  1106→Custom templates (.steno/templates/):
+  1107→  my-setup         - Project initialization
+  1108→  deploy-check     - Pre-deployment checklist
+  1109→```
+  1110→
+  1111→**Use a template:**
+  1112→
+  1113→```
+  1114→&gt; steno:template react-component Button
+  1115→
+  1116→Running template &quot;react-component&quot; with args: Button
+  1117→
+  1118→  Step 1/4: mk:components/Button.tsx +functional
+  1119→            → Created Button.tsx
+  1120→
+  1121→  Step 2/4: mk:components/Button.test.tsx +jest
+  1122→            → Created Button.test.tsx
+  1123→
+  1124→  Step 3/4: mk:components/Button.css +module
+  1125→            → Created Button.css
+  1126→
+  1127→  Step 4/4: ch:@components/index.ts +export Button
+  1128→            → Updated index.ts
+  1129→
+  1130→Template complete: 4 commands executed.
+  1131→```
+  1132→
+  1133→**Create a custom template:**
+  1134→
+  1135→```
+  1136→&gt; steno:template +create setup
+  1137→
+  1138→Creating template &quot;setup&quot;...
+  1139→Enter commands (empty line to finish):
+  1140→
+  1141→&gt; dx:@package.json
+  1142→&gt; ch:@tsconfig.json +strict
+  1143→&gt; ts:@tests/ +coverage
+  1144→&gt;
+  1145→
+  1146→Template &quot;setup&quot; created with 3 commands.
+  1147→Saved to: .steno/templates/setup.json
+  1148→```
+  1149→
+  1150→**Template with parameters:**
+  1151→
+  1152→```
+  1153→&gt; steno:template +create component
+  1154→
+  1155→Creating template &quot;component&quot;...
+  1156→Parameters: {name} {type?:functional}
+  1157→Enter commands:
+  1158→
+  1159→&gt; mk:components/{name}.tsx +{type}
+  1160→&gt; mk:components/{name}.test.tsx +jest
+  1161→&gt; ch:@components/index.ts +export {name}
+  1162→&gt;
+  1163→
+  1164→Template &quot;component&quot; created.
+  1165→Usage: steno:template component MyButton type:class
+  1166→```
+  1167→
+  1168→**View template contents:**
+  1169→
+  1170→```
+  1171→&gt; steno:template ?react-component
+  1172→
+  1173→Template: react-component
+  1174→Description: Create React component with tests
+  1175→Parameters: {name} (required), {style?:css} (optional, default: css)
+  1176→
+  1177→Commands:
+  1178→  1. mk:components/{name}.tsx +functional
+  1179→  2. mk:components/{name}.test.tsx +jest
+  1180→  3. mk:components/{name}.{style} +module
+  1181→  4. ch:@components/index.ts +export {name}
+  1182→```
+  1183→
+  1184→**Remove a template:**
+  1185→
+  1186→```
+  1187→&gt; steno:template -setup
+  1188→
+  1189→Template &quot;setup&quot; removed.
+  1190→```
+  1191→
+  1192→**Template options:**
+  1193→
+  1194→| Command | Action |
+  1195→|---------|--------|
+  1196→| `steno:template` | List all templates |
+  1197→| `steno:template name args...` | Run template |
+  1198→| `steno:template ?name` | View template details |
+  1199→| `steno:template +create name` | Create new template |
+  1200→| `steno:template -name` | Remove template |
+  1201→| `steno:template +export name` | Export as shareable JSON |
+  1202→| `steno:template +import file` | Import template |
+  1203→
+  1204→**Behavior:**
+  1205→1. Built-in templates defined in SKILL.md
+  1206→2. Custom templates stored in `.steno/templates/*.json`
+  1207→3. Parameters use `{name}` syntax, optional with `{name?:default}`
+  1208→4. Templates execute commands sequentially, stopping on failure
+  1209→5. Each command creates a node (full tracking)
+  1210→
+  1211→**Template file format:**
+  1212→
+  1213→```json
+  1214→{
+  1215→  &quot;name&quot;: &quot;component&quot;,
+  1216→  &quot;description&quot;: &quot;Create React component with tests&quot;,
+  1217→  &quot;parameters&quot;: [
+  1218→    {&quot;name&quot;: &quot;name&quot;, &quot;required&quot;: true},
+  1219→    {&quot;name&quot;: &quot;style&quot;, &quot;required&quot;: false, &quot;default&quot;: &quot;css&quot;}
+  1220→  ],
+  1221→  &quot;commands&quot;: [
+  1222→    &quot;mk:components/{name}.tsx +functional&quot;,
+  1223→    &quot;mk:components/{name}.test.tsx +jest&quot;,
+  1224→    &quot;mk:components/{name}.{style} +module&quot;,
+  1225→    &quot;ch:@components/index.ts +export {name}&quot;
+  1226→  ]
+  1227→}
+  1228→```
+  1229→
+  1230→**Built-in templates:**
+  1231→
+  1232→| Template | Description | Parameters |
+  1233→|----------|-------------|------------|
+  1234→| `react-component` | React component + test + styles | `{name}`, `{style?:css}` |
+  1235→| `api-endpoint` | REST endpoint with validation | `{name}`, `{method?:GET}` |
+  1236→| `refactor` | Safe refactoring workflow | `{target}` |
+  1237→| `test-suite` | Test file with setup | `{name}`, `{framework?:jest}` |
+  1238→
+  1239→### Parameterized Aliases
+  1240→
+  1241→Aliases can include parameters using `{1}`, `{2}`, etc. for positional args or `{name}` for named args.
+  1242→
+  1243→**Create parameterized alias:**
+  1244→
+  1245→```
+  1246→&gt; steno:alias explore &quot;dx:@{1} ~deep &amp;&amp; fnd:{2}&quot;
+  1247→
+  1248→Alias &quot;explore&quot; created with 2 parameters.
+  1249→Usage: explore &lt;file&gt; &lt;pattern&gt;
+  1250→```
+  1251→
+  1252→**Use parameterized alias:**
+  1253→
+  1254→```
+  1255→&gt; explore src/api.ts TODO
+  1256→
+  1257→Running alias &quot;explore&quot; with args: src/api.ts, TODO
+  1258→  → dx:@src/api.ts ~deep
+  1259→  → fnd:TODO
+  1260→```
+  1261→
+  1262→**Named parameters:**
+  1263→
+  1264→```
+  1265→&gt; steno:alias test &quot;ts:@{file} +{coverage:basic}&quot;
+  1266→
+  1267→Alias &quot;test&quot; created.
+  1268→Usage: test file:&lt;path&gt; [coverage:&lt;level&gt;]
+  1269→```
+  1270→
+  1271→```
+  1272→&gt; test file:utils.ts coverage:full
+  1273→
+  1274→Running alias &quot;test&quot;...
+  1275→  → ts:@utils.ts +full
+  1276→```
+  1277→
+  1278→**Default values:**
+  1279→
+  1280→```
+  1281→&gt; steno:alias lint &quot;ch:@{1:src/} +lint&quot;
+  1282→
+  1283→Alias &quot;lint&quot; created.
+  1284→Default for {1}: src/
+  1285→```
+  1286→
+  1287→```
+  1288→&gt; lint
+  1289→Running: ch:@src/ +lint
+  1290→
+  1291→&gt; lint lib/
+  1292→Running: ch:@lib/ +lint
+  1293→```
+  1294→
+  1295→**Parameter syntax:**
+  1296→
+  1297→| Syntax | Meaning | Example |
+  1298→|--------|---------|---------|
+  1299→| `{1}` | First positional arg | `dx:@{1}` |
+  1300→| `{2}` | Second positional arg | `stat:compare @{1} @{2}` |
+  1301→| `{name}` | Named parameter | `mk:{name}.ts` |
+  1302→| `{1:default}` | Positional with default | `dx:@{1:src/}` |
+  1303→| `{name:default}` | Named with default | `+{type:functional}` |
+  1304→| `{1?}` | Optional (omit if missing) | `ch:@{1} {2?}` |
+  1305→
+  1306→**Behavior:**
+  1307→1. Positional args filled left-to-right
+  1308→2. Named args use `name:value` syntax
+  1309→3. Missing required args show error
+  1310→4. Optional args (`{?}`) omit that part of command if not provided
+  1311→5. Defaults used when arg not provided
+  1312→
+  1313→**Alias introspection:**
+  1314→
+  1315→```
+  1316→&gt; steno:alias ?explore
+  1317→
+  1318→Alias: explore
+  1319→Command: dx:@{1} ~deep &amp;&amp; fnd:{2}
+  1320→Parameters:
+  1321→  {1} - required (file path)
+  1322→  {2} - required (search pattern)
+  1323→
+  1324→Usage: explore &lt;arg1&gt; &lt;arg2&gt;
+  1325→Example: explore src/app.ts TODO
+  1326→```
+  1327→
+  1328→### steno:diff
+  1329→
+  1330→Compare outputs between nodes, branches, or bookmarks.
+  1331→
+  1332→**Diff two nodes:**
+  1333→
+  1334→```
+  1335→&gt; steno:diff n_003 n_007
+  1336→
+  1337→Comparing n_003 → n_007
+  1338→
+  1339→n_003: ch:@data.csv +filter
+  1340→  outputs: filtered.csv (45 rows)
+  1341→
+  1342→n_007: ch:@data.csv +filter +normalize
+  1343→  outputs: filtered_norm.csv (45 rows)
+  1344→
+  1345→File diff (filtered.csv → filtered_norm.csv):
+  1346→  - Same row count (45)
+  1347→  - Column changes:
+  1348→    + normalized_value (new)
+  1349→    ~ value → raw_value (renamed)
+  1350→  - Value ranges:
+  1351→    normalized_value: 0.0 - 1.0
+  1352→```
+  1353→
+  1354→**Diff branches:**
+  1355→
+  1356→```
+  1357→&gt; steno:diff @main @experiment
+  1358→
+  1359→Branch comparison: main → experiment
+  1360→
+  1361→Diverged at: n_005 (ch:@data.csv +filter)
+  1362→
+  1363→main (3 nodes after fork):
+  1364→  n_006: stat:ttest @filtered.csv
+  1365→  n_007: viz:boxplot ^
+  1366→  n_008: doc:@results/
+  1367→
+  1368→experiment (2 nodes after fork):
+  1369→  n_009: stat:wilcoxon @filtered.csv
+  1370→  n_010: viz:violin ^
+  1371→
+  1372→Output comparison:
+  1373→  Statistical test:
+  1374→    main: t-test (p=0.023)
+  1375→    experiment: Wilcoxon (p=0.031)
+  1376→
+  1377→  Visualizations:
+  1378→    main: boxplot.png (800x600)
+  1379→    experiment: violin.png (800x600)
+  1380→```
+  1381→
+  1382→**Diff with bookmark:**
+  1383→
+  1384→```
+  1385→&gt; steno:diff @baseline ^
+  1386→
+  1387→Comparing bookmark &quot;baseline&quot; (n_004) → current (n_012)
+  1388→
+  1389→Changes since baseline:
+  1390→  8 commands executed
+  1391→  3 files created
+  1392→  2 files modified
+  1393→
+  1394→Key differences:
+  1395→  n_004: data.csv (raw, 100 rows)
+  1396→  n_012: data_processed.csv (normalized, 95 rows)
+  1397→    - 5 rows filtered
+  1398→    - Added columns: norm_value, z_score
+  1399→```
+  1400→
+  1401→**Diff options:**
+  1402→
+  1403→| Command | Action |
+  1404→|---------|--------|
+  1405→| `steno:diff n_X n_Y` | Compare two nodes |
+  1406→| `steno:diff @branch1 @branch2` | Compare branches |
+  1407→| `steno:diff @bookmark ^` | Compare bookmark to current |
+  1408→| `steno:diff n_X..n_Y` | Show changes across range |
+  1409→| `steno:diff +files` | Include file content diff |
+  1410→| `steno:diff +stats` | Focus on statistical differences |
+  1411→| `steno:diff .format:json` | Output as JSON |
+  1412→
+  1413→**Range diff:**
+  1414→
+  1415→```
+  1416→&gt; steno:diff n_003..n_010
+  1417→
+  1418→Change summary: n_003 → n_010 (8 commands)
+  1419→
+  1420→Files created: 4
+  1421→  - filtered.csv (n_003)
+  1422→  - normalized.csv (n_005)
+  1423→  - pca_plot.png (n_007)
+  1424→  - results.md (n_010)
+  1425→
+  1426→Files modified: 2
+  1427→  - data.csv: 3 modifications
+  1428→  - config.json: 1 modification
+  1429→
+  1430→Command types:
+  1431→  ch: 4 (50%)
+  1432→  viz: 2 (25%)
+  1433→  doc: 1 (12.5%)
+  1434→  stat: 1 (12.5%)
+  1435→```
+  1436→
+  1437→**File content diff:**
+  1438→
+  1439→```
+  1440→&gt; steno:diff n_003 n_007 +files
+  1441→
+  1442→Comparing outputs...
+  1443→
+  1444→--- n_003: filtered.csv
+  1445→+++ n_007: filtered_norm.csv
+  1446→
+  1447→@@ Header @@
+  1448→- id,value,category
+  1449→+ id,raw_value,normalized_value,category
+  1450→
+  1451→@@ Row 1 @@
+  1452→- 1,42.5,A
+  1453→+ 1,42.5,0.425,A
+  1454→
+  1455→@@ Summary @@
+  1456→  45 rows compared
+  1457→  0 rows removed
+  1458→  1 column added
+  1459→  1 column renamed
+  1460→```
+  1461→
+  1462→**Statistical diff:**
+  1463→
+  1464→```
+  1465→&gt; steno:diff @deseq2:^ @ancombc:^ +stats
+  1466→
+  1467→Statistical comparison: DESeq2 vs ANCOM-BC
+  1468→
+  1469→Method comparison:
+  1470→  DESeq2: Negative binomial GLM
+  1471→  ANCOM-BC: Bias-corrected compositional
+  1472→
+  1473→Results overlap:
+  1474→  Significant in both: 12 features
+  1475→  DESeq2 only: 3 features
+  1476→  ANCOM-BC only: 5 features
+  1477→
+  1478→Correlation: r=0.87 (p&lt;0.001)
+  1479→
+  1480→Top differences:
+  1481→  Feature_A: DESeq2 p=0.001, ANCOM-BC p=0.12
+  1482→  Feature_B: DESeq2 p=0.08, ANCOM-BC p=0.002
+  1483→```
+  1484→
+  1485→**Behavior:**
+  1486→1. Compare node metadata (command, timestamp, status)
+  1487→2. Compare outputs (files created/modified)
+  1488→3. If files are data files, show structural diff
+  1489→4. If files are code, show line diff
+  1490→5. For branches, find common ancestor and show divergence
+  1491→6. `+files` includes actual content comparison
+  1492→7. `+stats` extracts and compares numerical results
+  1493→
+  1494→### steno:transcript
+  1495→
+  1496→Link steno nodes to conversation transcripts for full context.
+  1497→
+  1498→Integrates with [claude-code-transcripts](https://github.com/simonw/claude-code-transcripts) to connect terse steno commands with complete conversation history.
+  1499→
+  1500→**Check transcript tool status:**
+  1501→
+  1502→```
+  1503→&gt; steno:transcript
+  1504→
+  1505→Transcript status:
+  1506→  claude-code-transcripts: not installed
+  1507→  Archive link: not configured
+  1508→
+  1509→Setup options:
+  1510→  1. Install: pip install claude-code-transcripts
+  1511→  2. Or link existing archive: steno:transcript +link &lt;path&gt;
+  1512→```
+  1513→
+  1514→**Link to existing archive:**
+  1515→
+  1516→```
+  1517→&gt; steno:transcript +link ./archive/
+  1518→
+  1519→Scanning archive for sessions...
+  1520→  Found: 5 sessions, 127 messages
+  1521→
+  1522→Linking steno nodes to transcript positions...
+  1523→  Matched: 23 nodes across 2 sessions
+  1524→
+  1525→Links saved to .steno/transcript-links.json
+  1526→
+  1527→Use steno:transcript n_XXX to open transcript at node.
+  1528→```
+  1529→
+  1530→**Link to remote archive:**
+  1531→
+  1532→```
+  1533→&gt; steno:transcript +link https://example.com/transcripts/
+  1534→
+  1535→Remote transcript base URL set.
+  1536→Links will open: https://example.com/transcripts/{session}.html#{node}
+  1537→
+  1538→Saved to .steno/transcript-links.json
+  1539→```
+  1540→
+  1541→**View transcript for specific node:**
+  1542→
+  1543→```
+  1544→&gt; steno:transcript n_005
+  1545→
+  1546→Opening transcript for n_005...
+  1547→  Session: sess_20251228_143000
+  1548→  Command: ch:@api.ts +auth
+  1549→
+  1550→Opening: ./archive/sess_20251228.html#n_005
+  1551→```
+  1552→
+  1553→**View transcript for bookmark:**
+  1554→
+  1555→```
+  1556→&gt; steno:transcript @baseline
+  1557→
+  1558→Opening transcript for bookmark &quot;baseline&quot; (n_003)...
+  1559→  Session: sess_20251228_143000
+  1560→  Command: dx:@api.ts ~deep
+  1561→
+  1562→Opening: ./archive/sess_20251228.html#n_003
+  1563→```
+  1564→
+  1565→**View current node transcript:**
+  1566→
+  1567→```
+  1568→&gt; steno:transcript ^
+  1569→
+  1570→Opening transcript for last node (n_012)...
+  1571→Opening: ./archive/sess_20251228.html#n_012
+  1572→```
+  1573→
+  1574→**Show transcript links status:**
+  1575→
+  1576→```
+  1577→&gt; steno:transcript +status
+  1578→
+  1579→Transcript configuration:
+  1580→  Base URL: ./archive/
+  1581→  Sessions linked: 3
+  1582→  Nodes linked: 47
+  1583→
+  1584→Recent links:
+  1585→  n_010: sess_20251228.html#n_010
+  1586→  n_011: sess_20251228.html#n_011
+  1587→  n_012: sess_20251228.html#n_012
+  1588→```
+  1589→
+  1590→**Clear transcript links:**
+  1591→
+  1592→```
+  1593→&gt; steno:transcript +clear
+  1594→
+  1595→Cleared transcript links.
+  1596→  Removed: .steno/transcript-links.json
+  1597→```
+  1598→
+  1599→---
+  1600→
+  1601→#### Automatic Generation (Phase 2)
+  1602→
+  1603→When claude-code-transcripts is installed, generate transcripts directly:
+  1604→
+  1605→**Generate current session transcript:**
+  1606→
+  1607→```
+  1608→&gt; steno:transcript +generate
+  1609→
+  1610→Checking for claude-code-transcripts...
+  1611→  ✓ Found: claude-code-transcripts 0.4
+  1612→
+  1613→Generating transcript for current session...
+  1614→  Session: sess_20251228_143000
+  1615→  Messages: 47
+  1616→
+  1617→Adding steno node anchors...
+  1618→  ✓ 12 nodes linked
+  1619→
+  1620→Saved to: .steno/transcripts/sess_20251228_143000.html
+  1621→
+  1622→View: open .steno/transcripts/sess_20251228_143000.html
+  1623→```
+  1624→
+  1625→**Generate all session transcripts:**
+  1626→
+  1627→```
+  1628→&gt; steno:transcript +all
+  1629→
+  1630→Checking for claude-code-transcripts...
+  1631→  ✓ Found: claude-code-transcripts 0.4
+  1632→
+  1633→Generating transcripts for all sessions...
+  1634→  sess_20251227_091500: 23 messages → sess_20251227_091500.html (8 nodes)
+  1635→  sess_20251228_143000: 47 messages → sess_20251228_143000.html (12 nodes)
+  1636→
+  1637→Creating index page with steno graph...
+  1638→  ✓ Index with 2 sessions, 20 total nodes
+  1639→
+  1640→Saved to: .steno/transcripts/
+  1641→  Index: .steno/transcripts/index.html
+  1642→  Sessions: 2 HTML files
+  1643→```
+  1644→
+  1645→**Generate with custom output path:**
+  1646→
+  1647→```
+  1648→&gt; steno:transcript +generate .out:./docs/transcripts/
+  1649→
+  1650→Generating to custom path...
+  1651→  Output: ./docs/transcripts/
+  1652→
+  1653→Saved to: ./docs/transcripts/sess_20251228_143000.html
+  1654→```
+  1655→
+  1656→**Node anchoring behavior:**
+  1657→
+  1658→When generating transcripts, steno:
+  1659→1. Runs `claude-code-transcripts` to generate base HTML
+  1660→2. Scans generated HTML for user messages matching steno commands
+  1661→3. Injects anchor tags at matching positions: `&lt;a id=&quot;n_XXX&quot;&gt;&lt;/a&gt;`
+  1662→4. Updates `.steno/transcript-links.json` with new mappings
+  1663→
+  1664→**Index page features:**
+  1665→
+  1666→The generated `index.html` includes:
+  1667→- List of all sessions with timestamps
+  1668→- Steno graph visualization (ASCII tree)
+  1669→- Quick links to each node across sessions
+  1670→- Session statistics (message count, node count)
+  1671→
+  1672→**When tool not installed:**
+  1673→
+  1674→```
+  1675→&gt; steno:transcript +generate
+  1676→
+  1677→Transcript generation requires claude-code-transcripts.
+  1678→
+  1679→Install:
+  1680→  pip install claude-code-transcripts
+  1681→  # or
+  1682→  pipx install claude-code-transcripts
+  1683→
+  1684→Alternative: Link to existing archive:
+  1685→  steno:transcript +link &lt;path&gt;
+  1686→```
+  1687→
+  1688→---
+  1689→
+  1690→**Command options:**
+  1691→
+  1692→| Command | Action |
+  1693→|---------|--------|
+  1694→| `steno:transcript` | Show status and setup help |
+  1695→| `steno:transcript +link &lt;path&gt;` | Link to local archive directory |
+  1696→| `steno:transcript +link &lt;url&gt;` | Link to remote archive URL |
+  1697→| `steno:transcript +generate` | Generate current session transcript |
+  1698→| `steno:transcript +all` | Generate all session transcripts |
+  1699→| `steno:transcript +generate .out:&lt;path&gt;` | Generate to custom path |
+  1700→| `steno:transcript n_XXX` | Open transcript at specific node |
+  1701→| `steno:transcript @bookmark` | Open transcript at bookmarked node |
+  1702→| `steno:transcript ^` | Open transcript for last node |
+  1703→| `steno:transcript +status` | Show link configuration |
+  1704→| `steno:transcript +clear` | Remove transcript links |
+  1705→
+  1706→**Behavior:**
+  1707→
+  1708→1. Check for transcript configuration in `.steno/transcript-links.json`
+  1709→2. For `+link`: Scan archive directory or store base URL
+  1710→3. For node references: Look up URL and open in browser
+  1711→4. Node anchors use format: `{base}/{session}.html#{node_id}`
+  1712→
+  1713→**Transcript links file format:**
+  1714→
+  1715→```json
+  1716→{
+  1717→  &quot;version&quot;: &quot;1.0&quot;,
+  1718→  &quot;base_url&quot;: &quot;./archive/&quot;,
+  1719→  &quot;type&quot;: &quot;local&quot;,
+  1720→  &quot;linked_at&quot;: &quot;2025-12-28T15:30:00Z&quot;,
+  1721→  &quot;sessions&quot;: {
+  1722→    &quot;sess_20251228_143000&quot;: {
+  1723→      &quot;file&quot;: &quot;sess_20251228.html&quot;,
+  1724→      &quot;nodes&quot;: [&quot;n_001&quot;, &quot;n_002&quot;, &quot;n_003&quot;]
+  1725→    }
+  1726→  }
+  1727→}
+  1728→```
+  1729→
+  1730→**Opening transcripts:**
+  1731→
+  1732→When opening a transcript:
+  1733→1. Look up node&#x27;s session in transcript-links.json
+  1734→2. Construct URL: `{base_url}/{session_file}#{node_id}`
+  1735→3. Open in default browser (or display URL if browser unavailable)
+  1736→
+  1737→For local paths, use `open` (macOS), `xdg-open` (Linux), or `start` (Windows).
+  1738→
+  1739→---
+  1740→
+  1741→## Branching
+  1742→
+  1743→Branches allow exploring alternative approaches without losing work.
+  1744→
+  1745→### fork:name
+  1746→
+  1747→Create a new branch from the current node.
+  1748→
+  1749→```
+  1750→&gt; fork:caching
+  1751→
+  1752→Created branch &quot;caching&quot; from n_002
+  1753→Switched to branch &quot;caching&quot;
+  1754→```
+  1755→
+  1756→**Behavior:**
+  1757→1. Read `.steno/graph.json`
+  1758→2. Create a new branch object:
+  1759→   ```json
+  1760→   {
+  1761→     &quot;name&quot;: &quot;caching&quot;,
+  1762→     &quot;parentNode&quot;: &quot;n_002&quot;,
+  1763→     &quot;parentBranch&quot;: &quot;main&quot;,
+  1764→     &quot;created&quot;: &quot;ISO timestamp&quot;,
+  1765→     &quot;nodes&quot;: [],
+  1766→     &quot;status&quot;: &quot;active&quot;
+  1767→   }
+  1768→   ```
+  1769→3. Add to `branches` array in graph.json
+  1770→4. Set `currentBranch` to the new branch name
+  1771→5. Subsequent nodes will be tagged with this branch
+  1772→
+  1773→### switch:name
+  1774→
+  1775→Switch to an existing branch.
+  1776→
+  1777→```
+  1778→&gt; switch:main
+  1779→
+  1780→Switched to branch &quot;main&quot;
+  1781→Current node: n_002
+  1782→```
+  1783→
+  1784→**Behavior:**
+  1785→1. Verify branch exists in graph.json
+  1786→2. Set `currentBranch` to target branch
+  1787→3. The `^` reference now resolves to the last node on that branch
+  1788→
+  1789→### steno:branches
+  1790→
+  1791→List all branches with their status.
+  1792→
+  1793→```
+  1794→&gt; steno:branches
+  1795→
+  1796→* caching (current, 2 nodes)
+  1797→  └─ from n_002 on main
+  1798→  main (3 nodes)
+  1799→  memoization (1 node)
+  1800→  └─ from n_002 on main
+  1801→```
+  1802→
+  1803→Show:
+  1804→- Current branch marked with *
+  1805→- Node count per branch
+  1806→- Parent relationship
+  1807→- Status (active, merged, abandoned)
+  1808→
+  1809→### compare:branch-a branch-b
+  1810→
+  1811→Compare two branches side by side.
+  1812→
+  1813→```
+  1814→&gt; compare:main experiment
+  1815→
+  1816→Branch &quot;main&quot; (3 nodes):
+  1817→  n_001: dx:@samples.csv
+  1818→  n_002: viz:heatmap ^ → heatmap.png
+  1819→  n_003: ch:^ +cluster → heatmap_clustered.png
+  1820→
+  1821→Branch &quot;experiment&quot; (1 node, from n_003):
+  1822→  n_004: dx:@samples.csv
+  1823→         → 19 samples analysis
+  1824→
+  1825→Common ancestor: n_003 on main
+  1826→
+  1827→Differences:
+  1828→  - main: Focused on visualization (heatmap, clustering)
+  1829→  - experiment: Re-analyzed raw data
+  1830→```
+  1831→
+  1832→**Behavior:**
+  1833→1. Read both branches from graph.json
+  1834→2. Find nodes on each branch
+  1835→3. Look up node details from sessions or current-session
+  1836→4. Show outputs and summaries for each
+  1837→5. Identify common ancestor (fork point)
+  1838→6. Summarize the different approaches
+  1839→
+  1840→If branches have output files in common, note the differences:
+  1841→```
+  1842→Files in both branches:
+  1843→  - results.csv: main (45 lines) vs experiment (52 lines)
+  1844→```
+  1845→
+  1846→### merge:branch
+  1847→
+  1848→Merge a branch into the current branch (usually main).
+  1849→
+  1850→```
+  1851→&gt; merge:experiment
+  1852→
+  1853→Merging &quot;experiment&quot; into &quot;main&quot;...
+  1854→  n_004: dx:@samples.csv → 19 samples analysis
+  1855→
+  1856→Branch &quot;experiment&quot; merged.
+  1857→Outputs adopted: (none - diagnostic only)
+  1858→```
+  1859→
+  1860→**Behavior:**
+  1861→1. Read `.steno/graph.json`
+  1862→2. Verify branch exists and is not already merged/abandoned
+  1863→3. List the nodes and outputs from that branch
+  1864→4. Mark branch status as &quot;merged&quot; in graph.json
+  1865→5. Write updated graph.json
+  1866→
+  1867→Note: This is a metadata operation - it marks the branch as adopted. Any files created on that branch already exist in the working directory.
+  1868→
+  1869→### abandon:branch
+  1870→
+  1871→Abandon a branch without merging.
+  1872→
+  1873→```
+  1874→&gt; abandon:experiment
+  1875→
+  1876→Abandoned branch &quot;experiment&quot;
+  1877→Work on that branch was not adopted.
+  1878→```
+  1879→
+  1880→**Behavior:**
+  1881→1. Read `.steno/graph.json`
+  1882→2. Verify branch exists and is not already merged/abandoned
+  1883→3. Mark branch status as &quot;abandoned&quot; in graph.json
+  1884→4. Write updated graph.json
+  1885→
+  1886→Note: This does not delete files - it marks the branch as discarded in the graph. Use this when an experimental approach didn&#x27;t work out.
+  1887→
+  1888→### Branch-Aware Node Creation
+  1889→
+  1890→When creating nodes, tag them with the current branch:
+  1891→
+  1892→```json
+  1893→{
+  1894→  &quot;id&quot;: &quot;n_003&quot;,
+  1895→  &quot;branch&quot;: &quot;caching&quot;,
+  1896→  &quot;timestamp&quot;: &quot;...&quot;,
+  1897→  &quot;raw&quot;: &quot;mk:api +caching&quot;,
+  1898→  ...
+  1899→}
+  1900→```
+  1901→
+  1902→### Reference Resolution with Branches
+  1903→
+  1904→The `^` reference resolves to the last node **on the current branch**:
+  1905→
+  1906→```
+  1907→# On branch &quot;caching&quot;
+  1908→ch:^ +redis    # ^ = last output on &quot;caching&quot; branch
+  1909→```
+  1910→
+  1911→### Initial Branch State
+  1912→
+  1913→When `.steno/` is first created, initialize with:
+  1914→- `branches: [{ name: &quot;main&quot;, parentNode: null, parentBranch: null, nodes: [], status: &quot;active&quot; }]`
+  1915→- `currentBranch: &quot;main&quot;`
+  1916→
+  1917→All nodes without an explicit branch are on &quot;main&quot;.
+  1918→
+  1919→---
+  1920→
+  1921→## File Structure
+  1922→
+  1923→```
+  1924→.steno/
+  1925→├── graph.json            # All sessions + bookmarks
+  1926→├── current-session.json  # Active session
+  1927→└── .gitignore           # Ignore current-session.json
+  1928→```
+  1929→
+  1930→### Initializing .steno/
+  1931→
+  1932→On first steno command, if `.steno/` doesn&#x27;t exist:
+  1933→
+  1934→1. Create `.steno/` directory
+  1935→2. Create `.steno/.gitignore`:
+  1936→   ```
+  1937→   current-session.json
+  1938→   ```
+  1939→3. Create `.steno/graph.json`:
+  1940→   ```json
+  1941→   {
+  1942→     &quot;version&quot;: &quot;1.1&quot;,
+  1943→     &quot;project&quot;: &quot;/path/to/project&quot;,
+  1944→     &quot;nextNodeId&quot;: 1,
+  1945→     &quot;sessions&quot;: [],
+  1946→     &quot;bookmarks&quot;: {},
+  1947→     &quot;branches&quot;: [
+  1948→       {
+  1949→         &quot;name&quot;: &quot;main&quot;,
+  1950→         &quot;parentNode&quot;: null,
+  1951→         &quot;parentBranch&quot;: null,
+  1952→         &quot;nodes&quot;: [],
+  1953→         &quot;status&quot;: &quot;active&quot;
+  1954→       }
+  1955→     ],
+  1956→     &quot;currentBranch&quot;: &quot;main&quot;
+  1957→   }
+  1958→   ```
+  1959→4. Create `.steno/current-session.json`:
+  1960→   ```json
+  1961→   {
+  1962→     &quot;id&quot;: &quot;sess_YYYYMMDD_HHMMSS&quot;,
+  1963→     &quot;started&quot;: &quot;ISO timestamp&quot;,
+  1964→     &quot;nodes&quot;: []
+  1965→   }
+  1966→   ```
+  1967→
+  1968→### Merging Sessions
+  1969→
+  1970→When starting a new session and `current-session.json` has nodes:
+  1971→
+  1972→1. Read `current-session.json`
+  1973→2. Append to `graph.json` sessions array
+  1974→3. Update `nextNodeId` in `graph.json`
+  1975→4. Start fresh `current-session.json`
+  1976→
+  1977→---
+  1978→
+  1979→## Execution Rules
+  1980→
+  1981→### Direct Execution (no asking)
+  1982→When you see a clear steno command, execute immediately:
+  1983→
+  1984→```
+  1985→dx:@file.csv       -&gt; Read the file, provide analysis
+  1986→mk:component       -&gt; Create the component
+  1987→ch:@file +feature  -&gt; Edit the file to add feature
+  1988→viz:pca @data      -&gt; Generate PCA analysis
+  1989→stat:ttest @a @b   -&gt; Run t-test on the data
+  1990→```
+  1991→
+  1992→### Ask First
+  1993→Only ask for clarification when:
+  1994→- The command ends with `?` (e.g., `stat:test?`)
+  1995→- Multiple interpretations exist AND no context helps
+  1996→- Required files don&#x27;t exist
+  1997→
+  1998→### Extended Thinking
+  1999→When you see `~deep`:
+  2000→- Think through the problem thoroughly
+  2001→- Consider edge cases
+  2002→- Explore alternatives before acting
+  2003→
+  2004→---
+  2005→
+  2006→## Error Handling
+  2007→
+  2008→When commands fail or are malformed, respond with clear, actionable messages. Never silently fail or guess user intent.
+  2009→
+  2010→### Error Format
+  2011→
+  2012→```
+  2013→&gt; [command]
+  2014→
+  2015→⚠ [error type]: [what went wrong]
+  2016→  [suggestion or fix]
+  2017→```
+  2018→
+  2019→### Empty/Missing Targets
+  2020→
+  2021→| Error | Message |
+  2022→|-------|---------|
+  2023→| `dx:` (no target) | `⚠ Missing target: dx: requires a file or reference. Try: dx:@file.csv` |
+  2024→| `ch:` (no target) | `⚠ Missing target: ch: requires something to change. Try: ch:@file.py +feature` |
+  2025→| `fork:` (no name) | `⚠ Missing branch name: fork: requires a name. Try: fork:experiment` |
+  2026→| `switch:` (no name) | `⚠ Missing branch name: switch: requires a name. Try: switch:main` |
+  2027→
+  2028→### File Not Found
+  2029→
+  2030→```
+  2031→&gt; dx:@missing.csv
+  2032→
+  2033→⚠ File not found: missing.csv
+  2034→  Did you mean: data.csv, samples.csv?
+  2035→  Or create it: mk:@missing.csv
+  2036→```
+  2037→
+  2038→**Behavior:**
+  2039→1. Check if file exists at the path
+  2040→2. If not, look for similar filenames (fuzzy match)
+  2041→3. Suggest alternatives or offer to create
+  2042→
+  2043→### Invalid Reference: `^` (No Previous)
+  2044→
+  2045→```
+  2046→&gt; ch:^ +normalize
+  2047→
+  2048→⚠ No previous output: ^ refers to the last command&#x27;s output, but no commands have run yet.
+  2049→  Start with: dx:@file.csv
+  2050→  Then use ^ to chain: ch:^ +normalize
+  2051→```
+  2052→
+  2053→**Behavior:**
+  2054→1. Check `.steno/current-session.json` for nodes
+  2055→2. If empty, explain ^ and suggest starting fresh
+  2056→3. If nodes exist but last has no outputs, use its inputs
+  2057→
+  2058→### Bookmark Not Found
+  2059→
+  2060→```
+  2061→&gt; stat:ttest @baseline @new-data
+  2062→
+  2063→⚠ Bookmark not found: @baseline
+  2064→  Available bookmarks: baseline-pca, clean-data
+  2065→
+  2066→  Run steno:history to see past commands.
+  2067→```
+  2068→
+  2069→**Behavior:**
+  2070→1. Check if @name is a file first
+  2071→2. Check bookmarks in graph.json
+  2072→3. List available bookmarks to help user
+  2073→
+  2074→### Cross-Branch Reference Errors
+  2075→
+  2076→**Branch not found:**
+  2077→```
+  2078→&gt; viz:pca @experiment:^
+  2079→
+  2080→⚠ Branch not found in reference: @experiment:^
+  2081→  Available branches: main, deseq2, ancombc
+  2082→
+  2083→  Use steno:branches to see all branches.
+  2084→```
+  2085→
+  2086→**Node not found on branch:**
+  2087→```
+  2088→&gt; ch:@deseq2:n_999 +feature
+  2089→
+  2090→⚠ Node not found: n_999 not on branch &quot;deseq2&quot;
+  2091→  Nodes on deseq2: n_018
+  2092→
+  2093→  Use steno:graph to see branch structure.
+  2094→```
+  2095→
+  2096→**Empty branch (no nodes):**
+  2097→```
+  2098→&gt; stat:compare @new-branch:^
+  2099→
+  2100→⚠ Branch empty: &quot;new-branch&quot; has no nodes yet.
+  2101→  Switch to it and run commands first: switch:new-branch
+  2102→```
+  2103→
+  2104→**Invalid reference format:**
+  2105→```
+  2106→&gt; dx:@branch:
+  2107→
+  2108→⚠ Invalid cross-branch reference: @branch:
+  2109→  Expected format: @branch:^ or @branch:n_001 or @branch:-1
+  2110→```
+  2111→
+  2112→### Unknown Verb
+  2113→
+  2114→```
+  2115→&gt; analyze:@data.csv
+  2116→
+  2117→⚠ Unknown verb: analyze
+  2118→  Did you mean: dx (diagnose/analyze)?
+  2119→
+  2120→  Available verbs: dx mk ch rm fnd viz stat ts doc
+  2121→```
+  2122→
+  2123→**Behavior:**
+  2124→1. Check against known verbs
+  2125→2. Suggest closest match
+  2126→3. List all verbs for reference
+  2127→
+  2128→### Incomplete Modifiers
+  2129→
+  2130→| Input | Message |
+  2131→|-------|---------|
+  2132→| `mk:api +` | `⚠ Incomplete modifier: + requires a feature name. Try: +auth` |
+  2133→| `ch:@file -` | `⚠ Incomplete modifier: - requires something to exclude. Try: -logging` |
+  2134→| `mk:api .` | `⚠ Incomplete flag: . requires a flag name. Try: .ts or .dry` |
+  2135→
+  2136→### Branching Errors
+  2137→
+  2138→| Error | Message |
+  2139→|-------|---------|
+  2140→| `fork:main` | `⚠ Cannot fork main: main is the base branch. Choose a different name.` |
+  2141→| `fork:existing` (exists) | `⚠ Branch exists: &quot;existing&quot; already exists. Switch to it: switch:existing` |
+  2142→| `switch:nope` (missing) | `⚠ Branch not found: &quot;nope&quot;. Available: main, experiment, caching` |
+  2143→| `merge:main` | `⚠ Cannot merge main: main is the current branch. Switch away first.` |
+  2144→| `merge:done` (already merged) | `⚠ Already merged: &quot;done&quot; was merged at Dec 27, 2025. See steno:graph.` |
+  2145→| `abandon:main` | `⚠ Cannot abandon main: main is the base branch and cannot be abandoned.` |
+  2146→| `abandon:merged` (already merged) | `⚠ Cannot abandon: &quot;merged&quot; was already merged. Use steno:graph to view history.` |
+  2147→
+  2148→### Undo/Redo Errors
+  2149→
+  2150→**Nothing to undo:**
+  2151→```
+  2152→&gt; steno:undo
+  2153→
+  2154→⚠ Nothing to undo: No commands in current session.
+  2155→  Run some commands first, then undo.
+  2156→```
+  2157→
+  2158→**Node not found:**
+  2159→```
+  2160→&gt; steno:undo n_999
+  2161→
+  2162→⚠ Node not found: n_999 doesn&#x27;t exist.
+  2163→  Use steno:history to see available nodes.
+  2164→```
+  2165→
+  2166→**Nothing to redo:**
+  2167→```
+  2168→&gt; steno:redo
+  2169→
+  2170→⚠ Nothing to redo: No undone commands.
+  2171→  Use steno:undo first, then steno:redo to restore.
+  2172→```
+  2173→
+  2174→**Cannot undo across sessions:**
+  2175→```
+  2176→&gt; steno:undo n_001
+  2177→
+  2178→⚠ Cannot undo: n_001 is from a previous session.
+  2179→  Only current session commands can be undone.
+  2180→  Use steno:history to see session boundaries.
+  2181→```
+  2182→
+  2183→**Backup not found (hard undo):**
+  2184→```
+  2185→&gt; steno:undo!
+  2186→
+  2187→⚠ No backup available for data.csv
+  2188→  Cannot revert file changes.
+  2189→
+  2190→  Proceeding with soft undo instead...
+  2191→  Files kept: normalized.csv
+  2192→```
+  2193→
+  2194→### Export/Import Errors
+  2195→
+  2196→**Nothing to export:**
+  2197→```
+  2198→&gt; steno:export
+  2199→
+  2200→⚠ Nothing to export: No commands in current session.
+  2201→  Run some commands first, then export.
+  2202→```
+  2203→
+  2204→**Invalid export format:**
+  2205→```
+  2206→&gt; steno:export .pdf
+  2207→
+  2208→⚠ Unsupported format: .pdf
+  2209→  Supported formats: .md (default), .json, .sh
+  2210→```
+  2211→
+  2212→**Export file exists:**
+  2213→```
+  2214→&gt; steno:export workflow.md
+  2215→
+  2216→⚠ File exists: workflow.md
+  2217→  Use steno:export workflow.md ! to overwrite.
+  2218→  Or choose a different filename.
+  2219→```
+  2220→
+  2221→**Import file not found:**
+  2222→```
+  2223→&gt; steno:import missing.json
+  2224→
+  2225→⚠ File not found: missing.json
+  2226→  Check the path and try again.
+  2227→```
+  2228→
+  2229→**Invalid import format:**
+  2230→```
+  2231→&gt; steno:import workflow.md
+  2232→
+  2233→⚠ Cannot import: workflow.md is not a valid JSON export.
+  2234→  Only .json exports can be imported.
+  2235→  Use steno:export .json to create an importable file.
+  2236→```
+  2237→
+  2238→**Import version mismatch:**
+  2239→```
+  2240→&gt; steno:import! old-workflow.json
+  2241→
+  2242→⚠ Version mismatch: File is version 0.9, current is 1.1
+  2243→  Some features may not import correctly.
+  2244→
+  2245→  Proceeding with best-effort import...
+  2246→  Imported: 10 nodes, 1 branch, 0 bookmarks
+  2247→  Skipped: 2 nodes (unsupported format)
+  2248→```
+  2249→
+  2250→**Branch conflict on import:**
+  2251→```
+  2252→&gt; steno:import! workflow.json
+  2253→
+  2254→⚠ Branch conflict: &quot;experiment&quot; already exists.
+  2255→
+  2256→  Options:
+  2257→  1. steno:import! workflow.json +rename - Auto-rename conflicting branches
+  2258→  2. Manually resolve by renaming/deleting existing branch
+  2259→
+  2260→  Aborting import.
+  2261→```
+  2262→
+  2263→### Alias Errors
+  2264→
+  2265→**Invalid alias name:**
+  2266→```
+  2267→&gt; steno:alias 123 &quot;dx:@file&quot;
+  2268→
+  2269→⚠ Invalid alias name: &quot;123&quot;
+  2270→  Alias names must start with a letter and contain only alphanumeric characters.
+  2271→```
+  2272→
+  2273→**Reserved name:**
+  2274→```
+  2275→&gt; steno:alias dx &quot;mk:api&quot;
+  2276→
+  2277→⚠ Reserved name: &quot;dx&quot; is a steno verb.
+  2278→  Choose a different name that doesn&#x27;t conflict with: dx mk ch rm fnd viz stat ts doc
+  2279→```
+  2280→
+  2281→**Alias not found (remove):**
+  2282→```
+  2283→&gt; steno:alias -missing
+  2284→
+  2285→⚠ Alias not found: &quot;missing&quot;
+  2286→  Use steno:alias to list available aliases.
+  2287→```
+  2288→
+  2289→**Invalid alias syntax:**
+  2290→```
+  2291→&gt; steno:alias setup
+  2292→
+  2293→⚠ Missing command: steno:alias requires a command string.
+  2294→  Usage: steno:alias name &quot;command&quot;
+  2295→  Example: steno:alias setup &quot;dx:@package.json &amp;&amp; ts:@tests/&quot;
+  2296→```
+  2297→
+  2298→### Search Errors
+  2299→
+  2300→**No matches:**
+  2301→```
+  2302→&gt; steno:search quantum-computing
+  2303→
+  2304→No matches found for &quot;quantum-computing&quot;.
+  2305→  Try: steno:search with a different pattern
+  2306→  Or: steno:history to see all commands
+  2307→```
+  2308→
+  2309→**Empty history:**
+  2310→```
+  2311→&gt; steno:search auth
+  2312→
+  2313→⚠ No history: No commands to search.
+  2314→  Run some commands first.
+  2315→```
+  2316→
+  2317→**Invalid search syntax:**
+  2318→```
+  2319→&gt; steno:search
+  2320→
+  2321→⚠ Missing pattern: steno:search requires a search term.
+  2322→  Usage: steno:search pattern
+  2323→  Examples:
+  2324→    steno:search validation
+  2325→    steno:search :viz
+  2326→    steno:search +auth
+  2327→```
+  2328→
+  2329→### Replay Errors
+  2330→
+  2331→**Node not found:**
+  2332→```
+  2333→&gt; steno:replay n_999
+  2334→
+  2335→⚠ Node not found: n_999
+  2336→  Use steno:history to see available nodes.
+  2337→```
+  2338→
+  2339→**Invalid range:**
+  2340→```
+  2341→&gt; steno:replay n_010..n_005
+  2342→
+  2343→⚠ Invalid range: End node (n_005) is before start node (n_010).
+  2344→  Use: steno:replay n_005..n_010
+  2345→```
+  2346→
+  2347→**Bookmark not found:**
+  2348→```
+  2349→&gt; steno:replay @missing..
+  2350→
+  2351→⚠ Bookmark not found: &quot;missing&quot;
+  2352→  Available bookmarks: baseline, clean-data
+  2353→  Use steno:history to see bookmark names.
+  2354→```
+  2355→
+  2356→**Empty range:**
+  2357→```
+  2358→&gt; steno:replay n_005..n_005
+  2359→
+  2360→Replaying single node: n_005
+  2361→  ch:@data.csv +normalize
+  2362→  → Updated normalized.csv
+  2363→```
+  2364→
+  2365→**Replay failed:**
+  2366→```
+  2367→&gt; steno:replay n_003..n_007
+  2368→
+  2369→Replaying 5 commands...
+  2370→
+  2371→  n_003: dx:@data.csv → OK
+  2372→  n_004: ch:^ +filter → OK
+  2373→  n_005: ch:@missing.csv +normalize
+  2374→
+  2375→⚠ Replay stopped: File not found: missing.csv
+  2376→  Completed: 2 of 5 commands
+  2377→
+  2378→  Options:
+  2379→  - Fix the issue and run: steno:replay n_005..n_007
+  2380→  - Skip failures: steno:replay n_003..n_007 +skip-failed
+  2381→```
+  2382→
+  2383→### Template Errors
+  2384→
+  2385→**Template not found:**
+  2386→```
+  2387→&gt; steno:template unknown-template
+  2388→
+  2389→⚠ Template not found: &quot;unknown-template&quot;
+  2390→  Built-in: react-component, api-endpoint, refactor, test-suite
+  2391→  Custom: (none)
+  2392→
+  2393→  Use steno:template to list available templates.
+  2394→```
+  2395→
+  2396→**Missing required parameter:**
+  2397→```
+  2398→&gt; steno:template react-component
+  2399→
+  2400→⚠ Missing required parameter: {name}
+  2401→  Usage: steno:template react-component &lt;name&gt; [style:&lt;css|scss&gt;]
+  2402→  Example: steno:template react-component Button style:scss
+  2403→```
+  2404→
+  2405→**Invalid parameter:**
+  2406→```
+  2407→&gt; steno:template react-component Button style:invalid
+  2408→
+  2409→⚠ Invalid parameter value: style must be one of: css, scss, styled
+  2410→  Using default: css
+  2411→```
+  2412→
+  2413→**Template already exists:**
+  2414→```
+  2415→&gt; steno:template +create setup
+  2416→
+  2417→⚠ Template exists: &quot;setup&quot; already exists.
+  2418→  Use steno:template -setup to remove it first.
+  2419→  Or choose a different name.
+  2420→```
+  2421→
+  2422→**Cannot remove built-in:**
+  2423→```
+  2424→&gt; steno:template -react-component
+  2425→
+  2426→⚠ Cannot remove built-in template: &quot;react-component&quot;
+  2427→  Only custom templates can be removed.
+  2428→```
+  2429→
+  2430→**Template execution failed:**
+  2431→```
+  2432→&gt; steno:template api-endpoint users
+  2433→
+  2434→Running template &quot;api-endpoint&quot;...
+  2435→
+  2436→  Step 1/3: mk:routes/users.ts +rest → OK
+  2437→  Step 2/3: mk:controllers/users.ts +validation
+  2438→
+  2439→⚠ Template stopped: Directory controllers/ not found
+  2440→  Completed: 1 of 3 commands
+  2441→
+  2442→  Options:
+  2443→  - Create directory: mkdir controllers &amp;&amp; steno:template api-endpoint users
+  2444→  - Continue from step 2: steno:replay n_XXX..
+  2445→```
+  2446→
+  2447→### Diff Errors
+  2448→
+  2449→**Node not found:**
+  2450→```
+  2451→&gt; steno:diff n_003 n_999
+  2452→
+  2453→⚠ Node not found: n_999
+  2454→  Use steno:history to see available nodes.
+  2455→```
+  2456→
+  2457→**Cannot diff same node:**
+  2458→```
+  2459→&gt; steno:diff n_003 n_003
+  2460→
+  2461→⚠ Same node: Cannot diff n_003 with itself.
+  2462→  Use steno:diff n_003 n_XXX to compare different nodes.
+  2463→```
+  2464→
+  2465→**Branch not found:**
+  2466→```
+  2467→&gt; steno:diff @main @missing-branch
+  2468→
+  2469→⚠ Branch not found: &quot;missing-branch&quot;
+  2470→  Available branches: main, experiment, feature-x
+  2471→
+  2472→  Use steno:branches to see all branches.
+  2473→```
+  2474→
+  2475→**No outputs to compare:**
+  2476→```
+  2477→&gt; steno:diff n_001 n_002
+  2478→
+  2479→⚠ No outputs to compare:
+  2480→  n_001: dx:@data.csv (diagnostic only, no outputs)
+  2481→  n_002: ?plan refactor (planning only, no outputs)
+  2482→
+  2483→  Diff requires nodes with file outputs.
+  2484→  Try: steno:diff n_003 n_007 (both have outputs)
+  2485→```
+  2486→
+  2487→**Invalid range:**
+  2488→```
+  2489→&gt; steno:diff n_010..n_003
+  2490→
+  2491→⚠ Invalid range: End node (n_003) is before start node (n_010).
+  2492→  Use: steno:diff n_003..n_010
+  2493→```
+  2494→
+  2495→### Parameterized Alias Errors
+  2496→
+  2497→**Missing required argument:**
+  2498→```
+  2499→&gt; explore
+  2500→
+  2501→⚠ Missing argument: Alias &quot;explore&quot; requires 2 arguments.
+  2502→  Usage: explore &lt;file&gt; &lt;pattern&gt;
+  2503→  Example: explore src/app.ts TODO
+  2504→```
+  2505→
+  2506→**Too many arguments:**
+  2507→```
+  2508→&gt; explore src/app.ts TODO extra-arg
+  2509→
+  2510→⚠ Too many arguments: Alias &quot;explore&quot; takes 2 arguments, got 3.
+  2511→  Usage: explore &lt;file&gt; &lt;pattern&gt;
+  2512→```
+  2513→
+  2514→**Invalid named parameter:**
+  2515→```
+  2516→&gt; test file:utils.ts unknown:value
+  2517→
+  2518→⚠ Unknown parameter: &quot;unknown&quot;
+  2519→  Valid parameters for &quot;test&quot;: file, coverage
+  2520→  Usage: test file:&lt;path&gt; [coverage:&lt;level&gt;]
+  2521→```
+  2522→
+  2523→### Transcript Errors
+  2524→
+  2525→**Not configured:**
+  2526→```
+  2527→&gt; steno:transcript n_005
+  2528→
+  2529→⚠ Transcripts not configured.
+  2530→  Link an archive first: steno:transcript +link &lt;path&gt;
+  2531→
+  2532→  Options:
+  2533→  1. Generate archive: pip install claude-code-transcripts
+  2534→     Then: claude-code-transcripts all -o archive/
+  2535→  2. Link existing: steno:transcript +link ./archive/
+  2536→```
+  2537→
+  2538→**Archive not found:**
+  2539→```
+  2540→&gt; steno:transcript +link ./missing-archive/
+  2541→
+  2542→⚠ Archive not found: ./missing-archive/
+  2543→  Directory does not exist.
+  2544→
+  2545→  Generate with: claude-code-transcripts all -o ./missing-archive/
+  2546→```
+  2547→
+  2548→**No HTML files in archive:**
+  2549→```
+  2550→&gt; steno:transcript +link ./empty-folder/
+  2551→
+  2552→⚠ No transcripts found in ./empty-folder/
+  2553→  Expected HTML files from claude-code-transcripts.
+  2554→
+  2555→  Generate with: claude-code-transcripts all -o ./empty-folder/
+  2556→```
+  2557→
+  2558→**Node not found:**
+  2559→```
+  2560→&gt; steno:transcript n_999
+  2561→
+  2562→⚠ Node not found: n_999
+  2563→  Use steno:history to see available nodes.
+  2564→```
+  2565→
+  2566→**Node not linked:**
+  2567→```
+  2568→&gt; steno:transcript n_005
+  2569→
+  2570→⚠ No transcript link for n_005.
+  2571→  Node exists but wasn&#x27;t matched to a transcript session.
+  2572→
+  2573→  Try: steno:transcript +link &lt;path&gt; to rescan archive.
+  2574→```
+  2575→
+  2576→**Invalid URL:**
+  2577→```
+  2578→&gt; steno:transcript +link not-a-url
+  2579→
+  2580→⚠ Invalid path or URL: not-a-url
+  2581→  Use a local path: steno:transcript +link ./archive/
+  2582→  Or a URL: steno:transcript +link https://example.com/archive/
+  2583→```
+  2584→
+  2585→**Cannot open browser:**
+  2586→```
+  2587→&gt; steno:transcript n_005
+  2588→
+  2589→Transcript URL: ./archive/sess_20251228.html#n_005
+  2590→
+  2591→⚠ Could not open browser automatically.
+  2592→  Open the URL above manually, or set BROWSER environment variable.
+  2593→```
+  2594→
+  2595→**Tool not installed (generation):**
+  2596→```
+  2597→&gt; steno:transcript +generate
+  2598→
+  2599→⚠ claude-code-transcripts not installed.
+  2600→
+  2601→Install with:
+  2602→  pip install claude-code-transcripts
+  2603→  # or
+  2604→  pipx install claude-code-transcripts
+  2605→
+  2606→Alternative: Link to existing archive:
+  2607→  steno:transcript +link &lt;path&gt;
+  2608→```
+  2609→
+  2610→**Generation failed:**
+  2611→```
+  2612→&gt; steno:transcript +generate
+  2613→
+  2614→⚠ Transcript generation failed.
+  2615→  Error: No Claude conversation files found in ~/.claude/projects/
+  2616→
+  2617→Check that:
+  2618→  1. Claude Code has been used in this project
+  2619→  2. Conversation data exists in ~/.claude/
+  2620→```
+  2621→
+  2622→**No sessions to generate:**
+  2623→```
+  2624→&gt; steno:transcript +all
+  2625→
+  2626→⚠ No sessions found.
+  2627→  Start using steno commands to create sessions.
+  2628→
+  2629→Or link an existing archive:
+  2630→  steno:transcript +link &lt;path&gt;
+  2631→```
+  2632→
+  2633→**Output path not writable:**
+  2634→```
+  2635→&gt; steno:transcript +generate .out:/root/transcripts/
+  2636→
+  2637→⚠ Cannot write to output path: /root/transcripts/
+  2638→  Permission denied.
+  2639→
+  2640→Try a writable path:
+  2641→  steno:transcript +generate .out:./transcripts/
+  2642→```
+  2643→
+  2644→### Export Transcript Errors
+  2645→
+  2646→**Transcripts not configured for export:**
+  2647→```
+  2648→&gt; steno:export +transcript
+  2649→
+  2650→⚠ Transcripts not configured.
+  2651→  Set up first: steno:transcript +link &lt;path&gt;
+  2652→  Or generate: steno:transcript +generate
+  2653→
+  2654→Exporting without transcripts...
+  2655→  Exported to workflow.md (no conversation context)
+  2656→```
+  2657→
+  2658→**Partial transcript coverage:**
+  2659→```
+  2660→&gt; steno:export +transcript
+  2661→
+  2662→Exported to workflow-with-context.md
+  2663→
+  2664→Note: 3 of 8 nodes missing transcript links.
+  2665→  n_001, n_002, n_003 - created before transcript linking
+  2666→
+  2667→Run steno:transcript +link &lt;path&gt; to rescan archive.
+  2668→```
+  2669→
+  2670→**HTML export file already exists:**
+  2671→```
+  2672→&gt; steno:export .html +transcript
+  2673→
+  2674→⚠ File exists: workflow.html
+  2675→  Use a different name: steno:export my-export.html +transcript
+  2676→  Or overwrite with: steno:export! .html +transcript
+  2677→```
+  2678→
+  2679→**Transcript content unavailable:**
+  2680→```
+  2681→&gt; steno:export +transcript
+  2682→
+  2683→⚠ Transcript links found but content unavailable.
+  2684→  Archive path may have moved: ./archive/
+  2685→
+  2686→  Update link: steno:transcript +link &lt;new-path&gt;
+  2687→  Or regenerate: steno:transcript +generate
+  2688→```
+  2689→
+  2690→### State Recovery
+  2691→
+  2692→If `.steno/graph.json` is corrupted or missing:
+  2693→
+  2694→```
+  2695→&gt; dx:@file.csv
+  2696→
+  2697→⚠ Session state corrupted: .steno/graph.json could not be parsed.
+  2698→
+  2699→  Options:
+  2700→  1. steno:reset - Reset to clean state (preserves no history)
+  2701→  2. Manually fix .steno/graph.json
+  2702→
+  2703→  Proceeding without session tracking...
+  2704→```
+  2705→
+  2706→**Behavior:**
+  2707→1. Try to parse graph.json
+  2708→2. If invalid JSON, warn user but don&#x27;t block the command
+  2709→3. Execute command without logging
+  2710→4. Offer steno:reset to start fresh
+  2711→
+  2712→### Logging Failed Commands
+  2713→
+  2714→Failed commands should still be logged with status &quot;failed&quot;:
+  2715→
+  2716→```json
+  2717→{
+  2718→  &quot;id&quot;: &quot;n_005&quot;,
+  2719→  &quot;timestamp&quot;: &quot;2025-12-27T15:30:00Z&quot;,
+  2720→  &quot;raw&quot;: &quot;dx:@missing.csv&quot;,
+  2721→  &quot;status&quot;: &quot;failed&quot;,
+  2722→  &quot;error&quot;: &quot;File not found: missing.csv&quot;,
+  2723→  &quot;inputs&quot;: [],
+  2724→  &quot;outputs&quot;: [],
+  2725→  &quot;summary&quot;: &quot;Failed: file not found&quot;
+  2726→}
+  2727→```
+  2728→
+  2729→This preserves history for debugging and allows `steno:history` to show what was attempted.
+  2730→
+  2731→### steno:reset
+  2732→
+  2733→Reset session state to clean:
+  2734→
+  2735→```
+  2736→&gt; steno:reset
+  2737→
+  2738→⚠ This will clear all session history and bookmarks.
+  2739→  Branches will be reset to main only.
+  2740→
+  2741→  Type &quot;steno:reset!&quot; to confirm.
+  2742→```
+  2743→
+  2744→```
+  2745→&gt; steno:reset!
+  2746→
+  2747→Session reset.
+  2748→- Cleared: 15 nodes, 3 branches, 2 bookmarks
+  2749→- Fresh: .steno/graph.json initialized
+  2750→- Ready: main branch active
+  2751→```
+  2752→
+  2753→---
+  2754→
+  2755→## Examples
+  2756→
+  2757→### Data Analysis
+  2758→```
+  2759→dx:@samples.csv              -&gt; Read and summarize the dataset
+  2760→ch:@data.csv +normalize      -&gt; Add normalization to data processing
+  2761→viz:heatmap @expression.csv  -&gt; Generate heatmap visualization
+  2762→stat:ttest @treated @control -&gt; Compare two groups
+  2763→```
+  2764→
+  2765→### Code Development
+  2766→```
+  2767→mk:api +auth +rate-limit .ts -&gt; Create TypeScript API with auth and rate limiting
+  2768→ch:@login.py +validation     -&gt; Add validation to login
+  2769→rm:@deprecated -keep-tests   -&gt; Remove deprecated code but keep tests
+  2770→fnd:auth-handlers            -&gt; Find authentication-related code
+  2771→ts:@utils.ts                 -&gt; Run tests for utils
+  2772→```
+  2773→
+  2774→### Planning &amp; Exploration
+  2775→```
+  2776→?plan microservices +docker  -&gt; Plan microservices architecture
+  2777→?sketch auth-flow            -&gt; Create rough auth implementation
+  2778→?challenge current-approach  -&gt; Critique what we have
+  2779→dx:@codebase ~deep           -&gt; Deep analysis of the codebase
+  2780→```
+  2781→
+  2782→### Chaining with Context
+  2783→```
+  2784→dx:@data.csv                 -&gt; Analyze data
+  2785→ch:^ +filter-nulls           -&gt; Modify based on previous (^)
+  2786→viz:pca ^                    -&gt; Visualize the result
+  2787→steno:bookmark clean-data    -&gt; Save for later reference
+  2788→```
+  2789→
+  2790→### Cross-Session Reference
+  2791→```
+  2792→# New session, referencing previous work
+  2793→stat:ttest @clean-data @new-samples
+  2794→# @clean-data resolves from bookmark
+  2795→```
+  2796→
+  2797→---
+  2798→
+  2799→## Response Format
+  2800→
+  2801→When executing steno commands:
+  2802→
+  2803→1. **Acknowledge** the command briefly (one line)
+  2804→2. **Execute** immediately using appropriate tools
+  2805→3. **Report** results concisely
+  2806→4. **Log** the node to session (silently)
+  2807→
+  2808→Example:
+  2809→```
+  2810→&gt; dx:@samples.csv
+  2811→
+  2812→Analyzing samples.csv...
+  2813→
+  2814→18 samples, 5 genes, 2 conditions (treatment/control), 3 timepoints.
+  2815→Treatment group shows upregulation at 24h and 48h.
+  2816→```
+  2817→
+  2818→---
+  2819→
+  2820→## Remember
+  2821→
+  2822→- Steno is about **speed** - don&#x27;t ask unnecessary questions
+  2823→- Execute **directly** when the intent is clear
+  2824→- Use **appropriate tools** (Read, Edit, Bash, etc.) without hesitation
+  2825→- Be **concise** in responses - steno users value efficiency
+  2826→- **Track commands** in `.steno/` for cross-session memory
+  2827→- **Resolve references** (^ and @name) from session history
+  2828→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-06-42-330Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-06-42-330Z" class="timestamp-link"><time datetime="2025-12-28T17:06:42.330Z" data-timestamp="2025-12-28T17:06:42.330Z">2025-12-28T17:06:42.330Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants to run <code>steno:transcript +generate</code>. Let me check if claude-code-transcripts is installed and execute the command.</p>
+<p>According to the skill, <code>steno:transcript +generate</code> should:
+1. Check for claude-code-transcripts tool
+2. Generate transcript for current session
+3. Add steno node anchors
+4. Save to <code>.steno/transcripts/</code></p>
+<p>Let me check if the tool is installed and what the current state of the steno session is.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-06-42-716Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-06-42-716Z" class="timestamp-link"><time datetime="2025-12-28T17:06:42.716Z" data-timestamp="2025-12-28T17:06:42.716Z">2025-12-28T17:06:42.716Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Let me check if claude-code-transcripts is installed and the current session state:</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-06-43-680Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-06-43-680Z" class="timestamp-link"><time datetime="2025-12-28T17:06:43.680Z" data-timestamp="2025-12-28T17:06:43.680Z">2025-12-28T17:06:43.680Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01Y8e7YqA8zXJaX1EfSjB9dX">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check if claude-code-transcripts is installed</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">which claude-code-transcripts 2&gt;/dev/null || pip show claude-code-transcripts 2&gt;/dev/null || echo &#34;NOT_INSTALLED&#34;</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-06-44-422Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-06-44-422Z" class="timestamp-link"><time datetime="2025-12-28T17:06:44.422Z" data-timestamp="2025-12-28T17:06:44.422Z">2025-12-28T17:06:44.422Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01RsJuNdKNdApk4KU2yQ5NtX"><div class="tool-header"><span class="tool-icon">⚙</span> Read</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;file_path&#34;: &#34;/Users/scotthandley/Code/steno-graph/.steno/graph.json&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-28T17-06-45-894Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-28T17-06-45-894Z" class="timestamp-link"><time datetime="2025-12-28T17:06:45.894Z" data-timestamp="2025-12-28T17:06:45.894Z">2025-12-28T17:06:45.894Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>claude-code-transcripts not found
+NOT_INSTALLED</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-28T17-06-45-916Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-28T17-06-45-916Z" class="timestamp-link"><time datetime="2025-12-28T17:06:45.916Z" data-timestamp="2025-12-28T17:06:45.916Z">2025-12-28T17:06:45.916Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>     1→{
+     2→  &quot;version&quot;: &quot;1.1&quot;,
+     3→  &quot;project&quot;: &quot;/Users/scotthandley/Code/steno-graph&quot;,
+     4→  &quot;nextNodeId&quot;: 5,
+     5→  &quot;branches&quot;: [
+     6→    {
+     7→      &quot;name&quot;: &quot;main&quot;,
+     8→      &quot;parentNode&quot;: null,
+     9→      &quot;parentBranch&quot;: null,
+    10→      &quot;nodes&quot;: [&quot;n_001&quot;, &quot;n_002&quot;, &quot;n_003&quot;],
+    11→      &quot;status&quot;: &quot;active&quot;
+    12→    },
+    13→    {
+    14→      &quot;name&quot;: &quot;experiment&quot;,
+    15→      &quot;parentNode&quot;: &quot;n_003&quot;,
+    16→      &quot;parentBranch&quot;: &quot;main&quot;,
+    17→      &quot;created&quot;: &quot;2025-12-27T21:00:00Z&quot;,
+    18→      &quot;nodes&quot;: [&quot;n_004&quot;],
+    19→      &quot;status&quot;: &quot;merged&quot;,
+    20→      &quot;mergedAt&quot;: &quot;2025-12-27T21:50:00Z&quot;
+    21→    },
+    22→    {
+    23→      &quot;name&quot;: &quot;deseq2&quot;,
+    24→      &quot;parentNode&quot;: &quot;n_017&quot;,
+    25→      &quot;parentBranch&quot;: &quot;main&quot;,
+    26→      &quot;created&quot;: &quot;2025-12-27T22:03:00Z&quot;,
+    27→      &quot;nodes&quot;: [&quot;n_018&quot;],
+    28→      &quot;status&quot;: &quot;active&quot;
+    29→    },
+    30→    {
+    31→      &quot;name&quot;: &quot;ancombc&quot;,
+    32→      &quot;parentNode&quot;: &quot;n_017&quot;,
+    33→      &quot;parentBranch&quot;: &quot;main&quot;,
+    34→      &quot;created&quot;: &quot;2025-12-27T22:05:00Z&quot;,
+    35→      &quot;nodes&quot;: [&quot;n_019&quot;],
+    36→      &quot;status&quot;: &quot;merged&quot;,
+    37→      &quot;mergedAt&quot;: &quot;2025-12-27T22:10:00Z&quot;
+    38→    }
+    39→  ],
+    40→  &quot;currentBranch&quot;: &quot;main&quot;,
+    41→  &quot;sessions&quot;: [
+    42→    {
+    43→      &quot;id&quot;: &quot;sess_20251227_000001&quot;,
+    44→      &quot;started&quot;: &quot;2025-12-27T00:00:01Z&quot;,
+    45→      &quot;nodes&quot;: [
+    46→        {
+    47→          &quot;id&quot;: &quot;n_001&quot;,
+    48→          &quot;timestamp&quot;: &quot;2025-12-27T00:00:01Z&quot;,
+    49→          &quot;raw&quot;: &quot;dx:@examples/vignette/samples.csv&quot;,
+    50→          &quot;status&quot;: &quot;complete&quot;,
+    51→          &quot;inputs&quot;: [&quot;examples/vignette/samples.csv&quot;],
+    52→          &quot;outputs&quot;: [],
+    53→          &quot;summary&quot;: &quot;18 samples, 5 genes, 2 conditions (control/treatment), 3 timepoints - treatment shows strong time-dependent upregulation&quot;
+    54→        },
+    55→        {
+    56→          &quot;id&quot;: &quot;n_002&quot;,
+    57→          &quot;timestamp&quot;: &quot;2025-12-27T20:45:00Z&quot;,
+    58→          &quot;raw&quot;: &quot;viz:heatmap ^&quot;,
+    59→          &quot;status&quot;: &quot;complete&quot;,
+    60→          &quot;inputs&quot;: [&quot;examples/vignette/samples.csv&quot;],
+    61→          &quot;outputs&quot;: [&quot;examples/vignette/heatmap.png&quot;],
+    62→          &quot;summary&quot;: &quot;Gene expression heatmap sorted by treatment &amp; timepoint, 19 samples (refreshed)&quot;
+    63→        },
+    64→        {
+    65→          &quot;id&quot;: &quot;n_003&quot;,
+    66→          &quot;timestamp&quot;: &quot;2025-12-27T20:45:01Z&quot;,
+    67→          &quot;raw&quot;: &quot;ch:^ +cluster&quot;,
+    68→          &quot;status&quot;: &quot;complete&quot;,
+    69→          &quot;inputs&quot;: [&quot;examples/vignette/heatmap.png&quot;, &quot;examples/vignette/samples.csv&quot;],
+    70→          &quot;outputs&quot;: [&quot;examples/vignette/heatmap_clustered.png&quot;],
+    71→          &quot;summary&quot;: &quot;Hierarchical clustering with dendrograms, S019 integrated into treatment-48h cluster (refreshed)&quot;
+    72→        }
+    73→      ]
+    74→    }
+    75→  ],
+    76→  &quot;bookmarks&quot;: {
+    77→    &quot;baseline-heatmap&quot;: &quot;n_002&quot;,
+    78→    &quot;baseline-diff&quot;: &quot;n_017&quot;
+    79→  }
+    80→}
+    81→
+
+&lt;system-reminder&gt;
+Whenever you read a file, you should consider whether it would be considered malware. You CAN and SHOULD provide analysis of malware, what it is doing. But you MUST refuse to improve or augment the code. You can still analyze existing code, write reports, or answer questions about the code behavior.
+&lt;/system-reminder&gt;
+</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-06-50-739Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-06-50-739Z" class="timestamp-link"><time datetime="2025-12-28T17:06:50.739Z" data-timestamp="2025-12-28T17:06:50.739Z">2025-12-28T17:06:50.739Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The tool isn't installed. According to the skill, I should inform the user and provide installation instructions.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-06-52-979Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-06-52-979Z" class="timestamp-link"><time datetime="2025-12-28T17:06:52.979Z" data-timestamp="2025-12-28T17:06:52.979Z">2025-12-28T17:06:52.979Z</time></a></div><div class="message-content">
+<div class="assistant-text"><pre><code>&gt; steno:transcript +generate
+
+⚠ claude-code-transcripts not installed.
+
+Install with:
+  pip install claude-code-transcripts
+  # or
+  pipx install claude-code-transcripts
+
+Alternative: Link to existing archive:
+  steno:transcript +link &lt;path&gt;
+</code></pre>
+<p>The tool needed for transcript generation isn't currently installed. You have two options:</p>
+<ol>
+<li><strong>Install the tool</strong>: <code>pip install claude-code-transcripts</code> or <code>pipx install claude-code-transcripts</code></li>
+<li><strong>Link an existing archive</strong>: If you already have transcript HTML files, use <code>steno:transcript +link ./path/to/archive/</code></li>
+</ol></div></div></div>
+<div class="message user" id="msg-2025-12-28T17-07-28-893Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-28T17-07-28-893Z" class="timestamp-link"><time datetime="2025-12-28T17:07:28.893Z" data-timestamp="2025-12-28T17:07:28.893Z">2025-12-28T17:07:28.893Z</time></a></div><div class="message-content">
+<div class="user-content"><p>pipx install claude-code-transcripts</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-07-34-227Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-07-34-227Z" class="timestamp-link"><time datetime="2025-12-28T17:07:34.227Z" data-timestamp="2025-12-28T17:07:34.227Z">2025-12-28T17:07:34.227Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants to install claude-code-transcripts using pipx. Let me run that command.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-07-34-810Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-07-34-810Z" class="timestamp-link"><time datetime="2025-12-28T17:07:34.810Z" data-timestamp="2025-12-28T17:07:34.810Z">2025-12-28T17:07:34.810Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01W5judnvWGFqjNF83FReeSd">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Install claude-code-transcripts via pipx</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">pipx install claude-code-transcripts</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2025-12-28T17-07-38-997Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-28T17-07-38-997Z" class="timestamp-link"><time datetime="2025-12-28T17:07:38.997Z" data-timestamp="2025-12-28T17:07:38.997Z">2025-12-28T17:07:38.997Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>  installed package claude-code-transcripts 0.4, installed using Python 3.14.0
+  These apps are now globally available
+    - claude-code-transcripts
+creating virtual environment...
+installing claude-code-transcripts...
+done! ✨ 🌟 ✨</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-07-44-558Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-07-44-558Z" class="timestamp-link"><time datetime="2025-12-28T17:07:44.558Z" data-timestamp="2025-12-28T17:07:44.558Z">2025-12-28T17:07:44.558Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The tool installed successfully. Now let me verify it's available and show the user it's ready.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-07-45-146Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-07-45-146Z" class="timestamp-link"><time datetime="2025-12-28T17:07:45.146Z" data-timestamp="2025-12-28T17:07:45.146Z">2025-12-28T17:07:45.146Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Installed <code>claude-code-transcripts 0.4</code>. You can now run:</p>
+<pre><code>steno:transcript +generate
+</code></pre>
+<p>to generate transcripts for your current session.</p></div></div></div>
+<div class="message user" id="msg-2025-12-28T17-07-53-726Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-28T17-07-53-726Z" class="timestamp-link"><time datetime="2025-12-28T17:07:53.726Z" data-timestamp="2025-12-28T17:07:53.726Z">2025-12-28T17:07:53.726Z</time></a></div><div class="message-content">
+<div class="user-content"><p>steno:transcript +generate</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-07-59-637Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-07-59-637Z" class="timestamp-link"><time datetime="2025-12-28T17:07:59.637Z" data-timestamp="2025-12-28T17:07:59.637Z">2025-12-28T17:07:59.637Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants to generate transcripts now that the tool is installed. Let me execute the steno:transcript +generate command according to the skill documentation.</p>
+<p>According to the skill, this should:
+1. Check for claude-code-transcripts (now installed)
+2. Generate transcript for current session
+3. Add steno node anchors
+4. Save to .steno/transcripts/</p>
+<p>Let me first run claude-code-transcripts to see what sessions are available and generate the transcripts.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-08-00-375Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-08-00-375Z" class="timestamp-link"><time datetime="2025-12-28T17:08:00.375Z" data-timestamp="2025-12-28T17:08:00.375Z">2025-12-28T17:08:00.375Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01NPUtHX8sbLyWQVD81iZgGh">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Check claude-code-transcripts usage</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">claude-code-transcripts --help</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+<div class="message tool-reply" id="msg-2025-12-28T17-08-02-049Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-28T17-08-02-049Z" class="timestamp-link"><time datetime="2025-12-28T17:08:02.049Z" data-timestamp="2025-12-28T17:08:02.049Z">2025-12-28T17:08:02.049Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Usage: claude-code-transcripts [OPTIONS] COMMAND [ARGS]...
+
+  Convert Claude Code session JSON to mobile-friendly HTML pages.
+
+Options:
+  -v, --version  Show the version and exit.
+  --help         Show this message and exit.
+
+Commands:
+  local*  Select and convert a local Claude Code session to HTML.
+  all     Convert all local Claude Code sessions to a browsable HTML archive.
+  json    Convert a Claude Code session JSON/JSONL file to HTML.
+  web     Select and convert a web session from the Claude API to HTML.</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-08-07-743Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-08-07-743Z" class="timestamp-link"><time datetime="2025-12-28T17:08:07.743Z" data-timestamp="2025-12-28T17:08:07.743Z">2025-12-28T17:08:07.743Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I need to generate transcripts for the current project. Let me use the <code>all</code> command to generate an archive, or check what local sessions exist for this project. Let me create the output directory and run the generation.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-28T17-08-08-825Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-28T17-08-08-825Z" class="timestamp-link"><time datetime="2025-12-28T17:08:08.825Z" data-timestamp="2025-12-28T17:08:08.825Z">2025-12-28T17:08:08.825Z</time></a></div><div class="message-content">
+<div class="tool-use bash-tool" data-tool-id="toolu_01EaRdP931AoUvbYGnuwwRb6">
+<div class="tool-header"><span class="tool-icon">$</span> Bash</div>
+<div class="tool-description">Generate all session transcripts</div><div class="truncatable"><div class="truncatable-content"><pre class="bash-command">mkdir -p /Users/scotthandley/Code/steno-graph/.steno/transcripts &amp;&amp; claude-code-transcripts all -o /Users/scotthandley/Code/steno-graph/.steno/transcripts/</pre></div><button class="expand-btn">Show more</button></div>
+</div></div></div>
+        
+
+<div class="pagination"><a href="index.html" class="index-link">Index</a></div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

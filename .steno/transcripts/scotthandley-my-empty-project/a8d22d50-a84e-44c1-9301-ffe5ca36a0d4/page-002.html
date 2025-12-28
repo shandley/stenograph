@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - page 2</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+<link rel="stylesheet" href="../../steno-transcript.css">
+</head>
+<body>
+<button class="theme-toggle" onclick="document.body.classList.toggle('dark')" style="position:fixed;top:1rem;right:1rem;z-index:1000;padding:0.5rem 1rem;border:1px solid #ddd;border-radius:0.5rem;background:#fff;cursor:pointer;font-size:0.875rem;">Toggle Dark Mode</button>
+    <div class="container">
+        <h1><a href="index.html" style="color: inherit; text-decoration: none;">Claude Code transcript</a> - page 2/2</h1>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+        
+<div class="message user" id="msg-2025-12-05T23-10-29-834Z"><div class="message-header"><span class="role-label">User</span><a href="#msg-2025-12-05T23-10-29-834Z" class="timestamp-link"><time datetime="2025-12-05T23:10:29.834Z" data-timestamp="2025-12-05T23:10:29.834Z">2025-12-05T23:10:29.834Z</time></a></div><div class="message-content">
+<div class="user-content"><p>can you update the notebook to the appropriate code so that the plots show in positron</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-10-35-416Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-10-35-416Z" class="timestamp-link"><time datetime="2025-12-05T23:10:35.416Z" data-timestamp="2025-12-05T23:10:35.416Z">2025-12-05T23:10:35.416Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>The user wants me to update the notebook so plots show properly in Positron. I'll update all the plot cells to use explicit display calls, which is the most reliable method. I'll modify the setup cell and each plotting cell to use <code>display(fig)</code> instead of <code>plt.show()</code>.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-10-37-101Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-10-37-101Z" class="timestamp-link"><time datetime="2025-12-05T23:10:37.101Z" data-timestamp="2025-12-05T23:10:37.101Z">2025-12-05T23:10:37.101Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_013rKtePEekDod6UPL1FC1YW"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-2&#34;,
+  &#34;new_source&#34;: &#34;%matplotlib inline\n\nimport pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nfrom scipy import stats\nfrom scipy.spatial.distance import pdist, squareform\nfrom scipy.cluster.hierarchy import linkage, dendrogram\nfrom sklearn.manifold import MDS\nfrom skbio.diversity import alpha_diversity, beta_diversity\nfrom skbio.stats.ordination import pcoa\nfrom skbio.stats.distance import permanova, anosim\nfrom IPython.display import display\nimport warnings\nwarnings.filterwarnings(&#39;ignore&#39;)\n\n# Set style\nsns.set_style(\&#34;whitegrid\&#34;)\nplt.rcParams[&#39;figure.figsize&#39;] = [10, 6]\nplt.rcParams[&#39;figure.dpi&#39;] = 100\n\nprint(\&#34;Setup complete\&#34;)&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-10-37-118Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-10-37-118Z" class="timestamp-link"><time datetime="2025-12-05T23:10:37.118Z" data-timestamp="2025-12-05T23:10:37.118Z">2025-12-05T23:10:37.118Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with %matplotlib inline
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from scipy.spatial.distance import pdist, squareform
+from scipy.cluster.hierarchy import linkage, dendrogram
+from sklearn.manifold import MDS
+from skbio.diversity import alpha_diversity, beta_diversity
+from skbio.stats.ordination import pcoa
+from skbio.stats.distance import permanova, anosim
+from IPython.display import display
+import warnings
+warnings.filterwarnings(&#x27;ignore&#x27;)
+
+# Set style
+sns.set_style(&quot;whitegrid&quot;)
+plt.rcParams[&#x27;figure.figsize&#x27;] = [10, 6]
+plt.rcParams[&#x27;figure.dpi&#x27;] = 100
+
+print(&quot;Setup complete&quot;)</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-10-41-012Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-10-41-012Z" class="timestamp-link"><time datetime="2025-12-05T23:10:41.012Z" data-timestamp="2025-12-05T23:10:41.012Z">2025-12-05T23:10:41.012Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>Now I need to update all the plotting cells to use <code>display(fig)</code> and <code>plt.close()</code> instead of <code>plt.show()</code>. Let me update each plot cell.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-10-45-274Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-10-45-274Z" class="timestamp-link"><time datetime="2025-12-05T23:10:45.274Z" data-timestamp="2025-12-05T23:10:45.274Z">2025-12-05T23:10:45.274Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01EbsvpA75kvNz3mA1pZtGZ1"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-10&#34;,
+  &#34;new_source&#34;: &#34;# Color palette\ncolors = {&#39;healthy&#39;: &#39;#2E86AB&#39;, &#39;ibd&#39;: &#39;#E94F37&#39;}\n\nfig, ax = plt.subplots(figsize=(8, 6))\n\n# Boxplot\nsns.boxplot(data=alpha_df, x=&#39;group&#39;, y=&#39;shannon&#39;, palette=colors, ax=ax, width=0.5)\nsns.stripplot(data=alpha_df, x=&#39;group&#39;, y=&#39;shannon&#39;, color=&#39;black&#39;, alpha=0.5, ax=ax)\n\n# Statistical test\nhealthy = alpha_df[alpha_df[&#39;group&#39;] == &#39;healthy&#39;][&#39;shannon&#39;]\nibd = alpha_df[alpha_df[&#39;group&#39;] == &#39;ibd&#39;][&#39;shannon&#39;]\nstat, pval = stats.mannwhitneyu(healthy, ibd, alternative=&#39;two-sided&#39;)\n\n# Add p-value annotation\nax.text(0.5, ax.get_ylim()[1] * 0.95, f&#39;p = {pval:.4f}&#39;, \n        ha=&#39;center&#39;, fontsize=12, transform=ax.get_xaxis_transform())\n\nax.set_xlabel(&#39;Group&#39;, fontsize=12)\nax.set_ylabel(&#39;Shannon Index&#39;, fontsize=12)\nax.set_title(&#39;Shannon Diversity Index by Group&#39;, fontsize=14, fontweight=&#39;bold&#39;)\nplt.tight_layout()\ndisplay(fig)\nplt.close()&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-10-50-566Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-10-50-566Z" class="timestamp-link"><time datetime="2025-12-05T23:10:50.566Z" data-timestamp="2025-12-05T23:10:50.566Z">2025-12-05T23:10:50.566Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01QA7aS7r1tWLocqiN1Y5e3o"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-12&#34;,
+  &#34;new_source&#34;: &#34;# Reshape data for faceted plot\nmetrics = [&#39;shannon&#39;, &#39;simpson&#39;, &#39;inv_simpson&#39;, &#39;evenness&#39;]\nmetric_labels = [&#39;Shannon&#39;, &#39;Simpson&#39;, &#39;Inverse Simpson&#39;, &#39;Evenness&#39;]\n\nfig, axes = plt.subplots(1, 4, figsize=(16, 5))\n\nfor idx, (metric, label) in enumerate(zip(metrics, metric_labels)):\n    ax = axes[idx]\n    sns.boxplot(data=alpha_df, x=&#39;group&#39;, y=metric, palette=colors, ax=ax, width=0.5)\n    sns.stripplot(data=alpha_df, x=&#39;group&#39;, y=metric, color=&#39;black&#39;, alpha=0.5, ax=ax)\n    \n    # Statistical test\n    healthy = alpha_df[alpha_df[&#39;group&#39;] == &#39;healthy&#39;][metric]\n    ibd = alpha_df[alpha_df[&#39;group&#39;] == &#39;ibd&#39;][metric]\n    stat, pval = stats.mannwhitneyu(healthy, ibd, alternative=&#39;two-sided&#39;)\n    \n    # Add significance stars\n    sig = &#39;***&#39; if pval &lt; 0.001 else &#39;**&#39; if pval &lt; 0.01 else &#39;*&#39; if pval &lt; 0.05 else &#39;ns&#39;\n    ax.text(0.5, ax.get_ylim()[1] * 0.95, sig, ha=&#39;center&#39;, fontsize=14, \n            transform=ax.get_xaxis_transform())\n    \n    ax.set_xlabel(&#39;&#39;)\n    ax.set_ylabel(&#39;Value&#39; if idx == 0 else &#39;&#39;)\n    ax.set_title(label, fontsize=12, fontweight=&#39;bold&#39;)\n\nplt.suptitle(&#39;Alpha Diversity Metrics by Group&#39;, fontsize=14, fontweight=&#39;bold&#39;, y=1.02)\nplt.tight_layout()\ndisplay(fig)\nplt.close()&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-10-53-891Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-10-53-891Z" class="timestamp-link"><time datetime="2025-12-05T23:10:53.891Z" data-timestamp="2025-12-05T23:10:53.891Z">2025-12-05T23:10:53.891Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01Gh1NXTxkUL2z26MmN2eQV8"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-14&#34;,
+  &#34;new_source&#34;: &#34;fig, ax = plt.subplots(figsize=(10, 6))\n\nfor group in [&#39;healthy&#39;, &#39;ibd&#39;]:\n    data = alpha_df[alpha_df[&#39;group&#39;] == group]\n    ax.scatter(data[&#39;bmi&#39;], data[&#39;shannon&#39;], c=colors[group], label=group, s=80, alpha=0.7)\n    \n    # Add regression line\n    z = np.polyfit(data[&#39;bmi&#39;], data[&#39;shannon&#39;], 1)\n    p = np.poly1d(z)\n    x_line = np.linspace(data[&#39;bmi&#39;].min(), data[&#39;bmi&#39;].max(), 100)\n    ax.plot(x_line, p(x_line), c=colors[group], linestyle=&#39;--&#39;, alpha=0.5)\n\nax.set_xlabel(&#39;BMI&#39;, fontsize=12)\nax.set_ylabel(&#39;Shannon Index&#39;, fontsize=12)\nax.set_title(&#39;Shannon Diversity vs BMI&#39;, fontsize=14, fontweight=&#39;bold&#39;)\nax.legend(title=&#39;Group&#39;)\nplt.tight_layout()\ndisplay(fig)\nplt.close()&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-11-01-682Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-11-01-682Z" class="timestamp-link"><time datetime="2025-12-05T23:11:01.682Z" data-timestamp="2025-12-05T23:11:01.682Z">2025-12-05T23:11:01.682Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01TsDC4UijBuJTfR1fNMC1tQ"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-20&#34;,
+  &#34;new_source&#34;: &#34;from matplotlib.patches import Ellipse\nimport matplotlib.transforms as transforms\n\ndef confidence_ellipse(x, y, ax, n_std=2.0, facecolor=&#39;none&#39;, **kwargs):\n    \&#34;\&#34;\&#34;Create a covariance confidence ellipse.\&#34;\&#34;\&#34;\n    if len(x) &lt; 3:\n        return None\n    cov = np.cov(x, y)\n    pearson = cov[0, 1] / np.sqrt(cov[0, 0] * cov[1, 1])\n    ell_radius_x = np.sqrt(1 + pearson)\n    ell_radius_y = np.sqrt(1 - pearson)\n    ellipse = Ellipse((0, 0), width=ell_radius_x * 2, height=ell_radius_y * 2,\n                      facecolor=facecolor, **kwargs)\n    scale_x = np.sqrt(cov[0, 0]) * n_std\n    scale_y = np.sqrt(cov[1, 1]) * n_std\n    transf = transforms.Affine2D() \\\n        .rotate_deg(45) \\\n        .scale(scale_x, scale_y) \\\n        .translate(np.mean(x), np.mean(y))\n    ellipse.set_transform(transf + ax.transData)\n    return ax.add_patch(ellipse)\n\n# PCoA plot\nfig, ax = plt.subplots(figsize=(10, 8))\n\nfor group in [&#39;healthy&#39;, &#39;ibd&#39;]:\n    data = pcoa_df[pcoa_df[&#39;group&#39;] == group]\n    ax.scatter(data[&#39;PC1&#39;], data[&#39;PC2&#39;], c=colors[group], label=group, \n               s=100, alpha=0.7, edgecolors=&#39;white&#39;, linewidth=0.5)\n    confidence_ellipse(data[&#39;PC1&#39;], data[&#39;PC2&#39;], ax, n_std=2.0,\n                       edgecolor=colors[group], linestyle=&#39;--&#39;, linewidth=2)\n\nax.set_xlabel(f&#39;PC1 ({pc1_var:.1f}%)&#39;, fontsize=12)\nax.set_ylabel(f&#39;PC2 ({pc2_var:.1f}%)&#39;, fontsize=12)\nax.set_title(&#39;PCoA of Microbiome Composition (Bray-Curtis)&#39;, fontsize=14, fontweight=&#39;bold&#39;)\nax.legend(title=&#39;Group&#39;, loc=&#39;best&#39;)\nax.axhline(y=0, color=&#39;gray&#39;, linestyle=&#39;-&#39;, linewidth=0.5, alpha=0.5)\nax.axvline(x=0, color=&#39;gray&#39;, linestyle=&#39;-&#39;, linewidth=0.5, alpha=0.5)\nplt.tight_layout()\ndisplay(fig)\nplt.close()&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-11-09-569Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-11-09-569Z" class="timestamp-link"><time datetime="2025-12-05T23:11:09.569Z" data-timestamp="2025-12-05T23:11:09.569Z">2025-12-05T23:11:09.569Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01RCSEqkGA4ioNr3KFAWMWyN"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-22&#34;,
+  &#34;new_source&#34;: &#34;fig, axes = plt.subplots(2, 2, figsize=(14, 12))\n\n# By antibiotic use\nax = axes[0, 0]\nabx_colors = {&#39;no&#39;: &#39;#4ECDC4&#39;, &#39;yes&#39;: &#39;#FF6B6B&#39;}\nfor abx in [&#39;no&#39;, &#39;yes&#39;]:\n    data = pcoa_df[pcoa_df[&#39;antibiotic_use&#39;] == abx]\n    ax.scatter(data[&#39;PC1&#39;], data[&#39;PC2&#39;], c=abx_colors[abx], label=abx, s=80, alpha=0.7)\nax.set_xlabel(f&#39;PC1 ({pc1_var:.1f}%)&#39;)\nax.set_ylabel(f&#39;PC2 ({pc2_var:.1f}%)&#39;)\nax.set_title(&#39;By Antibiotic Use&#39;, fontweight=&#39;bold&#39;)\nax.legend(title=&#39;Antibiotics&#39;)\n\n# By diet type\nax = axes[0, 1]\ndiet_colors = {&#39;omnivore&#39;: &#39;#95E1D3&#39;, &#39;vegetarian&#39;: &#39;#F38181&#39;, &#39;vegan&#39;: &#39;#AA96DA&#39;}\nfor diet in pcoa_df[&#39;diet_type&#39;].unique():\n    data = pcoa_df[pcoa_df[&#39;diet_type&#39;] == diet]\n    ax.scatter(data[&#39;PC1&#39;], data[&#39;PC2&#39;], c=diet_colors[diet], label=diet, s=80, alpha=0.7)\nax.set_xlabel(f&#39;PC1 ({pc1_var:.1f}%)&#39;)\nax.set_ylabel(f&#39;PC2 ({pc2_var:.1f}%)&#39;)\nax.set_title(&#39;By Diet Type&#39;, fontweight=&#39;bold&#39;)\nax.legend(title=&#39;Diet&#39;)\n\n# By BMI (continuous)\nax = axes[1, 0]\nscatter = ax.scatter(pcoa_df[&#39;PC1&#39;], pcoa_df[&#39;PC2&#39;], c=pcoa_df[&#39;bmi&#39;], \n                     cmap=&#39;plasma&#39;, s=80, alpha=0.7)\nplt.colorbar(scatter, ax=ax, label=&#39;BMI&#39;)\nax.set_xlabel(f&#39;PC1 ({pc1_var:.1f}%)&#39;)\nax.set_ylabel(f&#39;PC2 ({pc2_var:.1f}%)&#39;)\nax.set_title(&#39;By BMI&#39;, fontweight=&#39;bold&#39;)\n\n# By age\nax = axes[1, 1]\nscatter = ax.scatter(pcoa_df[&#39;PC1&#39;], pcoa_df[&#39;PC2&#39;], c=pcoa_df[&#39;age&#39;], \n                     cmap=&#39;viridis&#39;, s=80, alpha=0.7)\nplt.colorbar(scatter, ax=ax, label=&#39;Age&#39;)\nax.set_xlabel(f&#39;PC1 ({pc1_var:.1f}%)&#39;)\nax.set_ylabel(f&#39;PC2 ({pc2_var:.1f}%)&#39;)\nax.set_title(&#39;By Age&#39;, fontweight=&#39;bold&#39;)\n\nplt.suptitle(&#39;PCoA Colored by Different Variables&#39;, fontsize=14, fontweight=&#39;bold&#39;, y=1.01)\nplt.tight_layout()\ndisplay(fig)\nplt.close()&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-11-15-809Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-11-15-809Z" class="timestamp-link"><time datetime="2025-12-05T23:11:15.809Z" data-timestamp="2025-12-05T23:11:15.809Z">2025-12-05T23:11:15.809Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_015P7rDrfYFNT3upr1ommhFy"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-27&#34;,
+  &#34;new_source&#34;: &#34;# Calculate distance to centroid for each group\ndef calculate_centroid_distances(dm, groups):\n    \&#34;\&#34;\&#34;Calculate distance from each sample to its group centroid.\&#34;\&#34;\&#34;\n    distances = []\n    coords = pcoa(dm).samples[[&#39;PC1&#39;, &#39;PC2&#39;, &#39;PC3&#39;]].values\n    sample_ids = dm.ids\n    \n    for group in groups.unique():\n        group_mask = groups.values == group\n        group_coords = coords[group_mask]\n        centroid = group_coords.mean(axis=0)\n        \n        for i, (sid, is_group) in enumerate(zip(sample_ids, group_mask)):\n            if is_group:\n                dist = np.sqrt(np.sum((coords[i] - centroid) ** 2))\n                distances.append({&#39;sample_id&#39;: sid, &#39;group&#39;: group, &#39;distance&#39;: dist})\n    \n    return pd.DataFrame(distances)\n\ndispersion_df = calculate_centroid_distances(bray_dm, metadata[&#39;group&#39;])\n\n# Plot\nfig, ax = plt.subplots(figsize=(8, 6))\nsns.boxplot(data=dispersion_df, x=&#39;group&#39;, y=&#39;distance&#39;, palette=colors, ax=ax, width=0.5)\nsns.stripplot(data=dispersion_df, x=&#39;group&#39;, y=&#39;distance&#39;, color=&#39;black&#39;, alpha=0.5, ax=ax)\n\n# Statistical test\nhealthy_dist = dispersion_df[dispersion_df[&#39;group&#39;] == &#39;healthy&#39;][&#39;distance&#39;]\nibd_dist = dispersion_df[dispersion_df[&#39;group&#39;] == &#39;ibd&#39;][&#39;distance&#39;]\nstat, pval = stats.mannwhitneyu(healthy_dist, ibd_dist)\n\nax.set_xlabel(&#39;Group&#39;, fontsize=12)\nax.set_ylabel(&#39;Distance to Centroid&#39;, fontsize=12)\nax.set_title(f&#39;Beta Dispersion by Group\\n(p = {pval:.4f})&#39;, fontsize=14, fontweight=&#39;bold&#39;)\nplt.tight_layout()\ndisplay(fig)\nplt.close()&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-11-19-921Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-11-19-921Z" class="timestamp-link"><time datetime="2025-12-05T23:11:19.921Z" data-timestamp="2025-12-05T23:11:19.921Z">2025-12-05T23:11:19.921Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01H6vtFxJQ2WjMrqm2rBq9np"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-29&#34;,
+  &#34;new_source&#34;: &#34;# Create annotation colors\ngroup_colors = metadata[&#39;group&#39;].map(colors)\nabx_colors_map = metadata[&#39;antibiotic_use&#39;].map({&#39;no&#39;: &#39;#4ECDC4&#39;, &#39;yes&#39;: &#39;#FF6B6B&#39;})\n\n# Create clustermap\ng = sns.clustermap(\n    bray_matrix,\n    cmap=&#39;RdBu_r&#39;,\n    center=0.5,\n    row_colors=[group_colors, abx_colors_map],\n    col_colors=[group_colors, abx_colors_map],\n    figsize=(12, 10),\n    dendrogram_ratio=0.15,\n    cbar_pos=(0.02, 0.8, 0.03, 0.15)\n)\n\ng.ax_heatmap.set_xlabel(&#39;Samples&#39;)\ng.ax_heatmap.set_ylabel(&#39;Samples&#39;)\ng.fig.suptitle(&#39;Bray-Curtis Dissimilarity Heatmap&#39;, fontsize=14, fontweight=&#39;bold&#39;, y=1.02)\n\ndisplay(g.fig)\nplt.close()&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-11-23-879Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-11-23-879Z" class="timestamp-link"><time datetime="2025-12-05T23:11:23.879Z" data-timestamp="2025-12-05T23:11:23.879Z">2025-12-05T23:11:23.879Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_0127zwvkFhXfFr5UJtHYn4Nh"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-32&#34;,
+  &#34;new_source&#34;: &#34;# Prepare data - sort samples by group\nsample_order = metadata.sort_values(&#39;group&#39;).index.tolist()\nphylum_sorted = phylum_abundance.loc[sample_order]\n\n# Create stacked bar plot\nfig, ax = plt.subplots(figsize=(14, 6))\n\nphylum_sorted.plot(kind=&#39;bar&#39;, stacked=True, ax=ax, colormap=&#39;Set3&#39;, width=0.8)\n\nax.set_xlabel(&#39;Sample&#39;, fontsize=12)\nax.set_ylabel(&#39;Relative Abundance&#39;, fontsize=12)\nax.set_title(&#39;Phylum-Level Composition by Sample&#39;, fontsize=14, fontweight=&#39;bold&#39;)\nax.legend(title=&#39;Phylum&#39;, bbox_to_anchor=(1.02, 1), loc=&#39;upper left&#39;)\nax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha=&#39;right&#39;)\n\nplt.tight_layout()\ndisplay(fig)\nplt.close()&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-11-28-000Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-11-28-000Z" class="timestamp-link"><time datetime="2025-12-05T23:11:28.000Z" data-timestamp="2025-12-05T23:11:28.000Z">2025-12-05T23:11:28.000Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01NiVSL6XtYQrhavAKMwS6Xo"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-34&#34;,
+  &#34;new_source&#34;: &#34;# Calculate mean phylum abundance by group\nphylum_with_group = phylum_abundance.join(metadata[[&#39;group&#39;]])\nmean_phylum = phylum_with_group.groupby(&#39;group&#39;).mean()\n\n# Plot\nfig, ax = plt.subplots(figsize=(8, 6))\n\nmean_phylum.T.plot(kind=&#39;bar&#39;, ax=ax, color=[colors[&#39;healthy&#39;], colors[&#39;ibd&#39;]], width=0.7)\n\nax.set_xlabel(&#39;Phylum&#39;, fontsize=12)\nax.set_ylabel(&#39;Mean Relative Abundance&#39;, fontsize=12)\nax.set_title(&#39;Mean Phylum Abundance by Group&#39;, fontsize=14, fontweight=&#39;bold&#39;)\nax.legend(title=&#39;Group&#39;)\nax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha=&#39;right&#39;)\n\nplt.tight_layout()\ndisplay(fig)\nplt.close()&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-11-32-470Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-11-32-470Z" class="timestamp-link"><time datetime="2025-12-05T23:11:32.470Z" data-timestamp="2025-12-05T23:11:32.470Z">2025-12-05T23:11:32.470Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_01QMhvDaF2g95LfyoTNmP5Yt"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-36&#34;,
+  &#34;new_source&#34;: &#34;# Calculate mean and SE for each genus by group\nabundance_with_group = abundance.join(metadata[[&#39;group&#39;]])\n\ngenus_stats = []\nfor genus in abundance.columns:\n    for group in [&#39;healthy&#39;, &#39;ibd&#39;]:\n        values = abundance_with_group[abundance_with_group[&#39;group&#39;] == group][genus]\n        genus_stats.append({\n            &#39;genus&#39;: genus,\n            &#39;group&#39;: group,\n            &#39;mean&#39;: values.mean(),\n            &#39;se&#39;: values.std() / np.sqrt(len(values))\n        })\n\ngenus_stats_df = pd.DataFrame(genus_stats)\n\n# Get top 10 genera by overall abundance\ntop_genera = abundance.sum().nlargest(10).index.tolist()\ntop_genus_stats = genus_stats_df[genus_stats_df[&#39;genus&#39;].isin(top_genera)]\n\n# Plot\nfig, ax = plt.subplots(figsize=(12, 6))\n\nx = np.arange(len(top_genera))\nwidth = 0.35\n\nfor i, group in enumerate([&#39;healthy&#39;, &#39;ibd&#39;]):\n    data = top_genus_stats[top_genus_stats[&#39;group&#39;] == group].set_index(&#39;genus&#39;).loc[top_genera]\n    offset = width * (i - 0.5)\n    bars = ax.bar(x + offset, data[&#39;mean&#39;], width, label=group, color=colors[group], alpha=0.8)\n    ax.errorbar(x + offset, data[&#39;mean&#39;], yerr=data[&#39;se&#39;], fmt=&#39;none&#39;, color=&#39;black&#39;, capsize=3)\n\nax.set_xlabel(&#39;Genus&#39;, fontsize=12)\nax.set_ylabel(&#39;Mean Relative Abundance&#39;, fontsize=12)\nax.set_title(&#39;Top 10 Genera: Mean Abundance by Group&#39;, fontsize=14, fontweight=&#39;bold&#39;)\nax.set_xticks(x)\nax.set_xticklabels(top_genera, rotation=45, ha=&#39;right&#39;, style=&#39;italic&#39;)\nax.legend(title=&#39;Group&#39;)\n\nplt.tight_layout()\ndisplay(fig)\nplt.close()&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-11-39-258Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-11-39-258Z" class="timestamp-link"><time datetime="2025-12-05T23:11:39.258Z" data-timestamp="2025-12-05T23:11:39.258Z">2025-12-05T23:11:39.258Z</time></a></div><div class="message-content">
+<div class="tool-use" data-tool-id="toolu_011LKnXyTrd7GEwicGFzbiWs"><div class="tool-header"><span class="tool-icon">⚙</span> NotebookEdit</div><div class="truncatable"><div class="truncatable-content"><pre class="json">{
+  &#34;notebook_path&#34;: &#34;/Users/scotthandley/my-empty-project/microbiome_diversity_analysis.ipynb&#34;,
+  &#34;cell_id&#34;: &#34;cell-39&#34;,
+  &#34;new_source&#34;: &#34;# Volcano plot\nfig, ax = plt.subplots(figsize=(10, 8))\n\n# Plot non-significant points\nnonsig = diff_df[~diff_df[&#39;significant&#39;]]\nax.scatter(nonsig[&#39;log2fc&#39;], -np.log10(nonsig[&#39;p_adj&#39;]), \n           c=&#39;gray&#39;, s=80, alpha=0.6, label=&#39;Not significant&#39;)\n\n# Plot significant points\nsig = diff_df[diff_df[&#39;significant&#39;]]\nax.scatter(sig[&#39;log2fc&#39;], -np.log10(sig[&#39;p_adj&#39;]), \n           c=&#39;#E94F37&#39;, s=100, alpha=0.8, label=&#39;Significant (FDR &lt; 0.05)&#39;)\n\n# Add labels for significant points\nfor _, row in sig.iterrows():\n    ax.annotate(row[&#39;genus&#39;], (row[&#39;log2fc&#39;], -np.log10(row[&#39;p_adj&#39;])),\n                xytext=(5, 5), textcoords=&#39;offset points&#39;, fontsize=9, style=&#39;italic&#39;)\n\n# Add threshold lines\nax.axhline(y=-np.log10(0.05), color=&#39;gray&#39;, linestyle=&#39;--&#39;, alpha=0.5)\nax.axvline(x=-0.5, color=&#39;gray&#39;, linestyle=&#39;--&#39;, alpha=0.5)\nax.axvline(x=0.5, color=&#39;gray&#39;, linestyle=&#39;--&#39;, alpha=0.5)\n\nax.set_xlabel(&#39;Log2 Fold Change (IBD/Healthy)&#39;, fontsize=12)\nax.set_ylabel(&#39;-Log10(Adjusted P-value)&#39;, fontsize=12)\nax.set_title(&#39;Differential Abundance: IBD vs Healthy&#39;, fontsize=14, fontweight=&#39;bold&#39;)\nax.legend(loc=&#39;upper right&#39;)\n\nplt.tight_layout()\ndisplay(fig)\nplt.close()&#34;
+}</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-11-39-277Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-11-39-277Z" class="timestamp-link"><time datetime="2025-12-05T23:11:39.277Z" data-timestamp="2025-12-05T23:11:39.277Z">2025-12-05T23:11:39.277Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with # Color palette
+colors = {&#x27;healthy&#x27;: &#x27;#2E86AB&#x27;, &#x27;ibd&#x27;: &#x27;#E94F37&#x27;}
+
+fig, ax = plt.subplots(figsize=(8, 6))
+
+# Boxplot
+sns.boxplot(data=alpha_df, x=&#x27;group&#x27;, y=&#x27;shannon&#x27;, palette=colors, ax=ax, width=0.5)
+sns.stripplot(data=alpha_df, x=&#x27;group&#x27;, y=&#x27;shannon&#x27;, color=&#x27;black&#x27;, alpha=0.5, ax=ax)
+
+# Statistical test
+healthy = alpha_df[alpha_df[&#x27;group&#x27;] == &#x27;healthy&#x27;][&#x27;shannon&#x27;]
+ibd = alpha_df[alpha_df[&#x27;group&#x27;] == &#x27;ibd&#x27;][&#x27;shannon&#x27;]
+stat, pval = stats.mannwhitneyu(healthy, ibd, alternative=&#x27;two-sided&#x27;)
+
+# Add p-value annotation
+ax.text(0.5, ax.get_ylim()[1] * 0.95, f&#x27;p = {pval:.4f}&#x27;, 
+        ha=&#x27;center&#x27;, fontsize=12, transform=ax.get_xaxis_transform())
+
+ax.set_xlabel(&#x27;Group&#x27;, fontsize=12)
+ax.set_ylabel(&#x27;Shannon Index&#x27;, fontsize=12)
+ax.set_title(&#x27;Shannon Diversity Index by Group&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)
+plt.tight_layout()
+display(fig)
+plt.close()</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-11-39-325Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-11-39-325Z" class="timestamp-link"><time datetime="2025-12-05T23:11:39.325Z" data-timestamp="2025-12-05T23:11:39.325Z">2025-12-05T23:11:39.325Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with # Reshape data for faceted plot
+metrics = [&#x27;shannon&#x27;, &#x27;simpson&#x27;, &#x27;inv_simpson&#x27;, &#x27;evenness&#x27;]
+metric_labels = [&#x27;Shannon&#x27;, &#x27;Simpson&#x27;, &#x27;Inverse Simpson&#x27;, &#x27;Evenness&#x27;]
+
+fig, axes = plt.subplots(1, 4, figsize=(16, 5))
+
+for idx, (metric, label) in enumerate(zip(metrics, metric_labels)):
+    ax = axes[idx]
+    sns.boxplot(data=alpha_df, x=&#x27;group&#x27;, y=metric, palette=colors, ax=ax, width=0.5)
+    sns.stripplot(data=alpha_df, x=&#x27;group&#x27;, y=metric, color=&#x27;black&#x27;, alpha=0.5, ax=ax)
+    
+    # Statistical test
+    healthy = alpha_df[alpha_df[&#x27;group&#x27;] == &#x27;healthy&#x27;][metric]
+    ibd = alpha_df[alpha_df[&#x27;group&#x27;] == &#x27;ibd&#x27;][metric]
+    stat, pval = stats.mannwhitneyu(healthy, ibd, alternative=&#x27;two-sided&#x27;)
+    
+    # Add significance stars
+    sig = &#x27;***&#x27; if pval &lt; 0.001 else &#x27;**&#x27; if pval &lt; 0.01 else &#x27;*&#x27; if pval &lt; 0.05 else &#x27;ns&#x27;
+    ax.text(0.5, ax.get_ylim()[1] * 0.95, sig, ha=&#x27;center&#x27;, fontsize=14, 
+            transform=ax.get_xaxis_transform())
+    
+    ax.set_xlabel(&#x27;&#x27;)
+    ax.set_ylabel(&#x27;Value&#x27; if idx == 0 else &#x27;&#x27;)
+    ax.set_title(label, fontsize=12, fontweight=&#x27;bold&#x27;)
+
+plt.suptitle(&#x27;Alpha Diversity Metrics by Group&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;, y=1.02)
+plt.tight_layout()
+display(fig)
+plt.close()</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-11-39-440Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-11-39-440Z" class="timestamp-link"><time datetime="2025-12-05T23:11:39.440Z" data-timestamp="2025-12-05T23:11:39.440Z">2025-12-05T23:11:39.440Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with fig, ax = plt.subplots(figsize=(10, 6))
+
+for group in [&#x27;healthy&#x27;, &#x27;ibd&#x27;]:
+    data = alpha_df[alpha_df[&#x27;group&#x27;] == group]
+    ax.scatter(data[&#x27;bmi&#x27;], data[&#x27;shannon&#x27;], c=colors[group], label=group, s=80, alpha=0.7)
+    
+    # Add regression line
+    z = np.polyfit(data[&#x27;bmi&#x27;], data[&#x27;shannon&#x27;], 1)
+    p = np.poly1d(z)
+    x_line = np.linspace(data[&#x27;bmi&#x27;].min(), data[&#x27;bmi&#x27;].max(), 100)
+    ax.plot(x_line, p(x_line), c=colors[group], linestyle=&#x27;--&#x27;, alpha=0.5)
+
+ax.set_xlabel(&#x27;BMI&#x27;, fontsize=12)
+ax.set_ylabel(&#x27;Shannon Index&#x27;, fontsize=12)
+ax.set_title(&#x27;Shannon Diversity vs BMI&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)
+ax.legend(title=&#x27;Group&#x27;)
+plt.tight_layout()
+display(fig)
+plt.close()</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-11-39-516Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-11-39-516Z" class="timestamp-link"><time datetime="2025-12-05T23:11:39.516Z" data-timestamp="2025-12-05T23:11:39.516Z">2025-12-05T23:11:39.516Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with from matplotlib.patches import Ellipse
+import matplotlib.transforms as transforms
+
+def confidence_ellipse(x, y, ax, n_std=2.0, facecolor=&#x27;none&#x27;, **kwargs):
+    &quot;&quot;&quot;Create a covariance confidence ellipse.&quot;&quot;&quot;
+    if len(x) &lt; 3:
+        return None
+    cov = np.cov(x, y)
+    pearson = cov[0, 1] / np.sqrt(cov[0, 0] * cov[1, 1])
+    ell_radius_x = np.sqrt(1 + pearson)
+    ell_radius_y = np.sqrt(1 - pearson)
+    ellipse = Ellipse((0, 0), width=ell_radius_x * 2, height=ell_radius_y * 2,
+                      facecolor=facecolor, **kwargs)
+    scale_x = np.sqrt(cov[0, 0]) * n_std
+    scale_y = np.sqrt(cov[1, 1]) * n_std
+    transf = transforms.Affine2D() \
+        .rotate_deg(45) \
+        .scale(scale_x, scale_y) \
+        .translate(np.mean(x), np.mean(y))
+    ellipse.set_transform(transf + ax.transData)
+    return ax.add_patch(ellipse)
+
+# PCoA plot
+fig, ax = plt.subplots(figsize=(10, 8))
+
+for group in [&#x27;healthy&#x27;, &#x27;ibd&#x27;]:
+    data = pcoa_df[pcoa_df[&#x27;group&#x27;] == group]
+    ax.scatter(data[&#x27;PC1&#x27;], data[&#x27;PC2&#x27;], c=colors[group], label=group, 
+               s=100, alpha=0.7, edgecolors=&#x27;white&#x27;, linewidth=0.5)
+    confidence_ellipse(data[&#x27;PC1&#x27;], data[&#x27;PC2&#x27;], ax, n_std=2.0,
+                       edgecolor=colors[group], linestyle=&#x27;--&#x27;, linewidth=2)
+
+ax.set_xlabel(f&#x27;PC1 ({pc1_var:.1f}%)&#x27;, fontsize=12)
+ax.set_ylabel(f&#x27;PC2 ({pc2_var:.1f}%)&#x27;, fontsize=12)
+ax.set_title(&#x27;PCoA of Microbiome Composition (Bray-Curtis)&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)
+ax.legend(title=&#x27;Group&#x27;, loc=&#x27;best&#x27;)
+ax.axhline(y=0, color=&#x27;gray&#x27;, linestyle=&#x27;-&#x27;, linewidth=0.5, alpha=0.5)
+ax.axvline(x=0, color=&#x27;gray&#x27;, linestyle=&#x27;-&#x27;, linewidth=0.5, alpha=0.5)
+plt.tight_layout()
+display(fig)
+plt.close()</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-11-39-604Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-11-39-604Z" class="timestamp-link"><time datetime="2025-12-05T23:11:39.604Z" data-timestamp="2025-12-05T23:11:39.604Z">2025-12-05T23:11:39.604Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with fig, axes = plt.subplots(2, 2, figsize=(14, 12))
+
+# By antibiotic use
+ax = axes[0, 0]
+abx_colors = {&#x27;no&#x27;: &#x27;#4ECDC4&#x27;, &#x27;yes&#x27;: &#x27;#FF6B6B&#x27;}
+for abx in [&#x27;no&#x27;, &#x27;yes&#x27;]:
+    data = pcoa_df[pcoa_df[&#x27;antibiotic_use&#x27;] == abx]
+    ax.scatter(data[&#x27;PC1&#x27;], data[&#x27;PC2&#x27;], c=abx_colors[abx], label=abx, s=80, alpha=0.7)
+ax.set_xlabel(f&#x27;PC1 ({pc1_var:.1f}%)&#x27;)
+ax.set_ylabel(f&#x27;PC2 ({pc2_var:.1f}%)&#x27;)
+ax.set_title(&#x27;By Antibiotic Use&#x27;, fontweight=&#x27;bold&#x27;)
+ax.legend(title=&#x27;Antibiotics&#x27;)
+
+# By diet type
+ax = axes[0, 1]
+diet_colors = {&#x27;omnivore&#x27;: &#x27;#95E1D3&#x27;, &#x27;vegetarian&#x27;: &#x27;#F38181&#x27;, &#x27;vegan&#x27;: &#x27;#AA96DA&#x27;}
+for diet in pcoa_df[&#x27;diet_type&#x27;].unique():
+    data = pcoa_df[pcoa_df[&#x27;diet_type&#x27;] == diet]
+    ax.scatter(data[&#x27;PC1&#x27;], data[&#x27;PC2&#x27;], c=diet_colors[diet], label=diet, s=80, alpha=0.7)
+ax.set_xlabel(f&#x27;PC1 ({pc1_var:.1f}%)&#x27;)
+ax.set_ylabel(f&#x27;PC2 ({pc2_var:.1f}%)&#x27;)
+ax.set_title(&#x27;By Diet Type&#x27;, fontweight=&#x27;bold&#x27;)
+ax.legend(title=&#x27;Diet&#x27;)
+
+# By BMI (continuous)
+ax = axes[1, 0]
+scatter = ax.scatter(pcoa_df[&#x27;PC1&#x27;], pcoa_df[&#x27;PC2&#x27;], c=pcoa_df[&#x27;bmi&#x27;], 
+                     cmap=&#x27;plasma&#x27;, s=80, alpha=0.7)
+plt.colorbar(scatter, ax=ax, label=&#x27;BMI&#x27;)
+ax.set_xlabel(f&#x27;PC1 ({pc1_var:.1f}%)&#x27;)
+ax.set_ylabel(f&#x27;PC2 ({pc2_var:.1f}%)&#x27;)
+ax.set_title(&#x27;By BMI&#x27;, fontweight=&#x27;bold&#x27;)
+
+# By age
+ax = axes[1, 1]
+scatter = ax.scatter(pcoa_df[&#x27;PC1&#x27;], pcoa_df[&#x27;PC2&#x27;], c=pcoa_df[&#x27;age&#x27;], 
+                     cmap=&#x27;viridis&#x27;, s=80, alpha=0.7)
+plt.colorbar(scatter, ax=ax, label=&#x27;Age&#x27;)
+ax.set_xlabel(f&#x27;PC1 ({pc1_var:.1f}%)&#x27;)
+ax.set_ylabel(f&#x27;PC2 ({pc2_var:.1f}%)&#x27;)
+ax.set_title(&#x27;By Age&#x27;, fontweight=&#x27;bold&#x27;)
+
+plt.suptitle(&#x27;PCoA Colored by Different Variables&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;, y=1.01)
+plt.tight_layout()
+display(fig)
+plt.close()</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-11-39-727Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-11-39-727Z" class="timestamp-link"><time datetime="2025-12-05T23:11:39.727Z" data-timestamp="2025-12-05T23:11:39.727Z">2025-12-05T23:11:39.727Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with # Calculate distance to centroid for each group
+def calculate_centroid_distances(dm, groups):
+    &quot;&quot;&quot;Calculate distance from each sample to its group centroid.&quot;&quot;&quot;
+    distances = []
+    coords = pcoa(dm).samples[[&#x27;PC1&#x27;, &#x27;PC2&#x27;, &#x27;PC3&#x27;]].values
+    sample_ids = dm.ids
+    
+    for group in groups.unique():
+        group_mask = groups.values == group
+        group_coords = coords[group_mask]
+        centroid = group_coords.mean(axis=0)
+        
+        for i, (sid, is_group) in enumerate(zip(sample_ids, group_mask)):
+            if is_group:
+                dist = np.sqrt(np.sum((coords[i] - centroid) ** 2))
+                distances.append({&#x27;sample_id&#x27;: sid, &#x27;group&#x27;: group, &#x27;distance&#x27;: dist})
+    
+    return pd.DataFrame(distances)
+
+dispersion_df = calculate_centroid_distances(bray_dm, metadata[&#x27;group&#x27;])
+
+# Plot
+fig, ax = plt.subplots(figsize=(8, 6))
+sns.boxplot(data=dispersion_df, x=&#x27;group&#x27;, y=&#x27;distance&#x27;, palette=colors, ax=ax, width=0.5)
+sns.stripplot(data=dispersion_df, x=&#x27;group&#x27;, y=&#x27;distance&#x27;, color=&#x27;black&#x27;, alpha=0.5, ax=ax)
+
+# Statistical test
+healthy_dist = dispersion_df[dispersion_df[&#x27;group&#x27;] == &#x27;healthy&#x27;][&#x27;distance&#x27;]
+ibd_dist = dispersion_df[dispersion_df[&#x27;group&#x27;] == &#x27;ibd&#x27;][&#x27;distance&#x27;]
+stat, pval = stats.mannwhitneyu(healthy_dist, ibd_dist)
+
+ax.set_xlabel(&#x27;Group&#x27;, fontsize=12)
+ax.set_ylabel(&#x27;Distance to Centroid&#x27;, fontsize=12)
+ax.set_title(f&#x27;Beta Dispersion by Group\n(p = {pval:.4f})&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)
+plt.tight_layout()
+display(fig)
+plt.close()</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-11-39-842Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-11-39-842Z" class="timestamp-link"><time datetime="2025-12-05T23:11:39.842Z" data-timestamp="2025-12-05T23:11:39.842Z">2025-12-05T23:11:39.842Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with # Create annotation colors
+group_colors = metadata[&#x27;group&#x27;].map(colors)
+abx_colors_map = metadata[&#x27;antibiotic_use&#x27;].map({&#x27;no&#x27;: &#x27;#4ECDC4&#x27;, &#x27;yes&#x27;: &#x27;#FF6B6B&#x27;})
+
+# Create clustermap
+g = sns.clustermap(
+    bray_matrix,
+    cmap=&#x27;RdBu_r&#x27;,
+    center=0.5,
+    row_colors=[group_colors, abx_colors_map],
+    col_colors=[group_colors, abx_colors_map],
+    figsize=(12, 10),
+    dendrogram_ratio=0.15,
+    cbar_pos=(0.02, 0.8, 0.03, 0.15)
+)
+
+g.ax_heatmap.set_xlabel(&#x27;Samples&#x27;)
+g.ax_heatmap.set_ylabel(&#x27;Samples&#x27;)
+g.fig.suptitle(&#x27;Bray-Curtis Dissimilarity Heatmap&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;, y=1.02)
+
+display(g.fig)
+plt.close()</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-11-39-982Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-11-39-982Z" class="timestamp-link"><time datetime="2025-12-05T23:11:39.982Z" data-timestamp="2025-12-05T23:11:39.982Z">2025-12-05T23:11:39.982Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with # Prepare data - sort samples by group
+sample_order = metadata.sort_values(&#x27;group&#x27;).index.tolist()
+phylum_sorted = phylum_abundance.loc[sample_order]
+
+# Create stacked bar plot
+fig, ax = plt.subplots(figsize=(14, 6))
+
+phylum_sorted.plot(kind=&#x27;bar&#x27;, stacked=True, ax=ax, colormap=&#x27;Set3&#x27;, width=0.8)
+
+ax.set_xlabel(&#x27;Sample&#x27;, fontsize=12)
+ax.set_ylabel(&#x27;Relative Abundance&#x27;, fontsize=12)
+ax.set_title(&#x27;Phylum-Level Composition by Sample&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)
+ax.legend(title=&#x27;Phylum&#x27;, bbox_to_anchor=(1.02, 1), loc=&#x27;upper left&#x27;)
+ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha=&#x27;right&#x27;)
+
+plt.tight_layout()
+display(fig)
+plt.close()</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-11-40-109Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-11-40-109Z" class="timestamp-link"><time datetime="2025-12-05T23:11:40.109Z" data-timestamp="2025-12-05T23:11:40.109Z">2025-12-05T23:11:40.109Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with # Calculate mean phylum abundance by group
+phylum_with_group = phylum_abundance.join(metadata[[&#x27;group&#x27;]])
+mean_phylum = phylum_with_group.groupby(&#x27;group&#x27;).mean()
+
+# Plot
+fig, ax = plt.subplots(figsize=(8, 6))
+
+mean_phylum.T.plot(kind=&#x27;bar&#x27;, ax=ax, color=[colors[&#x27;healthy&#x27;], colors[&#x27;ibd&#x27;]], width=0.7)
+
+ax.set_xlabel(&#x27;Phylum&#x27;, fontsize=12)
+ax.set_ylabel(&#x27;Mean Relative Abundance&#x27;, fontsize=12)
+ax.set_title(&#x27;Mean Phylum Abundance by Group&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)
+ax.legend(title=&#x27;Group&#x27;)
+ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha=&#x27;right&#x27;)
+
+plt.tight_layout()
+display(fig)
+plt.close()</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-11-40-245Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-11-40-245Z" class="timestamp-link"><time datetime="2025-12-05T23:11:40.245Z" data-timestamp="2025-12-05T23:11:40.245Z">2025-12-05T23:11:40.245Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with # Calculate mean and SE for each genus by group
+abundance_with_group = abundance.join(metadata[[&#x27;group&#x27;]])
+
+genus_stats = []
+for genus in abundance.columns:
+    for group in [&#x27;healthy&#x27;, &#x27;ibd&#x27;]:
+        values = abundance_with_group[abundance_with_group[&#x27;group&#x27;] == group][genus]
+        genus_stats.append({
+            &#x27;genus&#x27;: genus,
+            &#x27;group&#x27;: group,
+            &#x27;mean&#x27;: values.mean(),
+            &#x27;se&#x27;: values.std() / np.sqrt(len(values))
+        })
+
+genus_stats_df = pd.DataFrame(genus_stats)
+
+# Get top 10 genera by overall abundance
+top_genera = abundance.sum().nlargest(10).index.tolist()
+top_genus_stats = genus_stats_df[genus_stats_df[&#x27;genus&#x27;].isin(top_genera)]
+
+# Plot
+fig, ax = plt.subplots(figsize=(12, 6))
+
+x = np.arange(len(top_genera))
+width = 0.35
+
+for i, group in enumerate([&#x27;healthy&#x27;, &#x27;ibd&#x27;]):
+    data = top_genus_stats[top_genus_stats[&#x27;group&#x27;] == group].set_index(&#x27;genus&#x27;).loc[top_genera]
+    offset = width * (i - 0.5)
+    bars = ax.bar(x + offset, data[&#x27;mean&#x27;], width, label=group, color=colors[group], alpha=0.8)
+    ax.errorbar(x + offset, data[&#x27;mean&#x27;], yerr=data[&#x27;se&#x27;], fmt=&#x27;none&#x27;, color=&#x27;black&#x27;, capsize=3)
+
+ax.set_xlabel(&#x27;Genus&#x27;, fontsize=12)
+ax.set_ylabel(&#x27;Mean Relative Abundance&#x27;, fontsize=12)
+ax.set_title(&#x27;Top 10 Genera: Mean Abundance by Group&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)
+ax.set_xticks(x)
+ax.set_xticklabels(top_genera, rotation=45, ha=&#x27;right&#x27;, style=&#x27;italic&#x27;)
+ax.legend(title=&#x27;Group&#x27;)
+
+plt.tight_layout()
+display(fig)
+plt.close()</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message tool-reply" id="msg-2025-12-05T23-11-40-400Z"><div class="message-header"><span class="role-label">Tool reply</span><a href="#msg-2025-12-05T23-11-40-400Z" class="timestamp-link"><time datetime="2025-12-05T23:11:40.400Z" data-timestamp="2025-12-05T23:11:40.400Z">2025-12-05T23:11:40.400Z</time></a></div><div class="message-content"><div class="tool-result"><div class="truncatable"><div class="truncatable-content"><pre>Updated cell undefined with # Volcano plot
+fig, ax = plt.subplots(figsize=(10, 8))
+
+# Plot non-significant points
+nonsig = diff_df[~diff_df[&#x27;significant&#x27;]]
+ax.scatter(nonsig[&#x27;log2fc&#x27;], -np.log10(nonsig[&#x27;p_adj&#x27;]), 
+           c=&#x27;gray&#x27;, s=80, alpha=0.6, label=&#x27;Not significant&#x27;)
+
+# Plot significant points
+sig = diff_df[diff_df[&#x27;significant&#x27;]]
+ax.scatter(sig[&#x27;log2fc&#x27;], -np.log10(sig[&#x27;p_adj&#x27;]), 
+           c=&#x27;#E94F37&#x27;, s=100, alpha=0.8, label=&#x27;Significant (FDR &lt; 0.05)&#x27;)
+
+# Add labels for significant points
+for _, row in sig.iterrows():
+    ax.annotate(row[&#x27;genus&#x27;], (row[&#x27;log2fc&#x27;], -np.log10(row[&#x27;p_adj&#x27;])),
+                xytext=(5, 5), textcoords=&#x27;offset points&#x27;, fontsize=9, style=&#x27;italic&#x27;)
+
+# Add threshold lines
+ax.axhline(y=-np.log10(0.05), color=&#x27;gray&#x27;, linestyle=&#x27;--&#x27;, alpha=0.5)
+ax.axvline(x=-0.5, color=&#x27;gray&#x27;, linestyle=&#x27;--&#x27;, alpha=0.5)
+ax.axvline(x=0.5, color=&#x27;gray&#x27;, linestyle=&#x27;--&#x27;, alpha=0.5)
+
+ax.set_xlabel(&#x27;Log2 Fold Change (IBD/Healthy)&#x27;, fontsize=12)
+ax.set_ylabel(&#x27;-Log10(Adjusted P-value)&#x27;, fontsize=12)
+ax.set_title(&#x27;Differential Abundance: IBD vs Healthy&#x27;, fontsize=14, fontweight=&#x27;bold&#x27;)
+ax.legend(loc=&#x27;upper right&#x27;)
+
+plt.tight_layout()
+display(fig)
+plt.close()</pre></div><button class="expand-btn">Show more</button></div></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-11-46-691Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-11-46-691Z" class="timestamp-link"><time datetime="2025-12-05T23:11:46.691Z" data-timestamp="2025-12-05T23:11:46.691Z">2025-12-05T23:11:46.691Z</time></a></div><div class="message-content">
+<div class="thinking"><div class="thinking-label">Thinking</div><p>I've updated all the plotting cells in the notebook. The key changes:
+1. Added <code>from IPython.display import display</code> to the imports
+2. Changed all <code>plt.show()</code> to <code>display(fig)</code> followed by <code>plt.close()</code></p>
+<p>This approach explicitly tells the notebook to render the figure, which is more reliable across different Jupyter environments including Positron.</p>
+<p>Let me provide a summary for the user.</p></div></div></div>
+<div class="message assistant" id="msg-2025-12-05T23-11-48-663Z"><div class="message-header"><span class="role-label">Assistant</span><a href="#msg-2025-12-05T23-11-48-663Z" class="timestamp-link"><time datetime="2025-12-05T23:11:48.663Z" data-timestamp="2025-12-05T23:11:48.663Z">2025-12-05T23:11:48.663Z</time></a></div><div class="message-content">
+<div class="assistant-text"><p>Done! I've updated all plotting cells in the notebook. The changes:</p>
+<ol>
+<li>Added <code>from IPython.display import display</code> to imports</li>
+<li>Replaced <code>plt.show()</code> with <code>display(fig)</code> + <code>plt.close()</code> in all 11 plot cells</li>
+</ol>
+<p>Now restart the kernel and run all cells:
+- <code>Cmd+Shift+P</code> → "Restart Kernel"
+- <code>Cmd+Shift+P</code> → "Run All Cells"</p>
+<p>The plots should now display inline in Positron.</p></div></div></div>
+        
+
+<div class="pagination">
+<a href="index.html" class="index-link">Index</a>
+<a href="page-001.html">&larr; Prev</a>
+<a href="page-001.html">1</a>
+<span class="current">2</span>
+<span class="disabled">Next &rarr;</span>
+</div>
+
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>

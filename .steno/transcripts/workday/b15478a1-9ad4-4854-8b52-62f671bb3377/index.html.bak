@@ -1,0 +1,3151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code transcript - Index</title>
+    <style>
+:root { --bg-color: #f5f5f5; --card-bg: #ffffff; --user-bg: #e3f2fd; --user-border: #1976d2; --assistant-bg: #f5f5f5; --assistant-border: #9e9e9e; --thinking-bg: #fff8e1; --thinking-border: #ffc107; --thinking-text: #666; --tool-bg: #f3e5f5; --tool-border: #9c27b0; --tool-result-bg: #e8f5e9; --tool-error-bg: #ffebee; --text-color: #212121; --text-muted: #757575; --code-bg: #263238; --code-text: #aed581; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; line-height: 1.6; }
+.container { max-width: 800px; margin: 0 auto; }
+h1 { font-size: 1.5rem; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 2px solid var(--user-border); }
+.header-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 2px solid var(--user-border); padding-bottom: 8px; margin-bottom: 24px; }
+.header-row h1 { border-bottom: none; padding-bottom: 0; margin-bottom: 0; flex: 1; min-width: 200px; }
+.message { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.message.user { background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.message.assistant { background: var(--card-bg); border-left: 4px solid var(--assistant-border); }
+.message.tool-reply { background: #fff8e1; border-left: 4px solid #ff9800; }
+.tool-reply .role-label { color: #e65100; }
+.tool-reply .tool-result { background: transparent; padding: 0; margin: 0; }
+.tool-reply .tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.message-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.role-label { font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.user .role-label { color: var(--user-border); }
+time { color: var(--text-muted); font-size: 0.8rem; }
+.timestamp-link { color: inherit; text-decoration: none; }
+.timestamp-link:hover { text-decoration: underline; }
+.message:target { animation: highlight 2s ease-out; }
+@keyframes highlight { 0% { background-color: rgba(25, 118, 210, 0.2); } 100% { background-color: transparent; } }
+.message-content { padding: 16px; }
+.message-content p { margin: 0 0 12px 0; }
+.message-content p:last-child { margin-bottom: 0; }
+.thinking { background: var(--thinking-bg); border: 1px solid var(--thinking-border); border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.9rem; color: var(--thinking-text); }
+.thinking-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #f57c00; margin-bottom: 8px; }
+.thinking p { margin: 8px 0; }
+.assistant-text { margin: 8px 0; }
+.tool-use { background: var(--tool-bg); border: 1px solid var(--tool-border); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-header { font-weight: 600; color: var(--tool-border); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.tool-icon { font-size: 1.1rem; }
+.tool-description { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; font-style: italic; }
+.tool-result { background: var(--tool-result-bg); border-radius: 8px; padding: 12px; margin: 12px 0; }
+.tool-result.tool-error { background: var(--tool-error-bg); }
+.file-tool { border-radius: 8px; padding: 12px; margin: 12px 0; }
+.write-tool { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border: 1px solid #4caf50; }
+.edit-tool { background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%); border: 1px solid #ff9800; }
+.file-tool-header { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.write-header { color: #2e7d32; }
+.edit-header { color: #e65100; }
+.file-tool-icon { font-size: 1rem; }
+.file-tool-path { font-family: monospace; background: rgba(0,0,0,0.08); padding: 2px 8px; border-radius: 4px; }
+.file-tool-fullpath { font-family: monospace; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; word-break: break-all; }
+.file-content { margin: 0; }
+.edit-section { display: flex; margin: 4px 0; border-radius: 4px; overflow: hidden; }
+.edit-label { padding: 8px 12px; font-weight: bold; font-family: monospace; display: flex; align-items: flex-start; }
+.edit-old { background: #fce4ec; }
+.edit-old .edit-label { color: #b71c1c; background: #f8bbd9; }
+.edit-old .edit-content { color: #880e4f; }
+.edit-new { background: #e8f5e9; }
+.edit-new .edit-label { color: #1b5e20; background: #a5d6a7; }
+.edit-new .edit-content { color: #1b5e20; }
+.edit-content { margin: 0; flex: 1; background: transparent; font-size: 0.85rem; }
+.edit-replace-all { font-size: 0.75rem; font-weight: normal; color: var(--text-muted); }
+.write-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #e6f4ea); }
+.edit-tool .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff0e5); }
+.todo-list { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border: 1px solid #81c784; border-radius: 8px; padding: 12px; margin: 12px 0; }
+.todo-header { font-weight: 600; color: #2e7d32; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.todo-items { list-style: none; margin: 0; padding: 0; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.9rem; }
+.todo-item:last-child { border-bottom: none; }
+.todo-icon { flex-shrink: 0; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-weight: bold; border-radius: 50%; }
+.todo-completed .todo-icon { color: #2e7d32; background: rgba(46, 125, 50, 0.15); }
+.todo-completed .todo-content { color: #558b2f; text-decoration: line-through; }
+.todo-in-progress .todo-icon { color: #f57c00; background: rgba(245, 124, 0, 0.15); }
+.todo-in-progress .todo-content { color: #e65100; font-weight: 500; }
+.todo-pending .todo-icon { color: #757575; background: rgba(0,0,0,0.05); }
+.todo-pending .todo-content { color: #616161; }
+pre { background: var(--code-bg); color: var(--code-text); padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; margin: 8px 0; white-space: pre-wrap; word-wrap: break-word; }
+pre.json { color: #e0e0e0; }
+code { background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre code { background: none; padding: 0; }
+.user-content { margin: 0; }
+.truncatable { position: relative; }
+.truncatable.truncated .truncatable-content { max-height: 200px; overflow: hidden; }
+.truncatable.truncated::after { content: ''; position: absolute; bottom: 32px; left: 0; right: 0; height: 60px; background: linear-gradient(to bottom, transparent, var(--card-bg)); pointer-events: none; }
+.message.user .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--user-bg)); }
+.message.tool-reply .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, #fff8e1); }
+.tool-use .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-bg)); }
+.tool-result .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--tool-result-bg)); }
+.expand-btn { display: none; width: 100%; padding: 8px 16px; margin-top: 4px; background: rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted); }
+.expand-btn:hover { background: rgba(0,0,0,0.1); }
+.truncatable.truncated .expand-btn, .truncatable.expanded .expand-btn { display: block; }
+.pagination { display: flex; justify-content: center; gap: 8px; margin: 24px 0; flex-wrap: wrap; }
+.pagination a, .pagination span { padding: 5px 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; }
+.pagination a { background: var(--card-bg); color: var(--user-border); border: 1px solid var(--user-border); }
+.pagination a:hover { background: var(--user-bg); }
+.pagination .current { background: var(--user-border); color: white; }
+.pagination .disabled { color: var(--text-muted); border: 1px solid #ddd; }
+.pagination .index-link { background: var(--user-border); color: white; }
+details.continuation { margin-bottom: 16px; }
+details.continuation summary { cursor: pointer; padding: 12px 16px; background: var(--user-bg); border-left: 4px solid var(--user-border); border-radius: 12px; font-weight: 500; color: var(--text-muted); }
+details.continuation summary:hover { background: rgba(25, 118, 210, 0.15); }
+details.continuation[open] summary { border-radius: 12px 12px 0 0; margin-bottom: 0; }
+.index-item { margin-bottom: 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); background: var(--user-bg); border-left: 4px solid var(--user-border); }
+.index-item a { display: block; text-decoration: none; color: inherit; }
+.index-item a:hover { background: rgba(25, 118, 210, 0.1); }
+.index-item-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: rgba(0,0,0,0.03); font-size: 0.85rem; }
+.index-item-number { font-weight: 600; color: var(--user-border); }
+.index-item-content { padding: 16px; }
+.index-item-stats { padding: 8px 16px 12px 32px; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid rgba(0,0,0,0.06); }
+.index-item-commit { margin-top: 6px; padding: 4px 8px; background: #fff3e0; border-radius: 4px; font-size: 0.85rem; color: #e65100; }
+.index-item-commit code { background: rgba(0,0,0,0.08); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; margin-right: 6px; }
+.commit-card { margin: 8px 0; padding: 10px 14px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 6px; }
+.commit-card a { text-decoration: none; color: #5d4037; display: block; }
+.commit-card a:hover { color: #e65100; }
+.commit-card-hash { font-family: monospace; color: #e65100; font-weight: 600; margin-right: 8px; }
+.index-commit { margin-bottom: 12px; padding: 10px 16px; background: #fff3e0; border-left: 4px solid #ff9800; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.index-commit a { display: block; text-decoration: none; color: inherit; }
+.index-commit a:hover { background: rgba(255, 152, 0, 0.1); margin: -10px -16px; padding: 10px 16px; border-radius: 8px; }
+.index-commit-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 4px; }
+.index-commit-hash { font-family: monospace; color: #e65100; font-weight: 600; }
+.index-commit-msg { color: #5d4037; }
+.index-item-long-text { margin-top: 8px; padding: 12px; background: var(--card-bg); border-radius: 8px; border-left: 3px solid var(--assistant-border); }
+.index-item-long-text .truncatable.truncated::after { background: linear-gradient(to bottom, transparent, var(--card-bg)); }
+.index-item-long-text-content { color: var(--text-color); }
+#search-box { display: none; align-items: center; gap: 8px; }
+#search-box input { padding: 6px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; width: 180px; }
+#search-box button, #modal-search-btn, #modal-close-btn { background: var(--user-border); color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#search-box button:hover, #modal-search-btn:hover { background: #1565c0; }
+#modal-close-btn { background: var(--text-muted); margin-left: 8px; }
+#modal-close-btn:hover { background: #616161; }
+#search-modal[open] { border: none; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); padding: 0; width: 90vw; max-width: 900px; height: 80vh; max-height: 80vh; display: flex; flex-direction: column; }
+#search-modal::backdrop { background: rgba(0,0,0,0.5); }
+.search-modal-header { display: flex; align-items: center; gap: 8px; padding: 16px; border-bottom: 1px solid var(--assistant-border); background: var(--bg-color); border-radius: 12px 12px 0 0; }
+.search-modal-header input { flex: 1; padding: 8px 12px; border: 1px solid var(--assistant-border); border-radius: 6px; font-size: 16px; }
+#search-status { padding: 8px 16px; font-size: 0.85rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+#search-results { flex: 1; overflow-y: auto; padding: 16px; }
+.search-result { margin-bottom: 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.search-result a { display: block; text-decoration: none; color: inherit; }
+.search-result a:hover { background: rgba(25, 118, 210, 0.05); }
+.search-result-page { padding: 6px 12px; background: rgba(0,0,0,0.03); font-size: 0.8rem; color: var(--text-muted); border-bottom: 1px solid rgba(0,0,0,0.06); }
+.search-result-content { padding: 12px; }
+.search-result mark { background: #fff59d; padding: 1px 2px; border-radius: 2px; }
+@media (max-width: 600px) { body { padding: 8px; } .message, .index-item { border-radius: 8px; } .message-content, .index-item-content { padding: 12px; } pre { font-size: 0.8rem; padding: 8px; } #search-box input { width: 120px; } #search-modal[open] { width: 95vw; height: 90vh; } }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h1>Claude Code transcript</h1>
+            <div id="search-box">
+                <input type="text" id="search-input" placeholder="Search..." aria-label="Search transcripts">
+                <button id="search-btn" type="button" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                </button>
+            </div>
+        </div>
+        
+
+<div class="pagination">
+<span class="current">Index</span>
+<span class="disabled">&larr; Prev</span>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-001.html">Next &rarr;</a>
+</div>
+
+        <p style="color: var(--text-muted); margin-bottom: 24px;">14 prompts · 250 messages · 80 tool calls · 0 commits · 3 pages</p>
+        
+<div class="index-item"><a href="page-001.html#msg-2025-12-27T03-17-26-703Z"><div class="index-item-header"><span class="index-item-number">#1</span><time datetime="2025-12-27T03:17:26.703Z" data-timestamp="2025-12-27T03:17:26.703Z">2025-12-27T03:17:26.703Z</time></div><div class="index-item-content"><p>this is a new project with nothing to explore. I want to discuss the workday SASS. It is used by my institution, but is not very PI forward. Workday is also not usable by a majority of the worlds institutions due to cost prohibitive. It is also antiquated and not AI forward. I am interested in thinking about an accessible PI and AI forward replacement that could be used globally, even in poor regions. I think the angle is a pre- post- awared system that is very user friengly to PIs and adminstrators. This would enable a great deal of utility such as asking questions like " Can I hire a summer student?" or "Can I pay for a sequencing run of 10 samples". I think there is some kind of conceptual overlap between what PIs need and what most of the worlds institutions acutally need that lies outside of the workday arena</p></div></a></div>
+<div class="index-item"><a href="page-001.html#msg-2025-12-27T03-17-28-098Z"><div class="index-item-header"><span class="index-item-number">#2</span><time datetime="2025-12-27T03:17:28.098Z" data-timestamp="2025-12-27T03:17:28.098Z">2025-12-27T03:17:28.098Z</time></div><div class="index-item-content"><p>[Request interrupted by user]</p></div></a></div>
+<div class="index-item"><a href="page-001.html#msg-2025-12-27T03-17-49-232Z"><div class="index-item-header"><span class="index-item-number">#3</span><time datetime="2025-12-27T03:17:49.232Z" data-timestamp="2025-12-27T03:17:49.232Z">2025-12-27T03:17:49.232Z</time></div><div class="index-item-content"><p>this is a new project with nothing to explore. I want to discuss the workday SASS. It is used by my institution, but is not very PI forward. Workday is also not usable by a majority of the worlds institutions due to cost prohibitive. It is also antiquated and not AI forward. I am interested in thinking about an accessible PI and AI forward replacement that could be used globally, even in poor regions. I think the angle is a pre- post- awared system that is very user friengly to PIs and adminstrators. This would enable a great deal of utility such as asking questions like " Can I hire a summer student?" or "Can I pay for a sequencing run of 10 samples". I think there is some kind of conceptual overlap between what PIs need and what most of the worlds institutions acutally need that lies outside of the workday arena. ultrathink and search the web about this idea</p></div></a><div class="index-item-stats"><span>10 mcp__sequential-thinking__sequentialthinking · 6 search</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><hr />
+<h2>Deep Analysis: PI-Forward, AI-Native Research Administration</h2>
+<p>Your insight identifies a genuine market gap. Let me synthesize what I found.</p>
+<h3>The Workday Problem is Real and Severe</h3>
+<p>The data is damning:
+- <strong><a href="https://www.studlife.com/news/2025/12/10/breaking-down-workdays-265-million-cost">Washington University: $266 million</a></strong> for Workday implementation
+- <strong><a href="https://tonemadison.com/articles/workday-and-the-excesses-of-higher-ed-efficiency-consultants/">University of Wisconsin: $172 million</a></strong> (Huron + Workday combined)
+- Another university: <strong>$340 million</strong> with grants stuck in processing limbo
+- At UW Seattle, <strong>59% of faculty considering leaving</strong> and <strong>50% reduced grant applications</strong> due to Workday problems</p>
+<p>The fundamental issue: Workday was built for corporate business, not <a href="https://www.washington.edu/research/workday-finance-research/">research universities with complex grant-funded operations</a>.</p>
+<h3>The Conceptual Overlap You Identified</h3>
+<table>
+<thead>
+<tr>
+<th>What PIs at Rich Institutions Need</th>
+<th>What Global Institutions Need</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Simple interface to complex backends</td>
+<td>Affordable systems (&lt;$200M!)</td>
+</tr>
+<tr>
+<td>Natural language grant queries</td>
+<td>Works with limited IT infrastructure</td>
+</tr>
+<tr>
+<td>"Can I afford X?" projections</td>
+<td>Minimal training required</td>
+</tr>
+<tr>
+<td>Compliance in plain English</td>
+<td>Connection to global funding</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The common thread: Both groups want SIMPLICITY. Workday solves for enterprise compliance. Users need clarity, speed, and accessibility.</strong></p>
+<h3>Current Landscape Gaps</h3>
+<p>The <a href="https://www.instrumentl.com/blog/post-award-grant-management-software">existing grant management tools</a> fall into two camps:</p>
+<ol>
+<li><strong>Enterprise behemoths</strong> (Workday, SAP): $100M+ implementations, designed for finance departments</li>
+<li><strong>Nonprofit-focused tools</strong> (Instrumentl at $499/mo, AmpliFund): Grant-seeking focused, not PI-workflow focused</li>
+</ol>
+<p><strong>Nothing exists that is:</strong>
+- AI-first (natural language primary interface)
+- PI-centered (not admin/finance centered)
+- Globally accessible (works in Kenya as well as California)
+- Open source / radically affordable</p>
+<h3>The Africa Context</h3>
+<p>The <a href="https://scienceforafrica.foundation/africa-research-management-capacity-strengthening-programme">REMACS Programme</a> is building "Good Research Management Practice Standards" from scratch because African institutions can't access enterprise systems. <a href="https://www.carnegie.org/programs/higher-education-and-research-in-africa/">Carnegie invested $134M (2010-2019)</a> in African research capacity. This infrastructure gap is a massive opportunity.</p>
+<h3>The AI-Native Advantage</h3>
+<p>Current <a href="https://opengrants.io/best-ai-for-grant-writing/">AI grant tools</a> focus on <strong>writing</strong> grants. Almost nothing addresses the <strong>management</strong> side with AI:</p>
+<pre><code>PI asks: &quot;Can I hire a summer student on my R01?&quot;
+
+What happens in Workday:
+1. Navigate to Grants Worklet
+2. Find cost center
+3. Decode worktags
+4. Check encumbrances
+5. Calculate available balance
+6. Cross-reference with grant terms
+7. Email grants office to confirm
+[Time: 30-60 minutes]
+
+What should happen:
+&quot;Yes. Your R01-GM123456 has $47,230 unencumbered. 
+A summer student (10 weeks, $6,000 stipend + $1,200 benefits + 55% F&amp;A) 
+costs ~$11,160. You'd have $36,070 remaining through 8/31/2026. 
+Note: This grant prohibits international students without prior approval.&quot;
+[Time: 5 seconds]
+</code></pre>
+<h3>Proposed System Architecture</h3>
+<p><strong>Core Philosophy: Simple data + Smart AI &gt; Complex data + Dumb interface</strong></p>
+<p><strong>Data Model (Radically Simple):</strong></p>
+<pre><code>Grants:     funding_source, amount, start_date, end_date, restrictions
+People:     who works on what grants, at what %
+Expenses:   what was spent, when, on what category
+Projections: planned future spending
+Rules:      sponsor requirements, institutional policies
+</code></pre>
+<p><strong>Feature Progression:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Focus</th>
+<th>Users</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Post-award dashboard for individual PIs</td>
+<td>Single researchers</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Pre-award budget building</td>
+<td>Labs</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Multi-grant, multi-PI management</td>
+<td>Departments</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Institutional deployment + reporting</td>
+<td>Small institutions</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Compliance/audit features</td>
+<td>Larger institutions</td>
+</tr>
+</tbody>
+</table>
+<h3>Why This Could Work</h3>
+<ol>
+<li><strong>Bottom-up adoption</strong>: Unlike Workday (forced top-down), this spreads because PIs love it and tell other PIs</li>
+<li><strong>No institutional buy-in required initially</strong>: A PI can start with just a CSV of their grants</li>
+<li><strong>Foundation funding potential</strong>: Aligns with Wellcome, Gates, NIH goals for global research capacity</li>
+<li><strong>Open source wedge</strong>: <a href="https://www.quora.com/What-are-the-best-open-source-grants-management-software">CiviCRM model</a> shows this can work for nonprofits</li>
+<li><strong>Mobile-first for global reach</strong>: Works on a $200 smartphone in rural settings</li>
+</ol>
+<h3>Challenges to Address</h3>
+<table>
+<thead>
+<tr>
+<th>Challenge</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>US compliance requirements</td>
+<td>Guidance layer, not execution layer; feeds into existing systems</td>
+</tr>
+<tr>
+<td>Data integration</td>
+<td>Start with manual/CSV; build integrations iteratively</td>
+</tr>
+<tr>
+<td>AI reliability concerns</td>
+<td>AI provides guidance, humans approve transactions</td>
+</tr>
+<tr>
+<td>Institutional inertia</td>
+<td>Run alongside Workday as PI's personal dashboard</td>
+</tr>
+</tbody>
+</table>
+<h3>The Market Sizing</h3>
+<ul>
+<li><strong>Primary</strong>: ~10,000 research institutions in Africa, Asia, Latin America that can't afford enterprise systems</li>
+<li><strong>Secondary</strong>: 500,000+ PIs at wealthy institutions frustrated with current tools</li>
+<li><strong>Tertiary</strong>: Institutions seeking Workday alternatives after $200M+ failures</li>
+</ul>
+<h3>Next Steps to Explore</h3>
+<ol>
+<li><strong>User research</strong>: Interview 20 PIs about their actual grant management pain points</li>
+<li><strong>MVP definition</strong>: What's the minimum that provides value to a single PI?</li>
+<li><strong>Tech stack</strong>: Likely Python/TypeScript, open LLM options, SQLite → Postgres progression</li>
+<li><strong>Funding strategy</strong>: NSF I-Corps, foundation grants, or bootstrapped?</li>
+<li><strong>Name/brand</strong>: Something that signals "simple, global, researcher-focused"</li>
+</ol>
+<hr />
+<p>Your intuition is correct: there's a massive unserved market at the intersection of "what PIs actually need" and "what most of the world can actually afford." The AI moment makes this feasible in a way it wasn't even 2 years ago.</p>
+<p>Want me to go deeper on any of these areas—technical architecture, competitive landscape, funding strategy, or MVP definition?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-001.html#msg-2025-12-27T03-23-27-032Z"><div class="index-item-header"><span class="index-item-number">#4</span><time datetime="2025-12-27T03:23:27.032Z" data-timestamp="2025-12-27T03:23:27.032Z">2025-12-27T03:23:27.032Z</time></div><div class="index-item-content"><p>I do not need to interview PIs. Lets discuss the MVP definition</p></div></a><div class="index-item-stats"><span>6 mcp__sequential-thinking__sequentialthinking</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><hr />
+<h2>MVP Definition: "Grant Copilot"</h2>
+<h3>Core Concept</h3>
+<p>A conversational AI that answers PI questions about their grants in plain English. No forms, no navigation, no training required.</p>
+<h3>Minimum Data Model</h3>
+<pre><code>GRANT:
+  - name/id (e.g., &quot;NIH R01 GM123456&quot;)
+  - total_amount
+  - start_date, end_date  
+  - remaining_balance
+  - restrictions (free text - AI interprets)
+
+INSTITUTIONAL CONTEXT:
+  - F&amp;A rate (e.g., 55%)
+  - Fringe rate (e.g., 32%)
+</code></pre>
+<p>That's it. A PI enters this in 5 minutes per grant via conversation, not forms.</p>
+<hr />
+<h3>MVP Feature Set</h3>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Queries Supported</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Balance</strong></td>
+<td>"How much is left on my R01?" / "Which grant has most flexibility?"</td>
+</tr>
+<tr>
+<td><strong>Feasibility</strong></td>
+<td>"Can I hire a summer student?" / "Can I buy $15K equipment?"</td>
+</tr>
+<tr>
+<td><strong>Projections</strong></td>
+<td>"Will I run out before grant ends?" / "What if I hire a postdoc in March?"</td>
+</tr>
+<tr>
+<td><strong>Restrictions</strong></td>
+<td>"Can I use this for international travel?" / "Which grants allow participant payments?"</td>
+</tr>
+</tbody>
+</table>
+<h3>Explicitly NOT in MVP</h3>
+<ul>
+<li>Pre-award / proposal building</li>
+<li>Expense tracking (just balances)</li>
+<li>Multi-user / lab sharing</li>
+<li>System integrations</li>
+<li>Compliance reporting</li>
+</ul>
+<hr />
+<h3>User Flow: First 5 Minutes</h3>
+<pre><code>[Landing]
+&quot;Ask questions about your research funding in plain English&quot;
+→ Get Started
+
+[Conversational Setup]
+AI: &quot;What's your F&amp;A rate?&quot;
+You: &quot;55%&quot;
+AI: &quot;Fringe rate?&quot;  
+You: &quot;32%&quot;
+AI: &quot;Tell me about your first grant.&quot;
+You: &quot;R01 from NIH, GM123456, $1.2M over 5 years, started Sept 2023, 
+      about $400K left, no equipment over $5K&quot;
+AI: &quot;Added. Want to add another or ask something?&quot;
+
+[First Query]
+You: &quot;Can I hire a summer undergrad?&quot;
+AI: &quot;Yes. 
+     - Stipend: $6,000
+     - Fringe (32%): $1,920
+     - F&amp;A (55%): $4,356
+     - Total: $12,276
+
+     You'd have ~$387,724 remaining through Aug 2028.
+     NIH R01s allow undergrad training, no prior approval needed.&quot;
+</code></pre>
+<p><strong>Value delivered in under 5 minutes.</strong></p>
+<hr />
+<h3>Technical Architecture</h3>
+<pre><code>┌─────────────────────────────────────────┐
+│           Chat Interface (PWA)          │
+│         Mobile-first, offline-capable   │
+└─────────────────┬───────────────────────┘
+                  │
+┌─────────────────▼───────────────────────┐
+│              API Layer                  │
+│           (FastAPI / Node)              │
+└─────────────────┬───────────────────────┘
+                  │
+     ┌────────────┴────────────┐
+     ▼                         ▼
+┌─────────────┐       ┌─────────────────┐
+│   SQLite    │       │   Claude API    │
+│  (grants,   │       │  (NL parsing,   │
+│  settings)  │       │   reasoning,    │
+│             │       │   calculations) │
+└─────────────┘       └─────────────────┘
+</code></pre>
+<p><strong>Key constraints:</strong>
+- &lt; 500KB initial load (works on 3G)
+- SQLite = zero infrastructure, single-file database
+- Data exportable, user-owned, no lock-in
+- Can run hosted OR self-hosted OR local</p>
+<hr />
+<h3>What Makes This Different from a Spreadsheet</h3>
+<table>
+<thead>
+<tr>
+<th>Spreadsheet</th>
+<th>Grant Copilot</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Write formulas</td>
+<td>Ask questions</td>
+</tr>
+<tr>
+<td>Maintain structure</td>
+<td>No maintenance</td>
+</tr>
+<tr>
+<td>Look up rules manually</td>
+<td>Built-in sponsor knowledge</td>
+</tr>
+<tr>
+<td>Static</td>
+<td>Scenario modeling ("what if I hire...")</td>
+</tr>
+<tr>
+<td>Generic</td>
+<td>Research-domain specific</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Success Criteria</h3>
+<ol>
+<li><strong>Time to value</strong>: &lt; 5 minutes to first useful answer</li>
+<li><strong>Calculation accuracy</strong>: &gt; 95%</li>
+<li><strong>Global accessibility</strong>: Works on 3G, &lt; 500KB</li>
+<li><strong>Retention</strong>: 50%+ return within 7 days</li>
+</ol>
+<hr />
+<h3>Build Estimate</h3>
+<ul>
+<li><strong>Solo developer</strong>: 4-6 weeks</li>
+<li><strong>Small team (2-3)</strong>: 2-3 weeks</li>
+<li><strong>Core complexity</strong>: Prompt engineering + domain knowledge encoding, not infrastructure</li>
+</ul>
+<hr />
+<h3>Open Questions for Discussion</h3>
+<ol>
+<li>
+<p><strong>Hosted vs. local-first</strong>: Start with hosted SaaS for simplicity, or prioritize self-hosted/local for data sovereignty?</p>
+</li>
+<li>
+<p><strong>LLM choice</strong>: Claude API (best reasoning) vs. open models (lower cost, offline capable)?</p>
+</li>
+<li>
+<p><strong>Onboarding depth</strong>: Conversational only, or also support CSV/paste import for faster bulk setup?</p>
+</li>
+<li>
+<p><strong>Institutional knowledge</strong>: How deep to encode sponsor rules (NIH, NSF, Wellcome, etc.) vs. letting users specify restrictions?</p>
+</li>
+</ol>
+<p>Which of these do you want to dig into?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-001.html#msg-2025-12-27T03-27-33-673Z"><div class="index-item-header"><span class="index-item-number">#5</span><time datetime="2025-12-27T03:27:33.673Z" data-timestamp="2025-12-27T03:27:33.673Z">2025-12-27T03:27:33.673Z</time></div><div class="index-item-content"><p>I think hosted on vercel or railway with a db backend like supabase makes the most sense. I am familiar with and have vercel, railway and supabase accounts. All pushed and managed via github. I would like to rely on Claude for now. I think the pre- post-award concept requies some priority. This could be a user friendly grant pre- and post-award system that then continuosly ingests the data required for this system.</p></div></a><div class="index-item-stats"><span>5 mcp__sequential-thinking__sequentialthinking</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><hr />
+<h2>Refined MVP: Lifecycle-Aware Grant System</h2>
+<h3>The Key Insight</h3>
+<p>Data is captured at <strong>natural workflow moments</strong>, not as a separate burden:</p>
+<pre><code>Proposal Creation → Budget Building → Submission → Award → Spending → Closeout
+       ↓                  ↓               ↓          ↓         ↓
+    [data]            [data]          [data]     [data]    [data]
+
+When you ask &quot;Can I hire a summer student?&quot;, the system already knows:
+- You budgeted $15K for undergrad research
+- Only $3K spent in that category
+- 18 months remaining
+- No restrictions on additional personnel
+</code></pre>
+<hr />
+<h3>Technical Stack</h3>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│                    GitHub Repository                     │
+└────────────────────────┬────────────────────────────────┘
+                         │ auto-deploy
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│                   Vercel (Frontend)                      │
+│  Next.js 14+ │ App Router │ Tailwind │ shadcn/ui        │
+│                      PWA-capable                         │
+└────────────────────────┬────────────────────────────────┘
+                         │
+          ┌──────────────┴──────────────┐
+          ▼                             ▼
+┌──────────────────┐          ┌──────────────────┐
+│    Supabase      │          │   Claude API     │
+│  ─────────────── │          │  (via Edge Fn)   │
+│  PostgreSQL      │          │                  │
+│  Auth            │          │  - Reasoning     │
+│  RLS             │          │  - Calculations  │
+│  Edge Functions  │          │  - NL parsing    │
+└──────────────────┘          └──────────────────┘
+</code></pre>
+<p><strong>Costs at MVP scale:</strong>
+- Vercel: Free tier
+- Supabase: Free tier (500MB db, 50K monthly active users)
+- Claude API: ~$0.003 per query (Sonnet)</p>
+<hr />
+<h3>Data Model (Supabase/PostgreSQL)</h3>
+<pre><code class="language-sql">-- Institution settings (F&amp;A, fringe rates)
+institutions (
+  id, name, 
+  federal_fa_rate, non_federal_fa_rate,
+  fringe_rate_faculty, fringe_rate_staff, fringe_rate_student
+)
+
+-- Proposals (pre-award)
+proposals (
+  id, user_id, institution_id,
+  sponsor, program, title,
+  deadline, status (draft|submitted|pending|awarded|declined),
+  narrative_summary,
+  created_at, submitted_at
+)
+
+-- Structured budgets (linked to proposal, then award)
+budgets (
+  id, proposal_id, award_id,
+  version (requested|awarded|modified),
+  total_directs, total_fa, total_amount
+)
+
+budget_categories (
+  id, budget_id,
+  category (personnel|equipment|travel|supplies|other|participant_support),
+  budgeted, spent, encumbered
+)
+
+budget_personnel (
+  id, budget_id,
+  role, name, annual_salary, effort_percent, months,
+  calculated_salary, calculated_fringe, calculated_total
+)
+
+-- Awards (post-award)
+awards (
+  id, user_id, proposal_id,
+  sponsor, grant_number, title,
+  total_amount, start_date, end_date,
+  restrictions (jsonb),
+  status (active|closed|no_cost_extension)
+)
+
+-- Spending updates (lightweight)
+spending_updates (
+  id, award_id, 
+  date, category, amount, description,
+  source (manual|conversation|import)
+)
+
+-- Conversation history (for context)
+conversations (
+  id, user_id, award_id, proposal_id,
+  messages (jsonb),
+  created_at
+)
+</code></pre>
+<hr />
+<h3>User Flows</h3>
+<p><strong>Flow 1: New Proposal (Full Lifecycle)</strong></p>
+<pre><code>You: &quot;I want to submit an R01 to NIH for microbiome research, due March 5&quot;
+
+AI: Created proposal for NIH R01
+    Deadline: March 5, 2026
+
+    NIH R01 basics:
+    - Up to $500K/year direct costs (typically)
+    - 5 year max duration
+    - Your F&amp;A rate: 55%
+
+    Ready to build the budget?
+
+You: &quot;Yes. 2 postdocs, 1 technician half-time, $50K supplies, $10K travel&quot;
+
+AI: Here's your R01 budget:
+
+    PERSONNEL                      Year 1
+    ──────────────────────────────────────
+    Postdoc 1 (100%)              $56,484
+      Salary: $61,008 → $42,706
+      Fringe (32%):               $13,778
+
+    Postdoc 2 (100%)              $56,484
+    Technician (50%)              $28,242
+    ──────────────────────────────────────
+    Personnel subtotal:          $141,210
+
+    OTHER COSTS
+    ──────────────────────────────────────
+    Supplies:                     $50,000
+    Travel:                       $10,000
+    ──────────────────────────────────────
+
+    TOTALS
+    ──────────────────────────────────────
+    Direct costs:                $201,210
+    F&amp;A (55%):                   $110,666
+    TOTAL:                       $311,876
+
+    Want to adjust anything?
+
+[months later...]
+
+You: &quot;We got funded! They gave us $280K in year 1, cut the second postdoc&quot;
+
+AI: Congratulations! Converting to active award.
+
+    Award: NIH R01 GM-XXXXXX
+    Year 1: $280,000
+    Period: [start] to [end]
+
+    I've adjusted the budget - removed Postdoc 2.
+    Your tracking categories are set up.
+
+    What's the grant number?
+</code></pre>
+<p><strong>Flow 2: Quick Start (Existing Award)</strong></p>
+<pre><code>You: &quot;I have an R01 that's been running for 2 years, $400K left&quot;
+
+AI: Got it. Let me set that up.
+
+    Grant number?
+You: &quot;GM123456&quot;
+
+AI: When does it end?
+You: &quot;August 2026&quot;
+
+AI: Any specific budget restrictions or categories you want to track?
+You: &quot;Equipment is capped at $5K per item. About $200K is for personnel, rest is flexible.&quot;
+
+AI: Created: NIH R01 GM123456
+    Remaining: $400,000
+    End date: August 2026
+
+    Budget breakdown:
+    - Personnel: $200,000
+    - Other (flexible): $200,000
+    - Equipment cap: $5,000/item
+
+    Ready to answer questions. Try &quot;Can I hire a summer student?&quot;
+</code></pre>
+<hr />
+<h3>MVP Feature Checklist</h3>
+<p><strong>Pre-Award</strong>
+- [ ] Create proposal (sponsor, program, deadline)
+- [ ] Build budget via conversation
+- [ ] Auto-calculate F&amp;A, fringe
+- [ ] Store structured budget by category
+- [ ] Track status (draft → submitted → pending → outcome)</p>
+<p><strong>Award Transition</strong>
+- [ ] Convert proposal to active award
+- [ ] Adjust for actual funded amount
+- [ ] Import existing awards (quick start path)</p>
+<p><strong>Post-Award</strong>
+- [ ] Natural language queries
+- [ ] Update spending (conversational or form)
+- [ ] Feasibility checks ("Can I hire X?")
+- [ ] Burn rate / runway projections
+- [ ] Category-level balance tracking</p>
+<p><strong>Infrastructure</strong>
+- [ ] Supabase auth (email + Google OAuth)
+- [ ] Row-level security (user data isolation)
+- [ ] Claude integration via Edge Functions
+- [ ] Mobile-responsive UI
+- [ ] Data export (CSV, JSON)</p>
+<hr />
+<h3>Suggested Build Order</h3>
+<pre><code>Week 1: Foundation
+├── Next.js + Supabase + Auth boilerplate
+├── Database schema + RLS policies
+├── Basic UI shell (chat interface + sidebar)
+└── Claude API integration (Edge Function)
+
+Week 2: Pre-Award
+├── Proposal creation flow
+├── Budget builder (conversational)
+├── F&amp;A/fringe calculations
+└── Proposal status tracking
+
+Week 3: Post-Award
+├── Award creation (from proposal or quick-start)
+├── Spending update flows
+├── Query engine (&quot;Can I hire...&quot;, &quot;How much left...&quot;)
+└── Projections and alerts
+
+Week 4: Polish
+├── Mobile optimization
+├── Data export
+├── Onboarding flow
+└── Error handling, edge cases
+</code></pre>
+<hr />
+<h3>Next Steps</h3>
+<ol>
+<li><strong>Name the project</strong> - working title for repo/domain?</li>
+<li><strong>Initialize the repo</strong> - Next.js + Supabase starter?</li>
+<li><strong>Design the chat UI</strong> - shadcn/ui based, or something custom?</li>
+</ol>
+<p>Want to start building, or refine the concept further first?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2025-12-27T03-30-29-885Z"><div class="index-item-header"><span class="index-item-number">#6</span><time datetime="2025-12-27T03:30:29.885Z" data-timestamp="2025-12-27T03:30:29.885Z">2025-12-27T03:30:29.885Z</time></div><div class="index-item-content"><p>what are the weaknesses here and what is the competition. ultrathink and web search</p></div></a><div class="index-item-stats"><span>7 search · 6 mcp__sequential-thinking__sequentialthinking</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><hr />
+<h2>Competitive Landscape &amp; Weaknesses Analysis</h2>
+<h3>The Competition</h3>
+<h4>Direct Competitor: <a href="https://www.spendlab.org/">Spendlab</a></h4>
+<p>This is the most important finding. Spendlab is already doing part of what you're proposing:</p>
+<table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Spendlab</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Adoption</strong></td>
+<td>60+ universities (MIT, Harvard, Yale, Johns Hopkins, ETH Zurich, UW)</td>
+</tr>
+<tr>
+<td><strong>Pricing</strong></td>
+<td>$150-400/year per lab</td>
+</tr>
+<tr>
+<td><strong>Focus</strong></td>
+<td>Post-award budget visualization and planning</td>
+</tr>
+<tr>
+<td><strong>Privacy</strong></td>
+<td>Data stays local (never touches their servers)</td>
+</tr>
+<tr>
+<td><strong>Founder</strong></td>
+<td>Ex-Tableau designer + MIT HCI background</td>
+</tr>
+<tr>
+<td><strong>Quote</strong></td>
+<td>"I literally don't know how I would run my lab without Spendlab"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What Spendlab lacks:</strong>
+- No AI / natural language
+- No pre-award functionality
+- No conversational interface
+- No sponsor rule knowledge built-in</p>
+<hr />
+<h4>Enterprise Competitors (Institutional Sales)</h4>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://www.cayuse.com/">Cayuse</a></td>
+<td>650+ orgs, pre-award focused, acquired multiple products</td>
+</tr>
+<tr>
+<td><a href="https://www.kuali.co/products/research">Kuali Research</a></td>
+<td>University consortium origin, declining implementations</td>
+</tr>
+<tr>
+<td><a href="https://www.infoedglobal.com/">InfoEd Global</a></td>
+<td>30+ years, SPIN funding database</td>
+</tr>
+<tr>
+<td><a href="https://www.linkedin.com/showcase/fibiresearchadministrationsuite/">Fibi</a></td>
+<td>Newer, Johns Hopkins deployment</td>
+</tr>
+<tr>
+<td>Huron Research Suite</td>
+<td>Pairs with Workday, enterprise-only</td>
+</tr>
+</tbody>
+</table>
+<p>These are institutional purchases ($100K+ implementations), admin-centered, not PI-friendly.</p>
+<hr />
+<h4>University-Built PI Dashboards</h4>
+<p><a href="https://researchservices.cornell.edu/resources/pi-dashboard">Cornell</a>, <a href="https://ras.fss.harvard.edu/pi-dashboard-application">Harvard</a>, <a href="https://sponsoredprojects.gwu.edu/pi-dashboard">GWU</a>, <a href="https://financemanagement.ucsb.edu/news/facultypi-dashboard-now-available-finhub">UCSB</a> have built internal dashboards. These are:
+- Institution-specific, not portable
+- Often require Tableau licenses
+- Read-only views of institutional data
+- Not available to most of the world</p>
+<hr />
+<h3>Weaknesses &amp; Risks</h3>
+<h4>Technical Risks</h4>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Severity</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>AI hallucination on financial matters</strong></td>
+<td>HIGH</td>
+<td>Conservative responses, confidence levels, "verify with grants office" caveats</td>
+</tr>
+<tr>
+<td><strong>Data accuracy dependency</strong></td>
+<td>HIGH</td>
+<td>Reconciliation prompts, statement import, drift detection</td>
+</tr>
+<tr>
+<td><strong>Regulatory complexity</strong></td>
+<td>MEDIUM</td>
+<td>Start narrow (NIH/NSF only), expand carefully, always caveat uncertainty</td>
+</tr>
+<tr>
+<td><strong>Conversational UI limits</strong></td>
+<td>LOW</td>
+<td>Hybrid UI - chat primary, but structured views available</td>
+</tr>
+<tr>
+<td><strong>API cost scaling</strong></td>
+<td>MEDIUM</td>
+<td>Caching, local models for simple queries, tiered usage</td>
+</tr>
+</tbody>
+</table>
+<h4>Market Risks</h4>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Severity</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Spendlab first-mover advantage</strong></td>
+<td>HIGH</td>
+<td>Must differentiate on AI + pre-award; "Spendlab + AI + lifecycle" positioning</td>
+</tr>
+<tr>
+<td><strong>No integration = stale data</strong></td>
+<td>HIGH</td>
+<td>Design for eventual integration, seamless export/import, reconciliation flows</td>
+</tr>
+<tr>
+<td><strong>Institutional resistance</strong></td>
+<td>MEDIUM</td>
+<td>SOC 2, data residency options, start with individual PIs not institutions</td>
+</tr>
+<tr>
+<td><strong>Trust barrier with cloud financial data</strong></td>
+<td>MEDIUM</td>
+<td>Export always works, data deletion, transparency, optional self-host</td>
+</tr>
+<tr>
+<td><strong>Global market payment/infra issues</strong></td>
+<td>MEDIUM</td>
+<td>Foundation-funded free tier, progressive pricing, regional partnerships</td>
+</tr>
+</tbody>
+</table>
+<h4>Execution Risks</h4>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Severity</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Domain expertise gap</strong></td>
+<td>HIGH</td>
+<td>PI advisors, grants office consultants, iterative validation with real users</td>
+</tr>
+<tr>
+<td><strong>Pre-award becomes orphaned feature</strong></td>
+<td>MEDIUM</td>
+<td>Make budget builder dramatically better than Excel or don't ship it</td>
+</tr>
+<tr>
+<td><strong>User acquisition in academia</strong></td>
+<td>MEDIUM</td>
+<td>Conference presence, word-of-mouth, champion users, maybe a paper</td>
+</tr>
+<tr>
+<td><strong>Sustainability model unclear</strong></td>
+<td>HIGH</td>
+<td>Open core with premium tier, or foundation funding, or both</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>The "Spendlab Problem"</h3>
+<p>Spendlab's existence is the biggest strategic challenge. Key facts from <a href="https://www.spendlab.org/">their site</a>:</p>
+<blockquote>
+<p>"It started in a single lab and is now used by researchers across the world... at more than 60 universities"</p>
+<p>"Your budget data never travels over the internet... We run all calculations on your own computer"</p>
+<p>"$150/year for labs under $250K... $400/year unlimited"</p>
+</blockquote>
+<p><strong>Spendlab chose local-first privacy over cloud AI.</strong> This is a meaningful tradeoff:</p>
+<table>
+<thead>
+<tr>
+<th>Their Choice</th>
+<th>Your Opportunity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local-only = no AI possible</td>
+<td>Cloud = AI-native experience</td>
+</tr>
+<tr>
+<td>Post-award only</td>
+<td>Pre + post-award lifecycle</td>
+</tr>
+<tr>
+<td>Visualization-first</td>
+<td>Conversation-first</td>
+</tr>
+<tr>
+<td>Manual planning</td>
+<td>"Can I hire a summer student?"</td>
+</tr>
+<tr>
+<td>No sponsor knowledge</td>
+<td>Built-in NIH/NSF/Wellcome rules</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Differentiation Matrix</h3>
+<pre><code>                    AI-Native    Pre-Award    Global Access    PI-First
+                    ─────────    ─────────    ─────────────    ────────
+Spendlab               ✗            ✗              ~             ✓
+Cayuse/Kuali           ✗            ✓              ✗             ✗
+Workday/Banner         ✗            ~              ✗             ✗
+Univ. Dashboards       ✗            ✗              ✗             ~
+THIS PROJECT           ✓            ✓              ✓             ✓
+</code></pre>
+<hr />
+<h3>Critical Success Factors</h3>
+<p>For this to succeed despite the competition:</p>
+<ol>
+<li>
+<p><strong>AI accuracy must be exceptional</strong> - One wrong answer about grant spending destroys trust forever. Invest heavily in prompt engineering for sponsor rules.</p>
+</li>
+<li>
+<p><strong>Pre-award must be dramatically better than Excel</strong> - If it's just "okay," nobody switches. Auto-calculate F&amp;A, fringe, yearly increases. Export to sponsor formats.</p>
+</li>
+<li>
+<p><strong>Solve data freshness without integration</strong> - Make reconciliation painless: "Your R01 shows $400K - still accurate?" Accept statement uploads.</p>
+</li>
+<li>
+<p><strong>Global-first, not global-later</strong> - Multi-currency, languages, free tier from day 1. Partner with <a href="https://scienceforafrica.foundation/africa-research-management-capacity-strengthening-programme">REMACS</a>, Science for Africa.</p>
+</li>
+<li>
+<p><strong>Open source credibility</strong> - Academic communities trust open. Build in public, accept contributions, maybe publish a paper.</p>
+</li>
+</ol>
+<hr />
+<h3>Honest Assessment</h3>
+<p><strong>The opportunity is real.</strong> The 42% administrative burden on federally-funded researchers (<a href="https://exlibrisgroup.com/blog/research-administration-relieving-the-pressure-on-researchers/">per NSF</a>) and Spendlab's traction prove demand exists.</p>
+<p><strong>But Spendlab is already there.</strong> This can't just be "another budget tool." The differentiators must be:
+- AI-native (nobody has this yet)
+- Pre-award lifecycle (Spendlab lacks this)
+- Global accessibility (enterprises ignore this)</p>
+<p>Without those being <strong>excellent</strong>, this is a me-too product in a market where Spendlab already has word-of-mouth in academic circles.</p>
+<hr />
+<h3>Questions This Raises</h3>
+<ol>
+<li>
+<p><strong>Compete or complement Spendlab?</strong> Could this be positioned as "Spendlab + AI layer" rather than a replacement?</p>
+</li>
+<li>
+<p><strong>Pre-award scope?</strong> How deep into proposal development? Just budgets, or also narrative assistance, compliance checking?</p>
+</li>
+<li>
+<p><strong>Privacy tradeoff messaging?</strong> Spendlab's local-only approach is a selling point for some. How do you message "yes your data goes to the cloud, but you get AI"?</p>
+</li>
+<li>
+<p><strong>Foundation funding vs. commercial?</strong> Global accessibility may require grant funding. Does that conflict with building a sustainable product?</p>
+</li>
+</ol>
+<p>Want to dig into any of these strategic questions?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2025-12-27T03-36-25-174Z"><div class="index-item-header"><span class="index-item-number">#7</span><time datetime="2025-12-27T03:36:25.174Z" data-timestamp="2025-12-27T03:36:25.174Z">2025-12-27T03:36:25.174Z</time></div><div class="index-item-content"><p>i see how spendlab is competitive, but am not sure I agree with some of your competition assessment. Pre-award is a huge deal. I want to track what I have applied for even if it doesnt get funded. this is useful fo reporting and repurposing. In addition, i do not see th AI component as a necessary part of grant generation, but as an evaluation component of submitted grants</p></div></a><div class="index-item-stats"><span>5 mcp__sequential-thinking__sequentialthinking</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><hr />
+<h2>Revised Framing</h2>
+<p>You're right. I was thinking too small on pre-award and wrong on AI.</p>
+<h3>Pre-Award: Portfolio Memory</h3>
+<p>It's not about building budgets. It's about <strong>tracking your entire funding effort</strong>:</p>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                    PROPOSAL PORTFOLIO                        │
+├─────────────────────────────────────────────────────────────┤
+│  R01 GM-xxxxx    │ Submitted 2024-02 │ Funded   │ $1.2M    │
+│  R01 AI-xxxxx    │ Submitted 2024-06 │ Declined │ Score 32 │
+│  R21 GM-xxxxx    │ Submitted 2024-09 │ Pending  │ ---      │
+│  NSF CAREER      │ Draft             │ ---      │ ---      │
+│  Wellcome Trust  │ Submitted 2023-11 │ Declined │ Revising │
+└─────────────────────────────────────────────────────────────┘
+</code></pre>
+<p><strong>Value of tracking unfunded proposals:</strong>
+- Annual reporting ("I submitted 5 proposals this year")
+- Tenure packages (shows effort, not just success)
+- Resubmission tracking (A1 from A0, what changed)
+- Repurposing (aims from declined R01 → new R21)
+- Pattern recognition (which study sections, which POs)</p>
+<p><strong>Spendlab has none of this.</strong> It only knows grants after they're funded.</p>
+<hr />
+<h3>AI: Evaluation, Not Generation</h3>
+<p>You're not asking AI to write grants. You're asking AI to <strong>help you understand and honor your commitments</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Query</th>
+<th>What AI Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"What did I promise in Year 2?"</td>
+<td>Searches your funded proposal, extracts timeline/milestones</td>
+</tr>
+<tr>
+<td>"Can I hire a computational person?"</td>
+<td>Checks if you budgeted for this role, or proposed wet-lab only</td>
+</tr>
+<tr>
+<td>"Is this equipment purchase in scope?"</td>
+<td>Compares request against your proposed methods/budget</td>
+</tr>
+<tr>
+<td>"Which grant could support phage work?"</td>
+<td>Searches across all proposals for relevant aims</td>
+</tr>
+<tr>
+<td>"Do I need to notify NIH about this pivot?"</td>
+<td>Compares new direction against original scope, flags if &gt;25% change</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The AI is a query layer over your own documents</strong> - not a generative tool.</p>
+<p>PIs forget what they wrote. Proposals are 12-page documents submitted months or years ago. The AI becomes <strong>institutional memory for your own commitments</strong>.</p>
+<hr />
+<h3>Why This Changes the Competitive Picture</h3>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>Tracks Proposals</th>
+<th>Knows Commitments</th>
+<th>Queryable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spendlab</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>Cayuse/Kuali</td>
+<td>For routing only</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>University Dashboards</td>
+<td>✗</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>This Project</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The moat isn't "better AI" - it's "comprehensive proposal memory with AI query."</strong></p>
+<p>Nobody is doing this. Enterprise systems track proposals for compliance routing, not for PI utility. Spendlab only sees the world after funding.</p>
+<hr />
+<h3>Revised Data Model</h3>
+<p>Proposals become the <strong>first-class citizen</strong>, not awards:</p>
+<pre><code class="language-sql">-- The core entity is now the proposal
+proposals (
+  id, user_id,
+  sponsor, program, mechanism,        -- NIH R01, NSF CAREER, etc.
+  title, abstract,
+  specific_aims,                      -- extracted or entered
+  full_document,                      -- stored for AI querying
+  timeline_milestones (jsonb),        -- what you promised when
+  personnel_plan (jsonb),             -- who you said you'd hire
+  key_methods,                        -- approaches committed to
+  submitted_date, deadline,
+  status (draft|submitted|under_review|scored|funded|declined|withdrawn)
+)
+
+-- Outcomes include both funded and unfunded
+proposal_outcomes (
+  proposal_id,
+  outcome (funded|declined|not_discussed),
+  score, percentile,
+  critique_summary,                   -- uploaded review
+  amount_funded,                      -- may differ from requested
+  budget_modifications                -- what got cut
+)
+
+-- Awards derive FROM proposals
+awards (
+  proposal_id,                        -- linked to source proposal
+  grant_number, account_number,
+  actual_amount, start_date, end_date,
+  adjusted_budget (jsonb),            -- post-cut budget
+  status (active|nce|closed)
+)
+
+-- Spending tracks against award
+spending_updates (
+  award_id, date, category, amount
+)
+</code></pre>
+<hr />
+<h3>Example Queries This Enables</h3>
+<p><strong>Portfolio queries:</strong>
+- "How many proposals have I submitted this fiscal year?"
+- "What's my funding rate over the last 3 years?"
+- "Show me all declined proposals that I haven't resubmitted"</p>
+<p><strong>Commitment queries:</strong>
+- "What milestones did I promise for Year 2 of my R01?"
+- "Did I commit to any international travel in this grant?"
+- "Which of my grants mentions single-cell sequencing?"</p>
+<p><strong>Decision queries:</strong>
+- "Can I hire a summer student?" → checks budget + personnel plan
+- "Can I buy a $20K sequencer?" → checks equipment budget + proposed methods
+- "Is pivoting to phage work consistent with my funded aims?"</p>
+<p><strong>Compliance queries:</strong>
+- "Has my scope changed enough to require NIH notification?"
+- "Am I on track for my Year 1 milestones?"
+- "Which grant is best suited for this new collaboration?"</p>
+<hr />
+<h3>Revised MVP Scope</h3>
+<p><strong>Phase 1: Proposal Portfolio</strong>
+- Add proposals (manual entry, document upload, paste)
+- Track status through lifecycle
+- Store outcomes (scores, critiques)
+- Basic search across proposals</p>
+<p><strong>Phase 2: Award Tracking</strong>
+- Link funded proposals to active awards
+- Budget tracking at category level
+- Balance queries</p>
+<p><strong>Phase 3: AI Query Layer</strong>
+- Natural language queries against proposal content
+- Commitment extraction and comparison
+- Cross-proposal search
+- Decision support ("Can I do X?")</p>
+<hr />
+<p>This is a fundamentally different product than I was describing. It's <strong>your research funding memory</strong> - everything you applied for, what you promised, what got funded, and whether your current decisions are consistent with your commitments.</p>
+<p>Does this framing match what you're thinking?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2025-12-27T03-39-37-389Z"><div class="index-item-header"><span class="index-item-number">#8</span><time datetime="2025-12-27T03:39:37.389Z" data-timestamp="2025-12-27T03:39:37.389Z">2025-12-27T03:39:37.389Z</time></div><div class="index-item-content"><p>lets discuss a bit more. is there even any evidence spendlab is still alive? this is their last tweet:</p></div></a><div class="index-item-stats"><span>2 fetch</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>Interesting. Here's what the evidence shows:</p>
+<h3>Spendlab Reality Check</h3>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>What It Tells Us</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>83 Twitter followers</strong></td>
+<td>Minimal market presence</td>
+</tr>
+<tr>
+<td><strong>10 total posts</strong></td>
+<td>Not actively marketing</td>
+</tr>
+<tr>
+<td><strong>Last tweet: Aug 2024</strong></td>
+<td>4+ months silent</td>
+</tr>
+<tr>
+<td><strong>49 views on pinned post</strong></td>
+<td>Very low engagement</td>
+</tr>
+<tr>
+<td><strong>Team: 1 founder + 1 associate + 3 college interns</strong></td>
+<td>Side project, not a company</td>
+</tr>
+<tr>
+<td><strong>"No venture capital"</strong></td>
+<td>Deliberately small, lifestyle business</td>
+</tr>
+<tr>
+<td><strong>Last update: May 2024 (v14)</strong></td>
+<td>7 months since last release</td>
+</tr>
+<tr>
+<td><strong>Update frequency: every 4-6 months</strong></td>
+<td>Maintenance mode, not active development</td>
+</tr>
+</tbody>
+</table>
+<h3>The "60+ Universities" Claim</h3>
+<p>This almost certainly means <strong>individual lab users</strong>, not institutional contracts. With:
+- 83 Twitter followers
+- A 3-person core team (founder + associate + interns)
+- No marketing presence
+- $150-400/year pricing</p>
+<p>...they're not doing enterprise sales. They probably have a few hundred individual PI users scattered across institutions. That's a lifestyle business generating maybe $50-150K/year.</p>
+<h3>Revised Competitive Assessment</h3>
+<p><strong>Spendlab is not a serious competitive threat.</strong> It's:
+- A useful tool that exists
+- Not actively growing
+- Not well-marketed
+- Not AI-enabled
+- Not going to respond aggressively to competition</p>
+<p>The real competitive landscape is:
+1. <strong>Excel/Google Sheets</strong> - what 90%+ of PIs actually use
+2. <strong>Nothing</strong> - many PIs just don't track this systematically
+3. <strong>Institutional systems</strong> - that PIs hate and avoid
+4. <strong>Spendlab</strong> - a nice niche tool with minimal market penetration</p>
+<h3>What This Means</h3>
+<p>The market is <strong>much more open</strong> than I initially suggested. You're not competing against an entrenched player - you're competing against:
+- Inertia ("I've always used Excel")
+- Skepticism ("Another tool to learn?")
+- The status quo of <strong>not having</strong> good proposal/grant memory</p>
+<p>The harder problem isn't beating Spendlab. It's <strong>getting PIs to adopt anything at all</strong>.</p>
+<p>Does this change how you're thinking about positioning or go-to-market?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2025-12-27T03-44-19-251Z"><div class="index-item-header"><span class="index-item-number">#9</span><time datetime="2025-12-27T03:44:19.251Z" data-timestamp="2025-12-27T03:44:19.251Z">2025-12-27T03:44:19.251Z</time></div><div class="index-item-content"><p>lets think about this in more detail. now that we know there is no or limited competition. the reason i started thinking about this project is due to my frustration with workday, which right now as a PI at Washington University, is the lowest value to my actaul work. There is a huge administrative burden on PIs. This is an issue as we should be spending more of our time thinking about our science. Our University has spent 10s of millions of dollars on workday, yet as a PI I find this only adds to my work instead of facilitating it. I do not want to rely on workday data as API access is limited or managed through imprenetrable IT infrastructure. I also do a lot of work with people at institutions that could never afford workday. So what do PIs and admins REALLY want?? That is what I want to build</p></div></a><div class="index-item-stats"><span>6 mcp__sequential-thinking__sequentialthinking · 5 search</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><hr />
+<h2>What PIs and Admins REALLY Want</h2>
+<h3>The Data: It's Worse Than You Think</h3>
+<p>From the <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2887040/">FDP Faculty Burden Surveys</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Finding</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>42-44% of research time</strong> spent on administration</td>
+<td>Nearly half your funded effort goes to overhead</td>
+</tr>
+<tr>
+<td>This has <strong>increased</strong> over time (42% → 44.3%)</td>
+<td>Reform efforts have failed</td>
+</tr>
+<tr>
+<td>Faculty report "bureaucracy so intense they lost ability to focus on research"</td>
+<td>System-induced despair</td>
+</tr>
+<tr>
+<td>Women, minorities, and junior faculty face <strong>higher</strong> burden with <strong>less</strong> support</td>
+<td>Diversity and retention impact</td>
+</tr>
+<tr>
+<td>PIs estimated <strong>27% reduction</strong> possible with adequate admin help</td>
+<td>The gap between reality and potential</td>
+</tr>
+</tbody>
+</table>
+<h3>The $266M Question</h3>
+<p>WashU spent $266 million. Who benefited?</p>
+<table>
+<thead>
+<tr>
+<th>Stakeholder</th>
+<th>Better Off?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Finance/Audit</td>
+<td>✓ (consolidated systems, audit trails)</td>
+</tr>
+<tr>
+<td>HR</td>
+<td>✓ (single system)</td>
+</tr>
+<tr>
+<td>Central Admin</td>
+<td>✓ (reporting)</td>
+</tr>
+<tr>
+<td><strong>PIs</strong></td>
+<td>✗ (your work got harder)</td>
+</tr>
+<tr>
+<td><strong>Dept Admins</strong></td>
+<td>✗ (still maintain shadow spreadsheets)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The system hierarchy is inverted:</strong></p>
+<pre><code>Current:  Audit → Finance → HR → Admin → PI
+Should be: PI → Research Support → Administration → Compliance
+</code></pre>
+<hr />
+<h3>What PIs Actually Need</h3>
+<p><strong>NOT what Workday provides.</strong> Here's the real list:</p>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>What It Means</th>
+<th>Current State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>TIME BACK</strong></td>
+<td>Minimize admin overhead</td>
+<td>42% of time lost</td>
+</tr>
+<tr>
+<td><strong>ANSWERS</strong></td>
+<td>"Can I hire a student?" not "navigate to module"</td>
+<td>Requires 5 systems + email to admin</td>
+</tr>
+<tr>
+<td><strong>VISIBILITY</strong></td>
+<td>Know grant status without digging</td>
+<td>Hidden behind worktags and cost centers</td>
+</tr>
+<tr>
+<td><strong>MEMORY</strong></td>
+<td>What did I propose? What's my track record?</td>
+<td>Buried in old PDFs</td>
+</tr>
+<tr>
+<td><strong>COORDINATION</strong></td>
+<td>Don't ask me the same thing twice</td>
+<td>Effort reporting, progress reports, annual reviews all ask same questions</td>
+</tr>
+<tr>
+<td><strong>PROTECTION</strong></td>
+<td>Don't let me accidentally violate rules</td>
+<td>Find out you violated rules AFTER the audit</td>
+</tr>
+</tbody>
+</table>
+<h3>What Departmental Admins Actually Need</h3>
+<p>From <a href="https://research.washu.edu/about/roles-responsibilities/department-administrator/">WashU's own documentation</a> and <a href="https://case.edu/research/awards-agreements/pre-and-post-award-services/research-administrator-responsibilities">Case Western</a>:</p>
+<blockquote>
+<p>"Department grant administrators are responsible for setting up <strong>'shadow' systems</strong> for programmatic and fiscal management, to record daily account charges and <strong>reconcile monthly</strong> with Financial Information System"</p>
+</blockquote>
+<p><strong>They maintain shadow spreadsheets because the official system doesn't work for them.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>What It Means</th>
+<th>Current State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SINGLE SOURCE OF TRUTH</strong></td>
+<td>Stop reconciling multiple systems</td>
+<td>Maintain parallel spreadsheets</td>
+</tr>
+<tr>
+<td><strong>PI SELF-SERVICE</strong></td>
+<td>PIs answer their own simple questions</td>
+<td>Admin is human middleware</td>
+</tr>
+<tr>
+<td><strong>PROACTIVE ALERTS</strong></td>
+<td>Know about problems before crisis</td>
+<td>Reactive firefighting</td>
+</tr>
+<tr>
+<td><strong>REPORTING AUTOMATION</strong></td>
+<td>Stop manually compiling data</td>
+<td>Copy-paste from 3 systems</td>
+</tr>
+<tr>
+<td><strong>INSTITUTIONAL BRIDGE</strong></td>
+<td>Translate PI-speak ↔ finance-speak</td>
+<td>They ARE the translation layer</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>The Shared Frustration</h3>
+<p><strong>Both PIs and admins want:</strong>
+- Less manual work
+- Faster answers
+- Fewer systems to navigate
+- Proactive rather than reactive
+- Data they can trust</p>
+<p><strong>Neither wants:</strong>
+- Another system to learn
+- More data entry
+- Another login
+- Reports that don't match their mental model</p>
+<hr />
+<h3>The Global Dimension</h3>
+<p>Your collaborators at resource-constrained institutions have the <strong>same fundamental needs</strong>:
+- Track proposals submitted
+- Track grants received
+- Manage budgets
+- Report to sponsors
+- Comply with grant terms</p>
+<p><strong>What they don't have:</strong>
+- $266M for enterprise software
+- Large IT departments<br />
+- Dedicated admin staff per PI</p>
+<p><strong>The opportunity:</strong> They could <strong>leapfrog</strong> enterprise systems entirely. Like developing countries skipping landlines for mobile phones, they could skip Workday for AI-native grant management.</p>
+<p>For a researcher in Nairobi, this system isn't a Workday supplement - it's the <strong>only</strong> system. That's actually simpler.</p>
+<hr />
+<h3>What To Build: The "Shadow System" That Replaces All Shadow Systems</h3>
+<p>The insight: <strong>Admins already maintain PI-friendly views of data manually.</strong> This system does that automatically.</p>
+<p><strong>Core Principles:</strong></p>
+<ol>
+<li><strong>Answer questions, don't provide data</strong></li>
+<li>"Can I hire a summer student?" → Yes/No + reasoning</li>
+<li>
+<p>Not: "Navigate to Grants → Worklet → Filter by Cost Center..."</p>
+</li>
+<li>
+<p><strong>Remember everything</strong></p>
+</li>
+<li>Every proposal (funded or not)</li>
+<li>Every commitment made</li>
+<li>Every outcome and critique</li>
+<li>
+<p>Queryable institutional memory</p>
+</li>
+<li>
+<p><strong>Work for both PI and Admin</strong></p>
+</li>
+<li>PI view: My grants, my questions, my decisions</li>
+<li>Admin view: My PIs, their portfolios, alerts</li>
+<li>
+<p>Same data, different lenses</p>
+</li>
+<li>
+<p><strong>Radically accessible</strong></p>
+</li>
+<li>5 minutes to first value</li>
+<li>Works on a phone in Nairobi</li>
+<li>No institutional buy-in to start</li>
+<li>
+<p>No enterprise sales cycle</p>
+</li>
+<li>
+<p><strong>Coexist with enterprise systems</strong></p>
+</li>
+<li>At WashU: Works alongside Workday (you don't need API access)</li>
+<li>At a small institution: IS the system (no enterprise overhead)</li>
+</ol>
+<hr />
+<h3>The Value Proposition</h3>
+<blockquote>
+<p><strong>"Stop spending 42% of your research time on administration.</strong><br />
+<strong>Get answers to your grant questions in seconds.</strong><br />
+<strong>Remember everything you've applied for and committed to.</strong><br />
+<strong>Works whether you're at WashU or in Nairobi."</strong></p>
+</blockquote>
+<hr />
+<p>Does this capture what you're feeling? What's missing or wrong?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-002.html#msg-2025-12-27T03-50-07-934Z"><div class="index-item-header"><span class="index-item-number">#10</span><time datetime="2025-12-27T03:50:07.934Z" data-timestamp="2025-12-27T03:50:07.934Z">2025-12-27T03:50:07.934Z</time></div><div class="index-item-content"><p>yes, this HIGHLY resonates with me. THis "maintain shadow spreadsheets" is so true. Here is a screenshot of what my admins pull from workday to generate for me on a monthly basis. Notice the complexity and number of tabs.</p></div></a><div class="index-item-stats">
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><p>This is <strong>gold</strong>. This screenshot is exactly what the system should replace. Let me break down what I'm seeing:</p>
+<hr />
+<h3>What Your Admin Built (Manually, Monthly)</h3>
+<p><strong>The "Handley Financial Report" - A Shadow System</strong></p>
+<table>
+<thead>
+<tr>
+<th>What It Shows</th>
+<th>Why It Matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>11 funding sources</strong> across one view</td>
+<td>Workday doesn't give you this consolidated view</td>
+</tr>
+<tr>
+<td><strong>Total Available Funds</strong> per grant</td>
+<td>The number you actually care about</td>
+</tr>
+<tr>
+<td><strong>Months remaining</strong></td>
+<td>Burn rate awareness</td>
+</tr>
+<tr>
+<td><strong>Status flags</strong> (Active, 30 Days, PAST DUE)</td>
+<td>Visual alerts</td>
+</tr>
+<tr>
+<td><strong>Personnel effort by grant</strong></td>
+<td>Who is on what, at what %</td>
+</tr>
+<tr>
+<td><strong>~20 tabs</strong> at the bottom</td>
+<td>Each grant has its own detail sheet</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>The Problems This Reveals</h3>
+<p><strong>Red flags in YOUR data right now:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Grant</th>
+<th>Issue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NIH - U Maryland</td>
+<td><strong>-$1,211.84</strong> (overspent), 0 months remaining</td>
+</tr>
+<tr>
+<td>MGH/Moderna</td>
+<td><strong>PAST DUE</strong> by 7 months</td>
+</tr>
+<tr>
+<td>Handley Startup</td>
+<td><strong>-$94,209</strong> (significantly overspent)</td>
+</tr>
+<tr>
+<td>Yale - Polybio</td>
+<td>Only <strong>$149</strong> left with 2 months remaining</td>
+</tr>
+<tr>
+<td>R01 - Diamond CHIKV</td>
+<td>Only <strong>$354</strong> left with 3 months remaining</td>
+</tr>
+</tbody>
+</table>
+<p>Your admin has highlighted these in yellow/red. <strong>Workday didn't proactively alert you to these.</strong></p>
+<hr />
+<h3>The Manual Labor Hidden Here</h3>
+<p>Your admin does this <strong>every month</strong>:</p>
+<ol>
+<li>Exports data from Workday (or multiple Workday reports)</li>
+<li>Reformats into this PI-friendly layout</li>
+<li>Calculates "Total Available Funds" </li>
+<li>Calculates "Months remaining"</li>
+<li>Manually tracks effort percentages for 8+ people across 11+ funding sources</li>
+<li>Maintains individual tabs for each grant</li>
+<li>Adds color coding for problems</li>
+<li>Adds notes ("No new funds", "The 'Other Column' is not live data")</li>
+<li>Shares with you as read-only ("Can View - You can't make changes")</li>
+</ol>
+<p><strong>This is hours of work per month, every month, forever.</strong></p>
+<hr />
+<h3>What This Spreadsheet Can't Do</h3>
+<p>Even with all this manual effort, you still can't:</p>
+<ul>
+<li><strong>Ask questions</strong>: "Can I hire a summer student on the Fresh R01?"</li>
+<li><strong>Get projections</strong>: "At current burn rate, when does U01-HVP run out?"</li>
+<li><strong>See commitments</strong>: "What did I promise to do in Year 2 of the LLFS grant?"</li>
+<li><strong>Search across grants</strong>: "Which grant could support a new sequencing project?"</li>
+<li><strong>Track proposals</strong>: Where are the grants you applied for but didn't get?</li>
+<li><strong>Get alerts</strong>: Why did you find out about -$94K on startup only when looking at this report?</li>
+</ul>
+<hr />
+<h3>What The System Should Do</h3>
+<p><strong>Replace this spreadsheet entirely:</strong></p>
+<pre><code>You: &quot;Show me my grants&quot;
+
+┌─────────────────────────────────────────────────────────────────┐
+│ YOUR GRANTS                                    As of: 12/26/25  │
+├─────────────────────────────────────────────────────────────────┤
+│ 🔴 NEEDS ATTENTION                                              │
+│   Handley Startup     -$94,209    Overspent                     │
+│   NIH - U Maryland    -$1,212     Overspent, ended              │
+│   MGH/Moderna          $12,857    7 months past due             │
+│   Yale - Polybio         $149     2 months left, nearly empty   │
+│                                                                 │
+│ 🟡 WATCH                                                        │
+│   R01 Diamond CHIKV      $354     3 months left                 │
+│   U01 - HVP            $4,287     8 months left, tight          │
+│                                                                 │
+│ 🟢 HEALTHY                                                      │
+│   Fresh R01           $87,045     6 months left                 │
+│   LLFS                $29,268     8 months left                 │
+│   R01 Entero          $17,290     5 months left                 │
+│   Discretionary       $27,461     No end date                   │
+│   Other               $83,290     No end date                   │
+└─────────────────────────────────────────────────────────────────┘
+
+You: &quot;Can I hire a summer student?&quot;
+
+AI: &quot;Yes, but it depends which grant.
+
+     Best options:
+     • Fresh R01: $87K available, 6 months left - YES
+       Summer student (~$12K) fits comfortably
+
+     • Other fund: $83K available - YES
+       But check if this fund allows personnel
+
+     • Discretionary: $27K available - YES
+
+     Avoid:
+     • Your startup is $94K overspent
+     • U01-HVP is tight at $4K for 8 months
+
+     Want me to calculate the exact cost with your fringe/F&amp;A rates?&quot;
+
+You: &quot;What did I promise on the Fresh R01?&quot;
+
+AI: &quot;Fresh R01 (AW00013543) - Year 1 runs 8/2/24 to 6/30/26
+
+     From your funded proposal:
+
+     SPECIFIC AIMS:
+     1. Characterize the gut microbiome in [...]
+     2. Determine the role of [...]
+     3. Develop therapeutic approaches for [...]
+
+     YEAR 1 MILESTONES:
+     • Complete cohort enrollment (n=50)
+     • Generate 16S sequencing data
+     • Preliminary analysis of Aim 1
+
+     BUDGETED PERSONNEL:
+     • 15% Handley (PI)
+     • 1 Postdoc (Kwon, Doug - currently 100%)
+     • [...]
+
+     You're currently at 47% spent with 6 months remaining.
+     Tracking on schedule.&quot;
+</code></pre>
+<hr />
+<h3>The Effort Tracking Problem</h3>
+<p>Look at rows 22-29 of your spreadsheet. Your admin manually maintains who is at what % on each grant:</p>
+<table>
+<thead>
+<tr>
+<th>Person</th>
+<th>Fresh R01</th>
+<th>U01-HVP</th>
+<th>LLFS</th>
+<th>R01 Entero</th>
+<th>...</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Handley, Scott</td>
+<td>15%</td>
+<td>10%</td>
+<td>20%</td>
+<td>2%</td>
+<td>...</td>
+</tr>
+<tr>
+<td>Abid, Dhoha</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>95%</td>
+</tr>
+<tr>
+<td>Droit, Lindsay</td>
+<td>30%</td>
+<td>25%</td>
+<td>15%</td>
+<td>4%</td>
+<td>...</td>
+</tr>
+</tbody>
+</table>
+<p><strong>This is effort reporting data maintained in a shadow spreadsheet because Workday's effort view is unusable for PIs.</strong></p>
+<p>The system should:
+- Track this automatically as you make personnel changes
+- Alert when someone is over 100% committed
+- Show who has capacity for new projects
+- Support effort certification by remembering actual allocation</p>
+<hr />
+<h3>What Resonates?</h3>
+<p>This screenshot shows me:</p>
+<ol>
+<li><strong>Your admin is a hero</strong> doing manual work that software should do</li>
+<li><strong>The view you need exists</strong> - you just can't get it from Workday</li>
+<li><strong>You have real problems right now</strong> (overspent startup, past-due grants) that proactive alerts should have caught</li>
+<li><strong>Effort tracking is a shadow process</strong> maintained outside official systems</li>
+<li><strong>Monthly cadence is too slow</strong> - you should see this in real-time</li>
+</ol>
+<p>Is this the core use case to nail first? A real-time, queryable version of this exact spreadsheet - but with AI that can answer questions and knows what you proposed?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2025-12-27T03-53-21-933Z"><div class="index-item-header"><span class="index-item-number">#11</span><time datetime="2025-12-27T03:53:21.933Z" data-timestamp="2025-12-27T03:53:21.933Z">2025-12-27T03:53:21.933Z</time></div><div class="index-item-content"><p>I think we need to NOT consider this exact spreadsheet as it is complex due to how workday codes things. I am actually not -$94,000 for Handley Startup. That is a workday quirk. I think we need to build workday de novo and I do not want this example to be a template. More of a metaphorical example of the shadow spreadsheet we want to avoid</p></div></a><div class="index-item-stats"><span>4 mcp__sequential-thinking__sequentialthinking</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><hr />
+<h2>De Novo Design: PI-Native, Not Finance-Native</h2>
+<h3>The Core Insight</h3>
+<p>Your shadow spreadsheet is complex because it mirrors Workday's complexity. The system we build should mirror <strong>how PIs actually think</strong>, not how finance systems work.</p>
+<hr />
+<h3>How PIs Actually Think</h3>
+<table>
+<thead>
+<tr>
+<th>PI Mental Model</th>
+<th>Finance System Model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"My R01"</td>
+<td>GR0035527 / AW00013543 / Fund 12345</td>
+</tr>
+<tr>
+<td>"About $80K left"</td>
+<td>$79,847.23 actuals + $2,341.00 encumbrances - $1,547.89 pending</td>
+</tr>
+<tr>
+<td>"The Diamond collaboration"</td>
+<td>Cost center 4472, worktag SP-00234, grant 6929</td>
+</tr>
+<tr>
+<td>"Can I hire someone?"</td>
+<td>Navigate 5 screens, interpret 3 account codes</td>
+</tr>
+<tr>
+<td>"Supplies"</td>
+<td>Account codes 6240-6249</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Build for the left column, not the right.</strong></p>
+<hr />
+<h3>What PIs Actually Need to Know</h3>
+<p><strong>About Money:</strong>
+- How much can I spend?
+- Can I afford X?
+- Am I going to run out?</p>
+<p><strong>About People:</strong>
+- Who works for me?
+- Who's paid by what?
+- Can I hire someone?</p>
+<p><strong>About Time:</strong>
+- When does this end?
+- What deadlines are coming?</p>
+<p><strong>About Commitments:</strong>
+- What did I promise?
+- Am I on track?</p>
+<p><strong>About History:</strong>
+- What have I applied for?
+- What's my track record?</p>
+<hr />
+<h3>The Simplest Viable Data Model</h3>
+<pre><code>GRANTS (funding sources)
+├── name: &quot;My R01&quot; (what YOU call it)
+├── sponsor: NIH
+├── available_funds: $87,000 (one number you update)
+├── end_date: 2026-06-30
+├── purpose: &quot;Microbiome research&quot; (your words)
+├── restrictions: &quot;No equipment over $5K&quot; (your words)
+└── proposal_doc: [uploaded PDF for AI to query]
+
+PEOPLE (your team)
+├── name: &quot;Doug Kwon&quot;
+├── role: &quot;Postdoc&quot;
+└── funded_by: [&quot;My R01&quot;]
+
+PROPOSALS (what you've applied for)
+├── title: &quot;Mechanisms of gut immunity&quot;
+├── sponsor: NIH
+├── submitted: 2024-06-15
+├── status: pending | funded | declined
+├── document: [uploaded for AI to remember]
+└── outcome: score, critiques, notes
+</code></pre>
+<p><strong>That's it.</strong> No chart of accounts. No worktags. No fund hierarchies.</p>
+<hr />
+<h3>Data Input Philosophy</h3>
+<p><strong>We don't recreate the ledger. We capture what PIs know.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Data</th>
+<th>How It Gets In</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Proposals</strong></td>
+<td>Upload PDF, AI extracts structure, you confirm</td>
+</tr>
+<tr>
+<td><strong>Awards</strong></td>
+<td>"This got funded" → link to proposal, enter amount/dates</td>
+</tr>
+<tr>
+<td><strong>Balances</strong></td>
+<td>"I have about $80K left" (you update when you check)</td>
+</tr>
+<tr>
+<td><strong>People</strong></td>
+<td>Add once, update when things change</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key principle: Approximate is fine.</strong></p>
+<p>A PI doesn't make $50 decisions. They make $5,000+ decisions. "About $80K left" is just as useful as "$79,847.23 after encumbrances" for answering "Can I hire a summer student?"</p>
+<hr />
+<h3>The Trade-Off We Make</h3>
+<table>
+<thead>
+<tr>
+<th>What We Give Up</th>
+<th>What We Gain</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Transaction-level accuracy</td>
+<td>Answers to actual questions</td>
+</tr>
+<tr>
+<td>Audit-ready financials</td>
+<td>Speed and simplicity</td>
+</tr>
+<tr>
+<td>Integration with Workday</td>
+<td>Independence from Workday</td>
+</tr>
+<tr>
+<td>Institutional compliance</td>
+<td>Individual PI utility</td>
+</tr>
+<tr>
+<td>Precision</td>
+<td>Usability</td>
+</tr>
+</tbody>
+</table>
+<p><strong>This is not a finance system. It's a PI decision-support system.</strong></p>
+<p>For compliance and audits, Workday still exists. This system answers "Can I?" not "Did I?"</p>
+<hr />
+<h3>Example Interaction</h3>
+<pre><code>You: &quot;Add a grant&quot;
+
+AI: &quot;What do you call this grant?&quot;
+You: &quot;Fresh R01&quot;
+
+AI: &quot;Who funds it?&quot;
+You: &quot;NIH&quot;
+
+AI: &quot;How much is available to spend right now?&quot;
+You: &quot;About $87,000&quot;
+
+AI: &quot;When does it end?&quot;
+You: &quot;June 2026&quot;
+
+AI: &quot;What's it for? (optional - helps me answer questions later)&quot;
+You: &quot;Microbiome and gut immunity&quot;
+
+AI: &quot;Any restrictions I should know about?&quot;
+You: &quot;No equipment over $5K&quot;
+
+AI: &quot;Got it. Fresh R01 added.
+     $87K available through June 2026.
+
+     Want to upload the proposal so I can remember 
+     what you committed to?&quot;
+</code></pre>
+<p><strong>Total time: 60 seconds. No Workday codes. No account numbers.</strong></p>
+<hr />
+<h3>How AI Adds Value</h3>
+<p>The AI isn't generating grants. It's:</p>
+<ol>
+<li><strong>Extracting structure</strong> from uploaded proposals (aims, budget, timeline)</li>
+<li><strong>Answering questions</strong> against your data ("Can I hire...?")</li>
+<li><strong>Remembering commitments</strong> ("What did I promise in Year 2?")</li>
+<li><strong>Searching across grants</strong> ("Which grant could fund phage work?")</li>
+<li><strong>Projecting forward</strong> ("When will I run out at current pace?")</li>
+</ol>
+<hr />
+<h3>What This Means for MVP</h3>
+<p><strong>Phase 1: Grant Portfolio</strong>
+- Add grants (conversationally, simple fields)
+- Track proposals (submitted, pending, outcomes)
+- Basic querying ("How much on Fresh R01?")</p>
+<p><strong>Phase 2: Proposal Memory</strong>
+- Upload proposal documents
+- AI extracts and indexes commitments
+- Query what you promised ("What milestones in Year 2?")</p>
+<p><strong>Phase 3: Decision Support</strong>
+- "Can I hire a summer student?"
+- Cross-grant analysis
+- Forward projections</p>
+<hr />
+<p>Does this feel right? A system that speaks your language, not Workday's?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2025-12-27T03-56-51-203Z"><div class="index-item-header"><span class="index-item-number">#12</span><time datetime="2025-12-27T03:56:51.203Z" data-timestamp="2025-12-27T03:56:51.203Z">2025-12-27T03:56:51.203Z</time></div><div class="index-item-content"><p>i think this is close, but i worry we have backed off from some core features too quickly. for example, why cant we also include No chart of accounts. No worktags. No fund hierarchies? Why not full and more accurate detail?</p></div></a><div class="index-item-stats"><span>4 mcp__sequential-thinking__sequentialthinking</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><hr />
+<h2>Revised: Full Detail, Simple Interface</h2>
+<p>You're right. I created a false choice between Workday's complexity and oversimplified tracking. The answer is:</p>
+<p><strong>Complexity available, not required. Detail captured, not demanded.</strong></p>
+<hr />
+<h3>The Real Problem with Workday</h3>
+<p>It's not that Workday HAS detail. It's that:</p>
+<table>
+<thead>
+<tr>
+<th>Workday's Flaw</th>
+<th>What We Do Instead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Detail organized for finance</td>
+<td>Detail organized for PIs</td>
+</tr>
+<tr>
+<td>Hard to access</td>
+<td>Natural language access</td>
+</tr>
+<tr>
+<td>Requires training to interpret</td>
+<td>AI interprets for you</td>
+</tr>
+<tr>
+<td>Doesn't answer PI questions</td>
+<td>Questions are the primary interface</td>
+</tr>
+<tr>
+<td>One-size-fits-all complexity</td>
+<td>Progressive disclosure</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The simplicity is in the INTERFACE, not the DATA.</strong></p>
+<hr />
+<h3>Why Full Detail Matters</h3>
+<p><strong>With only "about $80K left":</strong></p>
+<pre><code>Q: &quot;Can I hire a summer student?&quot;
+A: &quot;Probably yes, you have $80K available.&quot;
+</code></pre>
+<p><strong>With full budget detail:</strong></p>
+<pre><code>Q: &quot;Can I hire a summer student?&quot;
+A: &quot;Yes. Your personnel budget has $45K remaining (you've used 
+    $95K of $140K allocated). 
+
+    Summer student cost breakdown:
+    - Stipend (10 weeks): $6,000
+    - Fringe (32%): $1,920  
+    - F&amp;A (55%): $4,356
+    - Total: $12,276
+
+    This fits your personnel allocation without rebudgeting.
+
+    Note: You're $2,340 over on supplies for Year 1. The personnel 
+    savings more than offset this, so you're fine overall.&quot;
+</code></pre>
+<p><strong>With proposal commitments added:</strong></p>
+<pre><code>Q: &quot;Can I hire a summer student?&quot;
+A: &quot;Yes, and it aligns with your proposal. In Aim 2, you wrote:
+    'Undergraduate researchers will assist with sample processing 
+    and data entry for the longitudinal cohort.'
+
+    A summer student directly supports this commitment.&quot;
+</code></pre>
+<p><strong>More detail = better answers.</strong> The value isn't for auditing—it's for smarter PI decision support.</p>
+<hr />
+<h3>Flexible Data Model</h3>
+<p>The system adapts to what you give it:</p>
+<pre><code class="language-yaml">GRANT: &quot;Fresh R01&quot;
+
+  # MINIMAL (always works)
+  current_balance: $87,000
+  end_date: 2026-06-30
+
+  # STANDARD (richer answers)
+  budget_by_category:
+    personnel: 
+      budgeted: $140,000
+      spent: $95,000
+    supplies:
+      budgeted: $10,000
+      spent: $12,340
+    travel:
+      budgeted: $8,000
+      spent: $2,100
+    equipment:
+      budgeted: $0
+      restriction: &quot;None over $5K&quot;
+
+  # DETAILED (best answers)
+  personnel_detail:
+    - name: Doug Kwon
+      role: Postdoc
+      salary: $61,000
+      effort: 100%
+      fringe_rate: 32%
+      start_date: 2024-08-01
+    - name: Scott Handley
+      role: PI
+      effort: 15%
+      ...
+
+  # PROPOSAL MEMORY (enables commitment checking)
+  proposal:
+    specific_aims: [extracted]
+    year_1_milestones: [extracted]
+    budget_justification: [extracted]
+    key_personnel_plan: [extracted]
+</code></pre>
+<hr />
+<h3>Progressive Disclosure</h3>
+<p><strong>Day 1 (5 minutes):</strong></p>
+<pre><code>&quot;Add Fresh R01, NIH, $87K left, ends June 2026&quot;
+→ System works with this
+</code></pre>
+<p><strong>Week 1 (10 more minutes):</strong></p>
+<pre><code>&quot;Here's the budget breakdown: $45K personnel remaining, 
+$37K supplies, $6K travel...&quot;
+→ System now gives category-aware answers
+</code></pre>
+<p><strong>Month 1 (upload proposal):</strong></p>
+<pre><code>[Uploads 12-page R01 PDF]
+→ System extracts aims, milestones, budget justification
+→ Now answers questions about commitments
+</code></pre>
+<p><strong>Ongoing:</strong></p>
+<pre><code>&quot;Doug's salary is now $63K after his raise&quot;
+→ System updates projections
+</code></pre>
+<p><strong>You get value immediately, and it gets smarter as you add detail.</strong></p>
+<hr />
+<h3>What Full Detail Enables</h3>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Requires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"How much do I have left?"</td>
+<td>Minimal (one number)</td>
+</tr>
+<tr>
+<td>"Can I afford X?"</td>
+<td>Minimal + cost knowledge</td>
+</tr>
+<tr>
+<td>"Which budget category?"</td>
+<td>Category breakdown</td>
+</tr>
+<tr>
+<td>"Who can I move to cover this?"</td>
+<td>Personnel detail</td>
+</tr>
+<tr>
+<td>"Does this align with my proposal?"</td>
+<td>Proposal document</td>
+</tr>
+<tr>
+<td>"Am I on track for Year 2 milestones?"</td>
+<td>Proposal + timeline</td>
+</tr>
+<tr>
+<td>"Generate my progress report draft"</td>
+<td>Proposal + spending + outputs</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Data Entry: Multiple Paths to Detail</h3>
+<p><strong>Conversational:</strong></p>
+<pre><code>You: &quot;My R01 budget is $140K personnel, $50K supplies, $10K travel&quot;
+AI: &quot;Got it. Want to break down personnel further, or is the total enough?&quot;
+</code></pre>
+<p><strong>Upload:</strong></p>
+<pre><code>[Upload budget spreadsheet or proposal PDF]
+AI: &quot;I extracted your Year 1 budget:
+     - Personnel: $140,000 (PI 15%, Postdoc 100%, Tech 50%)
+     - Supplies: $50,000
+     - Travel: $10,000 (2 domestic conferences)
+     - F&amp;A: $110,000
+     Is this right?&quot;
+</code></pre>
+<p><strong>Statement paste:</strong></p>
+<pre><code>[Paste monthly statement from admin]
+AI: &quot;Updated Fresh R01: $87,045 remaining as of Dec 2025.
+     Spent this period: $4,200 personnel, $890 supplies.&quot;
+</code></pre>
+<p><strong>Form (for those who prefer it):</strong></p>
+<pre><code>[Structured input screen for budget setup]
+</code></pre>
+<hr />
+<h3>The Corrected Principle</h3>
+<p>~~"Approximate is fine"~~ → <strong>"Start simple, add detail for better answers"</strong></p>
+<p>~~"No chart of accounts"~~ → <strong>"PI-friendly categories that map to what matters"</strong></p>
+<p>~~"Trade precision for usability"~~ → <strong>"Precision AND usability through smart interface design"</strong></p>
+<hr />
+<h3>Categories That Make Sense to PIs</h3>
+<p>Instead of account codes (6240-6249), use categories PIs think in:</p>
+<pre><code>PERSONNEL
+├── Faculty/PI effort
+├── Postdocs
+├── Graduate students
+├── Technicians/Staff
+├── Undergraduates
+└── Consultants
+
+SUPPLIES &amp; SERVICES
+├── Lab consumables
+├── Reagents/Antibodies
+├── Sequencing/Core services
+├── Animals
+├── Software/Computing
+└── Publication costs
+
+EQUIPMENT
+├── Under $5K (supplies treatment)
+└── Over $5K (capital)
+
+TRAVEL
+├── Domestic conferences
+├── International
+├── Local/Field work
+└── Collaborator visits
+
+OTHER
+├── Participant costs
+├── Subawards
+└── Tuition remission
+</code></pre>
+<p>These can map to sponsor categories (NIH's A-G) for reporting, but the PI sees what makes sense to them.</p>
+<hr />
+<p>Does this feel right? Full capability, progressively disclosed, PI-friendly throughout?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2025-12-27T03-59-56-106Z"><div class="index-item-header"><span class="index-item-number">#13</span><time datetime="2025-12-27T03:59:56.106Z" data-timestamp="2025-12-27T03:59:56.106Z">2025-12-27T03:59:56.106Z</time></div><div class="index-item-content"><p>does this feel like an advanced extension to a LIMS system? Each reagent purchased could be tracked correct? ultrathink</p></div></a><div class="index-item-stats"><span>6 mcp__sequential-thinking__sequentialthinking · 4 search</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><hr />
+<h2>The LIMS Connection: You're Seeing Something Bigger</h2>
+<p>Yes - and this reframes everything. You're not just describing a grant management tool. You're describing a <strong>Research Operating System</strong>.</p>
+<hr />
+<h3>The Current Landscape Gap</h3>
+<p><a href="https://labspend.com/">Lab Spend</a> already does item-level grant tracking for procurement:
+- Spend Codes tied to grants/projects
+- Every reagent purchase allocated
+- Inventory management
+- Analytics by funding source</p>
+<p>But Lab Spend is <strong>only</strong> procurement. It doesn't do:
+- Pre-award (proposals, submissions)
+- Commitment memory (what you promised)
+- Personnel tracking
+- Milestone monitoring
+- Progress reporting
+- AI-powered queries</p>
+<p>Meanwhile, <a href="https://www.thermofisher.com/us/en/home/digital-solutions/lab-informatics/lab-information-management-systems-lims.html">LIMS systems</a> and <a href="https://datamanagement.hms.harvard.edu/collect-analyze/electronic-lab-notebooks">ELNs</a> track samples, experiments, and protocols - but don't connect to funding.</p>
+<p><strong>No one has unified these layers.</strong></p>
+<hr />
+<h3>The Data Flow Vision</h3>
+<pre><code>PROPOSAL: &quot;I'm submitting an R01&quot;
+    └── Upload document → AI extracts aims, budget, milestones
+
+AWARD: &quot;It got funded&quot;
+    └── Links to proposal → Budget activated → Personnel allocated
+
+ORDERING: &quot;I need primers from IDT&quot;
+    └── &quot;Which grant?&quot; → Auto-allocated → Tracked at item level
+
+PERSONNEL: &quot;Doug started this week&quot;  
+    └── Added to system → Effort allocated → Projections updated
+
+EXPERIMENT: &quot;Completed the 16S run&quot;
+    └── Core charges allocated → Progress toward Aim 1 noted
+
+OUTPUT: &quot;Paper accepted in Nature Micro&quot;
+    └── Linked to grant → Available for progress report
+
+REPORTING: &quot;Generate my NIH progress report&quot;
+    └── System compiles: spending + personnel + milestones + outputs
+    └── Draft narrative from proposal aims + actual accomplishments
+</code></pre>
+<p><strong>Every action feeds the system. Nothing entered twice. Reports write themselves.</strong></p>
+<hr />
+<h3>Why Item-Level Tracking Matters</h3>
+<p><strong>Without item-level data:</strong></p>
+<pre><code>Q: &quot;How much have I spent on supplies?&quot;
+A: &quot;You entered $12,340 last month. Is that still accurate?&quot;
+   (Manual entry, can drift, no detail)
+</code></pre>
+<p><strong>With item-level data:</strong></p>
+<pre><code>Q: &quot;How much have I spent on supplies?&quot;
+A: &quot;$12,847.23 across 47 orders:
+    - Reagents: $6,234 (primers, enzymes, antibodies)
+    - Consumables: $4,112 (tubes, plates, tips)  
+    - Kits: $2,501 (3 Qiagen extractions)
+
+    Top vendors: IDT ($3,200), Fisher ($2,890), Sigma ($2,100)
+
+    You're 28% over Year 1 supplies budget, but 15% under 
+    on personnel, so you're fine overall.&quot;
+</code></pre>
+<p><strong>With experiment linkage:</strong></p>
+<pre><code>Q: &quot;What did the microbiome aim cost so far?&quot;
+A: &quot;Aim 1 spending: $34,500
+    - Personnel: $22,000 (Doug @ 50% for 4 months)
+    - Sequencing: $8,500 (16S runs via core)
+    - Reagents: $4,000 (DNA extraction, library prep)
+
+    This is tracking to your $120K Year 1 budget for Aim 1.&quot;
+</code></pre>
+<hr />
+<h3>The Architecture</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│                      AI QUERY LAYER                         │
+│        Natural language • Decision support • Memory         │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+┌──────────────────────────────┴──────────────────────────────┐
+│                    CORE: Grant Lifecycle                    │
+│     Proposals │ Awards │ Personnel │ Budgets │ Reporting   │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+          ┌────────────────────┼────────────────────┐
+          │                    │                    │
+   ┌──────▼──────┐      ┌──────▼──────┐      ┌─────▼──────┐
+   │ PROCUREMENT │      │  LAB/ELN    │      │  OUTPUTS   │
+   │             │      │             │      │            │
+   │ • Orders    │      │ • Experiments│     │ • Papers   │
+   │ • Inventory │      │ • Protocols │      │ • Data     │
+   │ • Vendors   │      │ • Samples   │      │ • Patents  │
+   │ • Receiving │      │             │      │            │
+   └─────────────┘      └─────────────┘      └────────────┘
+        │                     │                    │
+   Native OR             Integrate            Native OR
+   integrate            Benchling,            integrate
+   Lab Spend            LabArchives           ORCID
+</code></pre>
+<hr />
+<h3>Module Strategy</h3>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Build Native?</th>
+<th>Or Integrate?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Proposals/Awards</strong></td>
+<td>Native (core value)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>Personnel/Effort</strong></td>
+<td>Native (core value)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>Budgets/Projections</strong></td>
+<td>Native (core value)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>AI Query Layer</strong></td>
+<td>Native (core value)</td>
+<td>-</td>
+</tr>
+<tr>
+<td><strong>Procurement</strong></td>
+<td>Could be either</td>
+<td>Lab Spend, Quartzy</td>
+</tr>
+<tr>
+<td><strong>Inventory</strong></td>
+<td>Could be either</td>
+<td>Lab Spend, Quartzy</td>
+</tr>
+<tr>
+<td><strong>ELN/Experiments</strong></td>
+<td>Integrate</td>
+<td>Benchling, LabArchives, SciNote</td>
+</tr>
+<tr>
+<td><strong>Outputs/Pubs</strong></td>
+<td>Light native</td>
+<td>ORCID, Google Scholar</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>The Build Question</h3>
+<p><strong>Option A: Core First, Procurement Later</strong></p>
+<pre><code>Phase 1: Proposals, Awards, Personnel, Budgets, AI
+Phase 2: Add Procurement module
+Phase 3: Integrations (LIMS, ELN, etc.)
+</code></pre>
+<p><em>Pros: Focused, achievable MVP</em>
+<em>Cons: Early users still do manual spending entry</em></p>
+<p><strong>Option B: Include Procurement from Start</strong></p>
+<pre><code>Phase 1: Everything including item-level tracking
+</code></pre>
+<p><em>Pros: Complete data flow, no manual entry</em>
+<em>Cons: Much larger scope, longer to MVP</em></p>
+<p><strong>Option C: Core + Procurement Integration</strong></p>
+<pre><code>Phase 1: Core + integrate Lab Spend for procurement
+</code></pre>
+<p><em>Pros: Item-level tracking via existing tool</em>
+<em>Cons: Dependency, Lab Spend is US-focused</em></p>
+<hr />
+<h3>For Global Accessibility</h3>
+<p>The <strong>modular approach</strong> matters here:</p>
+<table>
+<thead>
+<tr>
+<th>Context</th>
+<th>What They Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WashU PI</td>
+<td>Full system + procurement + integrations</td>
+</tr>
+<tr>
+<td>Small US college</td>
+<td>Core + basic procurement</td>
+</tr>
+<tr>
+<td>Lab in Kenya</td>
+<td>Core only (manual spending entry)</td>
+</tr>
+<tr>
+<td>EU institution</td>
+<td>Core + EU vendor integrations</td>
+</tr>
+</tbody>
+</table>
+<p>Everyone gets the core value (proposals, awards, AI queries). Depth is available but not required.</p>
+<hr />
+<h3>The Strategic Question</h3>
+<p>Is item-level procurement tracking:</p>
+<p><strong>A) Core to the value proposition?</strong>
+- Without it, spending is manual entry that drifts
+- The "shadow spreadsheet" problem persists
+- Real automation requires real data</p>
+<p><strong>B) A powerful enhancement?</strong>
+- Most PIs would be happy with category-level tracking
+- Item-level is nice-to-have
+- Keeps scope manageable</p>
+<p><strong>C) Something in between?</strong>
+- Build procurement-ready architecture
+- Support item-level when available
+- Gracefully degrade to manual when not</p>
+<p>I lean toward <strong>C</strong> - design for item-level, but don't require it. The architecture should support a reagent-level view when the data exists, but still work when a PI just says "I spent about $12K on supplies this quarter."</p>
+<hr />
+<p>What's your instinct? Is item-level tracking essential to solving the problem you're experiencing, or is the proposal/commitment memory the more critical piece?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+<div class="index-item"><a href="page-003.html#msg-2025-12-27T04-15-50-088Z"><div class="index-item-header"><span class="index-item-number">#14</span><time datetime="2025-12-27T04:15:50.088Z" data-timestamp="2025-12-27T04:15:50.088Z">2025-12-27T04:15:50.088Z</time></div><div class="index-item-content"><p>i think the answer somewhat depends on what instittuional requirements are. is there a foundational system that could be broadly applicable? Perhaps a tiered approach is best. For exampel, really hammering down on the pre- post-award intelligence system first</p></div></a><div class="index-item-stats"><span>4 mcp__sequential-thinking__sequentialthinking</span>
+<div class="index-item-long-text"><div class="truncatable"><div class="truncatable-content"><div class="index-item-long-text-content"><hr />
+<h2>Tiered Architecture: Intelligence Layer First</h2>
+<p>You're right. The foundation should be universally applicable, independent of institutional requirements. Here's the tiered approach:</p>
+<hr />
+<h3>The Tiers</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  TIER 3: INSTITUTIONAL INTEGRATION                              │
+│  Workday/Banner • HR Systems • ELN/LIMS • SSO                   │
+│  (For institutions that need/want connectivity)                 │
+├─────────────────────────────────────────────────────────────────┤
+│  TIER 2: PROCUREMENT &amp; INVENTORY                                │
+│  Item-level tracking • Orders • Inventory • Vendors             │
+│  (Native or integrate Lab Spend, Quartzy, etc.)                 │
+├─────────────────────────────────────────────────────────────────┤
+│  TIER 1: DETAILED FINANCIAL TRACKING                            │
+│  Budget categories • Personnel detail • Burn rate • Projections │
+│  (Structured data entry, statement uploads)                     │
+├─────────────────────────────────────────────────────────────────┤
+│  TIER 0: INTELLIGENCE LAYER  ← FOUNDATION                       │
+│  Proposals • Awards • Commitments • People • Outputs • AI Query │
+│  (Works anywhere, no integrations, no institutional buy-in)     │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h3>Tier 0: The Intelligence Layer (Foundation)</h3>
+<p><strong>The question it answers:</strong> <em>"What did I apply for? What did I promise? Can I do X?"</em></p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>What It Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Proposals</strong></td>
+<td>Track everything you submitted (funded or not)</td>
+</tr>
+<tr>
+<td><strong>Awards</strong></td>
+<td>Active grants linked to source proposals</td>
+</tr>
+<tr>
+<td><strong>Commitments</strong></td>
+<td>AI-extracted aims, milestones, deliverables</td>
+</tr>
+<tr>
+<td><strong>People</strong></td>
+<td>Your team, their roles, which grants</td>
+</tr>
+<tr>
+<td><strong>Outputs</strong></td>
+<td>Papers, data, presentations linked to grants</td>
+</tr>
+<tr>
+<td><strong>AI Query</strong></td>
+<td>Natural language access to all of the above</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Data input:</strong> Manual entry, document upload (PDF/Word), AI extraction</p>
+<p><strong>No dependencies:</strong>
+- No Workday
+- No institutional systems
+- No IT approval
+- No enterprise sales cycle</p>
+<p><strong>Works for:</strong>
+- PI at WashU frustrated with Workday
+- PI at small liberal arts college with no admin
+- Researcher in Kenya with just a laptop
+- New investigator building first portfolio</p>
+<hr />
+<h3>What Tier 0 Enables</h3>
+<pre><code>&quot;Upload my R01&quot;
+→ AI extracts: Specific Aims, Budget, Timeline, Key Personnel
+→ Stored as queryable knowledge
+
+&quot;This got funded for $1.1M starting September&quot;
+→ Creates active award linked to proposal
+→ Basic budget tracking begins
+
+&quot;What did I promise in Year 2?&quot;
+→ AI retrieves from stored proposal:
+   &quot;Year 2 milestones:
+    - Complete enrollment (n=100)
+    - Finish Aim 1 analysis
+    - Begin Aim 2 interventions
+    - Submit first manuscript&quot;
+
+&quot;Can I hire a summer student?&quot;
+→ AI checks: Budget remaining, personnel plan, restrictions
+→ &quot;Based on your proposal, you budgeted for 'undergraduate 
+    research assistants' under Aim 2. You have ~$85K remaining 
+    over 18 months. A summer student fits.&quot;
+
+&quot;Show me all my declined proposals&quot;
+→ List with scores, critiques, resubmission status
+→ &quot;You have 3 declined R01s. One was resubmitted and funded.
+    Two are candidates for revision.&quot;
+
+&quot;Generate my progress report outline&quot;
+→ AI drafts from: proposal aims + logged outputs + milestones
+→ &quot;Aim 1: Proposed to characterize X. You've published 2 papers
+    on this topic and generated dataset Y...&quot;
+</code></pre>
+<hr />
+<h3>Why Tier 0 First?</h3>
+<p><strong>1. Universally applicable</strong></p>
+<p>Every researcher needs this regardless of institution, country, or budget. The problems are the same:
+- What did I promise?
+- Can I afford X?
+- Am I on track?
+- What have I applied for?</p>
+<p><strong>2. Zero dependencies</strong></p>
+<p>No Workday API. No institutional approval. No IT involvement. A PI can sign up and get value in 30 minutes.</p>
+<p><strong>3. Solves the core pain</strong></p>
+<p>The <a href="https://thefdp.org/demonstrations-resources/faculty-workload-survey/">FDP surveys</a> show 42% of research time goes to administration. The biggest chunks:
+- Figuring out what you can/can't do → <strong>Tier 0 solves</strong>
+- Remembering commitments → <strong>Tier 0 solves</strong>
+- Generating reports → <strong>Tier 0 solves</strong>
+- Processing transactions → Tier 1-2 solve</p>
+<p><strong>4. Natural upgrade path</strong></p>
+<p>Tier 0 users who want more precision add Tier 1. Labs wanting item-level tracking add Tier 2. Institutions wanting connectivity add Tier 3.</p>
+<p>The data model expands; the foundation doesn't change.</p>
+<hr />
+<h3>Tier Comparison</h3>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Tier 0</th>
+<th>Tier 1</th>
+<th>Tier 2</th>
+<th>Tier 3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Track proposals (all outcomes)</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Query commitments from proposals</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Basic budget tracking</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>"Can I hire X?" decision support</td>
+<td>✓</td>
+<td>✓✓</td>
+<td>✓✓✓</td>
+<td>✓✓✓</td>
+</tr>
+<tr>
+<td>Progress report assistance</td>
+<td>✓</td>
+<td>✓✓</td>
+<td>✓✓</td>
+<td>✓✓</td>
+</tr>
+<tr>
+<td>Detailed budget categories</td>
+<td>-</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Personnel salary/effort detail</td>
+<td>-</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Burn rate projections</td>
+<td>-</td>
+<td>✓</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Item-level spending</td>
+<td>-</td>
+<td>-</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Inventory management</td>
+<td>-</td>
+<td>-</td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Automatic from Workday</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>ELN/LIMS integration</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Who Uses What</h3>
+<table>
+<thead>
+<tr>
+<th>User</th>
+<th>Tier</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Researcher in low-resource setting</td>
+<td>0</td>
+</tr>
+<tr>
+<td>New PI at small institution</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Established PI wanting commitment tracking</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Lab wanting budget precision</td>
+<td>0 + 1</td>
+</tr>
+<tr>
+<td>Lab with admin wanting full financial detail</td>
+<td>0 + 1</td>
+</tr>
+<tr>
+<td>Lab wanting item-level procurement</td>
+<td>0 + 1 + 2</td>
+</tr>
+<tr>
+<td>Institution wanting enterprise connectivity</td>
+<td>0 + 1 + 2 + 3</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>MVP Scope: Tier 0</h3>
+<p><strong>Nail the intelligence layer first.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>In MVP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add proposals (manual + upload)</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>AI extraction of aims/budget/milestones</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Track outcomes (funded/declined/pending)</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Convert to active awards</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Basic budget (total remaining)</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Team members (names, roles, grants)</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Natural language queries</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>"Can I do X?" decision support</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Progress report assistance</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Detailed budget categories</td>
+<td>Phase 2 (Tier 1)</td>
+</tr>
+<tr>
+<td>Personnel salary/effort</td>
+<td>Phase 2 (Tier 1)</td>
+</tr>
+<tr>
+<td>Procurement/inventory</td>
+<td>Phase 3 (Tier 2)</td>
+</tr>
+<tr>
+<td>Institutional integrations</td>
+<td>Phase 4 (Tier 3)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>The Foundation Data Model</h3>
+<pre><code class="language-yaml"># TIER 0 - Universal, no dependencies
+
+proposals:
+  - id
+  - title
+  - sponsor (NIH, NSF, Wellcome, etc.)
+  - mechanism (R01, R21, CAREER, etc.)
+  - submitted_date
+  - status: draft | submitted | under_review | funded | declined
+  - document: [uploaded PDF - AI extracts from this]
+  - extracted:
+      specific_aims: [text]
+      budget_total: $X
+      budget_by_year: [{year: 1, amount: $X}, ...]
+      key_personnel: [{name, role}, ...]
+      milestones: [{year, milestone}, ...]
+
+  # If declined
+  - outcome:
+      score: 35
+      percentile: 42%
+      critiques: [text or uploaded]
+      resubmission_of: [previous proposal id]
+
+awards:
+  - id
+  - proposal_id (linked to source)
+  - grant_number (what you call it)
+  - amount_funded
+  - start_date
+  - end_date
+  - remaining_balance (manually updated)
+  - status: active | no_cost_extension | closed
+
+people:
+  - name
+  - role: PI | Co-I | Postdoc | Grad | Tech | Undergrad
+  - grants: [which awards they're on]
+
+outputs:
+  - type: paper | dataset | presentation | patent
+  - title
+  - date
+  - grants: [which awards it's linked to]
+  - citation / DOI / link
+</code></pre>
+<p>This is enough to power:
+- "What did I promise?"
+- "Can I do X?"
+- "What's my track record?"
+- "Generate my progress report"</p>
+<p>Everything else (budget detail, procurement, integrations) extends this foundation.</p>
+<hr />
+<p>Does this feel like the right foundation? Hammer down on Tier 0, then expand?</p></div></div><button class="expand-btn">Show more</button></div></div>
+</div></div>
+        
+
+<div class="pagination">
+<span class="current">Index</span>
+<span class="disabled">&larr; Prev</span>
+<a href="page-001.html">1</a>
+<a href="page-002.html">2</a>
+<a href="page-003.html">3</a>
+<a href="page-001.html">Next &rarr;</a>
+</div>
+
+
+        <dialog id="search-modal">
+            <div class="search-modal-header">
+                <input type="text" id="modal-search-input" placeholder="Search..." aria-label="Search transcripts">
+                <button id="modal-search-btn" type="button" aria-label="Search">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                </button>
+                <button id="modal-close-btn" type="button" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                </button>
+            </div>
+            <div id="search-status"></div>
+            <div id="search-results"></div>
+        </dialog>
+        <script>
+(function() {
+    var totalPages = 3;
+    var searchBox = document.getElementById('search-box');
+    var searchInput = document.getElementById('search-input');
+    var searchBtn = document.getElementById('search-btn');
+    var modal = document.getElementById('search-modal');
+    var modalInput = document.getElementById('modal-search-input');
+    var modalSearchBtn = document.getElementById('modal-search-btn');
+    var modalCloseBtn = document.getElementById('modal-close-btn');
+    var searchStatus = document.getElementById('search-status');
+    var searchResults = document.getElementById('search-results');
+
+    if (!searchBox || !modal) return;
+
+    // Hide search on file:// protocol (doesn't work due to CORS restrictions)
+    if (window.location.protocol === 'file:') return;
+
+    // Show search box (progressive enhancement)
+    searchBox.style.display = 'flex';
+
+    // Gist preview support - detect if we're on gistpreview.github.io
+    var isGistPreview = window.location.hostname === 'gistpreview.github.io';
+    var gistId = null;
+    var gistOwner = null;
+    var gistInfoLoaded = false;
+
+    if (isGistPreview) {
+        // Extract gist ID from URL query string like ?78a436a8a9e7a2e603738b8193b95410/index.html
+        var queryMatch = window.location.search.match(/^\?([a-f0-9]+)/i);
+        if (queryMatch) {
+            gistId = queryMatch[1];
+        }
+    }
+
+    async function loadGistInfo() {
+        if (!isGistPreview || !gistId || gistInfoLoaded) return;
+        try {
+            var response = await fetch('https://api.github.com/gists/' + gistId);
+            if (response.ok) {
+                var info = await response.json();
+                gistOwner = info.owner.login;
+                gistInfoLoaded = true;
+            }
+        } catch (e) {
+            console.error('Failed to load gist info:', e);
+        }
+    }
+
+    function getPageFetchUrl(pageFile) {
+        if (isGistPreview && gistOwner && gistId) {
+            // Use raw gist URL for fetching content
+            return 'https://gist.githubusercontent.com/' + gistOwner + '/' + gistId + '/raw/' + pageFile;
+        }
+        return pageFile;
+    }
+
+    function getPageLinkUrl(pageFile) {
+        if (isGistPreview && gistId) {
+            // Use gistpreview URL format for navigation links
+            return '?' + gistId + '/' + pageFile;
+        }
+        return pageFile;
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function openModal(query) {
+        modalInput.value = query || '';
+        searchResults.innerHTML = '';
+        searchStatus.textContent = '';
+        modal.showModal();
+        modalInput.focus();
+        if (query) {
+            performSearch(query);
+        }
+    }
+
+    function closeModal() {
+        modal.close();
+        // Update URL to remove search fragment, preserving path and query string
+        if (window.location.hash.startsWith('#search=')) {
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+    }
+
+    function updateUrlHash(query) {
+        if (query) {
+            // Preserve path and query string when adding hash
+            history.replaceState(null, '', window.location.pathname + window.location.search + '#search=' + encodeURIComponent(query));
+        }
+    }
+
+    function highlightTextNodes(element, searchTerm) {
+        var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+        var nodesToReplace = [];
+
+        while (walker.nextNode()) {
+            var node = walker.currentNode;
+            if (node.nodeValue.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1) {
+                nodesToReplace.push(node);
+            }
+        }
+
+        nodesToReplace.forEach(function(node) {
+            var text = node.nodeValue;
+            var regex = new RegExp('(' + escapeRegex(searchTerm) + ')', 'gi');
+            var parts = text.split(regex);
+            if (parts.length > 1) {
+                var span = document.createElement('span');
+                parts.forEach(function(part) {
+                    if (part.toLowerCase() === searchTerm.toLowerCase()) {
+                        var mark = document.createElement('mark');
+                        mark.textContent = part;
+                        span.appendChild(mark);
+                    } else {
+                        span.appendChild(document.createTextNode(part));
+                    }
+                });
+                node.parentNode.replaceChild(span, node);
+            }
+        });
+    }
+
+    function fixInternalLinks(element, pageFile) {
+        // Update all internal anchor links to include the page file
+        var links = element.querySelectorAll('a[href^="#"]');
+        links.forEach(function(link) {
+            var href = link.getAttribute('href');
+            link.setAttribute('href', pageFile + href);
+        });
+    }
+
+    function processPage(pageFile, html, query) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        var resultsFromPage = 0;
+
+        // Find all message blocks
+        var messages = doc.querySelectorAll('.message');
+        messages.forEach(function(msg) {
+            var text = msg.textContent || '';
+            if (text.toLowerCase().indexOf(query.toLowerCase()) !== -1) {
+                resultsFromPage++;
+
+                // Get the message ID for linking
+                var msgId = msg.id || '';
+                var pageLinkUrl = getPageLinkUrl(pageFile);
+                var link = pageLinkUrl + (msgId ? '#' + msgId : '');
+
+                // Clone the message HTML and highlight matches
+                var clone = msg.cloneNode(true);
+                // Fix internal links to include the page file
+                fixInternalLinks(clone, pageLinkUrl);
+                highlightTextNodes(clone, query);
+
+                var resultDiv = document.createElement('div');
+                resultDiv.className = 'search-result';
+                resultDiv.innerHTML = '<a href="' + link + '">' +
+                    '<div class="search-result-page">' + escapeHtml(pageFile) + '</div>' +
+                    '<div class="search-result-content">' + clone.innerHTML + '</div>' +
+                    '</a>';
+                searchResults.appendChild(resultDiv);
+            }
+        });
+
+        return resultsFromPage;
+    }
+
+    async function performSearch(query) {
+        if (!query.trim()) {
+            searchStatus.textContent = 'Enter a search term';
+            return;
+        }
+
+        updateUrlHash(query);
+        searchResults.innerHTML = '';
+        searchStatus.textContent = 'Searching...';
+
+        // Load gist info if on gistpreview (needed for constructing URLs)
+        if (isGistPreview && !gistInfoLoaded) {
+            searchStatus.textContent = 'Loading gist info...';
+            await loadGistInfo();
+            if (!gistOwner) {
+                searchStatus.textContent = 'Failed to load gist info. Search unavailable.';
+                return;
+            }
+        }
+
+        var resultsFound = 0;
+        var pagesSearched = 0;
+
+        // Build list of pages to fetch
+        var pagesToFetch = [];
+        for (var i = 1; i <= totalPages; i++) {
+            pagesToFetch.push('page-' + String(i).padStart(3, '0') + '.html');
+        }
+
+        searchStatus.textContent = 'Searching...';
+
+        // Process pages in batches of 3, but show results immediately as each completes
+        var batchSize = 3;
+        for (var i = 0; i < pagesToFetch.length; i += batchSize) {
+            var batch = pagesToFetch.slice(i, i + batchSize);
+
+            // Create promises that process results immediately when each fetch completes
+            var promises = batch.map(function(pageFile) {
+                return fetch(getPageFetchUrl(pageFile))
+                    .then(function(response) {
+                        if (!response.ok) throw new Error('Failed to fetch');
+                        return response.text();
+                    })
+                    .then(function(html) {
+                        // Process and display results immediately
+                        var count = processPage(pageFile, html, query);
+                        resultsFound += count;
+                        pagesSearched++;
+                        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + pagesSearched + '/' + totalPages + ' pages...';
+                    })
+                    .catch(function() {
+                        pagesSearched++;
+                        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + pagesSearched + '/' + totalPages + ' pages...';
+                    });
+            });
+
+            // Wait for this batch to complete before starting the next
+            await Promise.all(promises);
+        }
+
+        searchStatus.textContent = 'Found ' + resultsFound + ' result(s) in ' + totalPages + ' pages';
+    }
+
+    // Event listeners
+    searchBtn.addEventListener('click', function() {
+        openModal(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            openModal(searchInput.value);
+        }
+    });
+
+    modalSearchBtn.addEventListener('click', function() {
+        performSearch(modalInput.value);
+    });
+
+    modalInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            performSearch(modalInput.value);
+        }
+    });
+
+    modalCloseBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    // Check for #search= in URL on page load
+    if (window.location.hash.startsWith('#search=')) {
+        var query = decodeURIComponent(window.location.hash.substring(8));
+        if (query) {
+            searchInput.value = query;
+            openModal(query);
+        }
+    }
+})();
+        </script>
+    </div>
+    <script>
+document.querySelectorAll('time[data-timestamp]').forEach(function(el) {
+    const timestamp = el.getAttribute('data-timestamp');
+    const date = new Date(timestamp);
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    if (isToday) { el.textContent = timeStr; }
+    else { el.textContent = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + timeStr; }
+});
+document.querySelectorAll('pre.json').forEach(function(el) {
+    let text = el.textContent;
+    text = text.replace(/"([^"]+)":/g, '<span style="color: #ce93d8">"$1"</span>:');
+    text = text.replace(/: "([^"]*)"/g, ': <span style="color: #81d4fa">"$1"</span>');
+    text = text.replace(/: (\d+)/g, ': <span style="color: #ffcc80">$1</span>');
+    text = text.replace(/: (true|false|null)/g, ': <span style="color: #f48fb1">$1</span>');
+    el.innerHTML = text;
+});
+document.querySelectorAll('.truncatable').forEach(function(wrapper) {
+    const content = wrapper.querySelector('.truncatable-content');
+    const btn = wrapper.querySelector('.expand-btn');
+    if (content.scrollHeight > 250) {
+        wrapper.classList.add('truncated');
+        btn.addEventListener('click', function() {
+            if (wrapper.classList.contains('truncated')) { wrapper.classList.remove('truncated'); wrapper.classList.add('expanded'); btn.textContent = 'Show less'; }
+            else { wrapper.classList.remove('expanded'); wrapper.classList.add('truncated'); btn.textContent = 'Show more'; }
+        });
+    }
+});
+</script>
+</body>
+</html>
