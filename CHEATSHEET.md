@@ -98,6 +98,21 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 | `steno:import! file.json` | Import workflow |
 | `steno:reset!` | Reset all state (destructive) |
 
+## Power Commands
+
+| Command | Action |
+|---------|--------|
+| `steno:alias` | List all aliases |
+| `steno:alias name "cmd"` | Create alias |
+| `steno:alias -name` | Remove alias |
+| `steno:search pattern` | Search history by pattern |
+| `steno:search :verb` | Search by verb |
+| `steno:search +modifier` | Search by modifier |
+| `steno:replay n_XXX` | Replay single command |
+| `steno:replay n_XXX..n_YYY` | Replay range |
+| `steno:replay @bookmark..` | Replay from bookmark |
+| `steno:replay +dry` | Preview without executing |
+
 ## Branching
 
 | Command | Action |

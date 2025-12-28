@@ -247,11 +247,17 @@ SESSION:
   steno:stale     - check for stale outputs
   steno:refresh   - re-run stale commands
   steno:bookmark  - save reference
+  steno:graph     - show workflow tree
   steno:undo      - undo last command (! for hard)
   steno:redo      - restore undone command
   steno:export    - export workflow (.md .json .sh)
   steno:import    - import workflow (! to confirm)
   steno:reset     - clear all state (requires !)
+
+POWER:
+  steno:alias     - create/list/remove aliases
+  steno:search    - search command history
+  steno:replay    - re-run command sequences
 ```
 
 ### steno:history
@@ -694,6 +700,223 @@ main
 - Main branch nodes are the trunk
 - Child branches fork from their parentNode
 - Nodes on child branches are indented under the branch name
+
+### steno:alias
+
+Create, list, or remove command aliases for frequently used patterns.
+
+**Create an alias:**
+
+```
+> steno:alias setup "dx:@package.json && ch:@tsconfig.json +strict"
+
+Alias "setup" created.
+Use: setup
+```
+
+**List aliases:**
+
+```
+> steno:alias
+
+Aliases:
+  setup    → dx:@package.json && ch:@tsconfig.json +strict
+  qa       → ts:@tests/ && doc:@api/
+  deploy   → ts:@tests/ && mk:build +prod
+```
+
+**Remove an alias:**
+
+```
+> steno:alias -setup
+
+Alias "setup" removed.
+```
+
+**Use an alias:**
+
+```
+> setup
+
+Running alias "setup"...
+  → dx:@package.json
+  → ch:@tsconfig.json +strict
+```
+
+**Behavior:**
+1. Aliases stored in `.steno/aliases.json`:
+   ```json
+   {
+     "setup": "dx:@package.json && ch:@tsconfig.json +strict",
+     "qa": "ts:@tests/ && doc:@api/"
+   }
+   ```
+2. When a non-verb input matches an alias, expand and execute
+3. Aliases can chain multiple commands with `&&`
+4. Aliases can include modifiers and references
+5. Use `-name` to remove an alias
+
+**Alias rules:**
+- Names must be alphanumeric (no special characters)
+- Names cannot conflict with verbs (dx, mk, ch, etc.)
+- Aliases expand before any other parsing
+- Nested aliases not supported (keeps it simple)
+
+### steno:search
+
+Search command history by pattern or filter.
+
+**Search by pattern:**
+
+```
+> steno:search validation
+
+Found 3 matches:
+  n_012: ch:@auth.ts +validation (Dec 27)
+         → Added input validation
+  n_008: ch:@api.py +validation (Dec 26)
+         → Added request validation
+  n_003: ?plan validation-strategy (Dec 25)
+         → Outlined validation approach
+```
+
+**Search by verb:**
+
+```
+> steno:search :viz
+
+Found 5 viz commands:
+  n_015: viz:heatmap @counts.csv
+  n_011: viz:pca @normalized.csv
+  n_007: viz:boxplot @results.csv
+  ...
+```
+
+**Search by modifier:**
+
+```
+> steno:search +auth
+
+Found 4 commands with +auth:
+  n_018: mk:middleware +auth +jwt
+  n_014: ch:@routes.ts +auth
+  n_009: mk:api +auth +cache
+  n_002: ?plan +auth
+```
+
+**Search by file reference:**
+
+```
+> steno:search @config
+
+Found 2 commands referencing config files:
+  n_010: ch:@config.json +logging
+  n_004: dx:@config.yaml
+```
+
+**Search options:**
+
+| Option | Effect |
+|--------|--------|
+| `steno:search pattern` | Search raw commands |
+| `steno:search :verb` | Filter by verb |
+| `steno:search +modifier` | Filter by modifier |
+| `steno:search @file` | Filter by file reference |
+| `steno:search @branch:pattern` | Search specific branch |
+| `steno:search -n 10` | Limit results |
+| `steno:search --failed` | Show only failed commands |
+
+**Behavior:**
+1. Search across all sessions in graph.json and current-session.json
+2. Pattern matches against raw command and summary
+3. Results sorted by recency (newest first)
+4. Show node ID, command, date, and summary
+5. Limit to 20 results by default
+
+### steno:replay
+
+Re-run a sequence of commands from history.
+
+**Replay single command:**
+
+```
+> steno:replay n_005
+
+Replaying n_005: ch:@data.csv +normalize
+  → Updated normalized.csv
+```
+
+**Replay range:**
+
+```
+> steno:replay n_003..n_007
+
+Replaying 5 commands...
+
+  n_003: dx:@data.csv
+         → 18 samples analyzed
+
+  n_004: ch:^ +filter
+         → Filtered to 15 samples
+
+  n_005: ch:^ +normalize
+         → Created normalized.csv
+
+  n_006: viz:pca ^
+         → Created pca_plot.png
+
+  n_007: steno:bookmark baseline
+         → Bookmarked as "baseline"
+
+Replay complete: 5 commands executed.
+```
+
+**Replay from bookmark:**
+
+```
+> steno:replay @baseline..
+
+Replaying from bookmark "baseline" to current...
+  4 commands replayed.
+```
+
+**Replay options:**
+
+| Option | Effect |
+|--------|--------|
+| `steno:replay n_XXX` | Replay single node |
+| `steno:replay n_XXX..n_YYY` | Replay range (inclusive) |
+| `steno:replay @bookmark..` | From bookmark to end |
+| `steno:replay ..n_XXX` | From start to node |
+| `steno:replay @branch:n_XXX..` | Replay branch from node |
+| `steno:replay +dry` | Show commands without executing |
+| `steno:replay +skip-failed` | Skip previously failed nodes |
+
+**Dry run:**
+
+```
+> steno:replay n_003..n_007 +dry
+
+Would replay 5 commands:
+  n_003: dx:@data.csv
+  n_004: ch:^ +filter
+  n_005: ch:^ +normalize
+  n_006: viz:pca ^
+  n_007: steno:bookmark baseline
+
+Use steno:replay n_003..n_007 to execute.
+```
+
+**Behavior:**
+1. Look up nodes in graph.json/current-session.json
+2. Execute each command in order
+3. `^` references resolve to the replayed command's output (not original)
+4. New nodes created for replay (preserves original history)
+5. Failed commands stop replay unless +skip-failed
+
+**Replay vs Import:**
+- `steno:replay`: Re-execute from local history
+- `steno:import +replay`: Execute from exported workflow file
 
 ---
 
@@ -1217,6 +1440,126 @@ When commands fail or are malformed, respond with clear, actionable messages. Ne
   2. Manually resolve by renaming/deleting existing branch
 
   Aborting import.
+```
+
+### Alias Errors
+
+**Invalid alias name:**
+```
+> steno:alias 123 "dx:@file"
+
+⚠ Invalid alias name: "123"
+  Alias names must start with a letter and contain only alphanumeric characters.
+```
+
+**Reserved name:**
+```
+> steno:alias dx "mk:api"
+
+⚠ Reserved name: "dx" is a steno verb.
+  Choose a different name that doesn't conflict with: dx mk ch rm fnd viz stat ts doc
+```
+
+**Alias not found (remove):**
+```
+> steno:alias -missing
+
+⚠ Alias not found: "missing"
+  Use steno:alias to list available aliases.
+```
+
+**Invalid alias syntax:**
+```
+> steno:alias setup
+
+⚠ Missing command: steno:alias requires a command string.
+  Usage: steno:alias name "command"
+  Example: steno:alias setup "dx:@package.json && ts:@tests/"
+```
+
+### Search Errors
+
+**No matches:**
+```
+> steno:search quantum-computing
+
+No matches found for "quantum-computing".
+  Try: steno:search with a different pattern
+  Or: steno:history to see all commands
+```
+
+**Empty history:**
+```
+> steno:search auth
+
+⚠ No history: No commands to search.
+  Run some commands first.
+```
+
+**Invalid search syntax:**
+```
+> steno:search
+
+⚠ Missing pattern: steno:search requires a search term.
+  Usage: steno:search pattern
+  Examples:
+    steno:search validation
+    steno:search :viz
+    steno:search +auth
+```
+
+### Replay Errors
+
+**Node not found:**
+```
+> steno:replay n_999
+
+⚠ Node not found: n_999
+  Use steno:history to see available nodes.
+```
+
+**Invalid range:**
+```
+> steno:replay n_010..n_005
+
+⚠ Invalid range: End node (n_005) is before start node (n_010).
+  Use: steno:replay n_005..n_010
+```
+
+**Bookmark not found:**
+```
+> steno:replay @missing..
+
+⚠ Bookmark not found: "missing"
+  Available bookmarks: baseline, clean-data
+  Use steno:history to see bookmark names.
+```
+
+**Empty range:**
+```
+> steno:replay n_005..n_005
+
+Replaying single node: n_005
+  ch:@data.csv +normalize
+  → Updated normalized.csv
+```
+
+**Replay failed:**
+```
+> steno:replay n_003..n_007
+
+Replaying 5 commands...
+
+  n_003: dx:@data.csv → OK
+  n_004: ch:^ +filter → OK
+  n_005: ch:@missing.csv +normalize
+
+⚠ Replay stopped: File not found: missing.csv
+  Completed: 2 of 5 commands
+
+  Options:
+  - Fix the issue and run: steno:replay n_005..n_007
+  - Skip failures: steno:replay n_003..n_007 +skip-failed
 ```
 
 ### State Recovery
