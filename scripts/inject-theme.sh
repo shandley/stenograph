@@ -118,21 +118,50 @@ if [[ "$EMBED_CSS" = false ]]; then
     fi
 fi
 
-# Dark mode toggle HTML (icon-based with localStorage)
-TOGGLE_HTML='<button class="theme-toggle" aria-label="Toggle dark mode" style="position:fixed;top:1rem;right:1rem;z-index:1000;"></button>'
+# Theme controls HTML
+TOGGLE_HTML='<div class="steno-theme-controls" style="position:fixed;top:1rem;right:1rem;z-index:1000;display:flex;gap:0.5rem;align-items:center;">
+<div class="theme-selector">
+<button class="theme-selector-button" aria-label="Select color theme">
+<span class="theme-swatch-current"></span>
+<span class="theme-name">Purple</span>
+<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+</button>
+<div class="theme-selector-dropdown">
+<button class="theme-option" data-color-theme="purple"><span class="theme-swatch" style="background:oklch(0.55 0.25 297)"></span>Purple</button>
+<button class="theme-option" data-color-theme="bubblegum"><span class="theme-swatch" style="background:oklch(0.62 0.18 348)"></span>Bubblegum</button>
+<button class="theme-option" data-color-theme="midnight"><span class="theme-swatch" style="background:oklch(0.57 0.20 283)"></span>Midnight</button>
+<button class="theme-option" data-color-theme="minimal"><span class="theme-swatch" style="background:oklch(0.62 0.19 260)"></span>Minimal</button>
+</div>
+</div>
+<button class="theme-toggle" aria-label="Toggle dark mode"></button>
+</div>'
 
 # JavaScript for theme handling
 THEME_SCRIPT='<script>
 (function() {
+  var themes = {
+    purple: { name: "Purple", color: "oklch(0.55 0.25 297)" },
+    bubblegum: { name: "Bubblegum", color: "oklch(0.62 0.18 348)" },
+    midnight: { name: "Midnight", color: "oklch(0.57 0.20 283)" },
+    minimal: { name: "Minimal", color: "oklch(0.62 0.19 260)" }
+  };
+
   // Prevent transition flash on load
   document.documentElement.classList.add("no-transitions");
 
-  // Check for saved theme or system preference
-  const savedTheme = localStorage.getItem("steno-theme");
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  // Load saved preferences
+  var savedMode = localStorage.getItem("steno-mode");
+  var savedColor = localStorage.getItem("steno-color-theme") || "purple";
+  var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-  if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+  // Apply dark mode
+  if (savedMode === "dark" || (!savedMode && prefersDark)) {
     document.body.classList.add("dark");
+  }
+
+  // Apply color theme
+  if (savedColor && savedColor !== "purple") {
+    document.body.setAttribute("data-color-theme", savedColor);
   }
 
   // Re-enable transitions after load
@@ -142,19 +171,48 @@ THEME_SCRIPT='<script>
     }, 100);
   });
 
-  // Toggle handler
   document.addEventListener("DOMContentLoaded", function() {
-    const toggle = document.querySelector(".theme-toggle");
+    // Dark mode toggle
+    var toggle = document.querySelector(".theme-toggle");
     if (toggle) {
       toggle.addEventListener("click", function() {
         document.body.classList.toggle("dark");
-        const isDark = document.body.classList.contains("dark");
-        localStorage.setItem("steno-theme", isDark ? "dark" : "light");
+        var isDark = document.body.classList.contains("dark");
+        localStorage.setItem("steno-mode", isDark ? "dark" : "light");
       });
     }
 
+    // Color theme selector
+    var themeOptions = document.querySelectorAll(".theme-option");
+    var themeName = document.querySelector(".theme-name");
+    var themeSwatch = document.querySelector(".theme-swatch-current");
+
+    function updateThemeUI(colorTheme) {
+      if (themeName) themeName.textContent = themes[colorTheme].name;
+      if (themeSwatch) themeSwatch.style.background = themes[colorTheme].color;
+      themeOptions.forEach(function(opt) {
+        opt.classList.toggle("active", opt.getAttribute("data-color-theme") === colorTheme);
+      });
+    }
+
+    // Initialize UI
+    updateThemeUI(savedColor);
+
+    themeOptions.forEach(function(option) {
+      option.addEventListener("click", function() {
+        var colorTheme = this.getAttribute("data-color-theme");
+        if (colorTheme === "purple") {
+          document.body.removeAttribute("data-color-theme");
+        } else {
+          document.body.setAttribute("data-color-theme", colorTheme);
+        }
+        localStorage.setItem("steno-color-theme", colorTheme);
+        updateThemeUI(colorTheme);
+      });
+    });
+
     // Scroll fade-in animation
-    const observer = new IntersectionObserver(function(entries) {
+    var observer = new IntersectionObserver(function(entries) {
       entries.forEach(function(entry) {
         if (entry.isIntersecting) {
           entry.target.classList.add("visible");
