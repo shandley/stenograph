@@ -157,7 +157,7 @@
       50% { transform: scale(1.3); opacity: 0.8; }
     }
 
-    .theme-toggle {
+    .theme-toggle, .audio-toggle {
       width: 2rem;
       height: 2rem;
       border: 1px solid var(--border);
@@ -171,9 +171,15 @@
       transition: all 0.2s;
     }
 
-    .theme-toggle:hover {
+    .theme-toggle:hover, .audio-toggle:hover {
       background: var(--accent);
       border-color: var(--accent);
+    }
+
+    .audio-toggle.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--primary-foreground);
     }
 
     /* ============================================
@@ -872,6 +878,9 @@
         <div class="live-dot" id="liveDot"></div>
         <span id="liveText">idle</span>
       </div>
+      <button class="audio-toggle" id="audioToggle" onclick="toggleAudio()" title="Toggle audio (A)">
+        <span id="audioIcon">🔇</span>
+      </button>
       <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme (T)">
         <span id="themeIcon">☾</span>
       </button>
@@ -964,6 +973,7 @@
   <div class="keyboard-hint" id="keyboardHint">
     <kbd>←</kbd><kbd>→</kbd> navigate
     <kbd>Space</kbd> simulate
+    <kbd>A</kbd> audio
     <kbd>C</kbd> connect
     <kbd>T</kbd> theme
   </div>
@@ -986,6 +996,10 @@
     let wsReconnectTimeout = null;
     let wsConnected = false;
     const WS_URL = 'ws://localhost:3847';
+
+    // Audio state
+    let audioEnabled = false;
+    let audioContext = null;
 
     // ============================================
     // Initialize
@@ -1090,6 +1104,120 @@
     }
 
     // ============================================
+    // Audio Feedback
+    // ============================================
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const btn = document.getElementById('audioToggle');
+      const icon = document.getElementById('audioIcon');
+
+      if (audioEnabled) {
+        btn.classList.add('active');
+        icon.textContent = '🔊';
+        // Initialize audio context on user interaction (required by browsers)
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        // Play a test tone to confirm audio is working
+        playTone('start');
+      } else {
+        btn.classList.remove('active');
+        icon.textContent = '🔇';
+      }
+    }
+
+    function playTone(type) {
+      if (!audioEnabled || !audioContext) return;
+
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+
+      const now = audioContext.currentTime;
+
+      switch (type) {
+        case 'start':
+          // Rising tone for tool starting
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.exponentialRampToValueAtTime(660, now + 0.1);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+          break;
+
+        case 'complete':
+          // Pleasant completion chime
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523, now); // C5
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+
+          // Add a harmonious second tone
+          const osc2 = audioContext.createOscillator();
+          const gain2 = audioContext.createGain();
+          osc2.connect(gain2);
+          gain2.connect(audioContext.destination);
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(659, now + 0.05); // E5
+          gain2.gain.setValueAtTime(0.08, now + 0.05);
+          gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc2.start(now + 0.05);
+          osc2.stop(now + 0.25);
+          break;
+
+        case 'error':
+          // Lower, dissonant tone for errors
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.exponentialRampToValueAtTime(110, now + 0.2);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+          break;
+
+        case 'stop':
+          // Resolution chord for command sequence complete
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523, now); // C5
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+          osc.start(now);
+          osc.stop(now + 0.4);
+
+          // E5
+          const oscE = audioContext.createOscillator();
+          const gainE = audioContext.createGain();
+          oscE.connect(gainE);
+          gainE.connect(audioContext.destination);
+          oscE.type = 'sine';
+          oscE.frequency.setValueAtTime(659, now);
+          gainE.gain.setValueAtTime(0.06, now);
+          gainE.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+          oscE.start(now);
+          oscE.stop(now + 0.4);
+
+          // G5
+          const oscG = audioContext.createOscillator();
+          const gainG = audioContext.createGain();
+          oscG.connect(gainG);
+          gainG.connect(audioContext.destination);
+          oscG.type = 'sine';
+          oscG.frequency.setValueAtTime(784, now);
+          gainG.gain.setValueAtTime(0.05, now);
+          gainG.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+          oscG.start(now);
+          oscG.stop(now + 0.4);
+          break;
+      }
+    }
+
+    // ============================================
     // Handle WebSocket Messages
     // ============================================
     function handleWsMessage(data) {
@@ -1114,6 +1242,9 @@
         liveDot.classList.add('active');
         liveText.textContent = tool ? tool.toLowerCase() : 'working';
 
+        // Audio feedback
+        playTone('start');
+
         // Add file to activity
         if (target && target.length > 0) {
           const filename = target.split('/').pop().substring(0, 30) || target.substring(0, 30);
@@ -1132,6 +1263,13 @@
         liveDot.classList.remove('active');
         liveText.textContent = 'idle';
 
+        // Audio feedback - different tone for success vs error
+        if (success === false) {
+          playTone('error');
+        } else {
+          playTone('complete');
+        }
+
         // Mark file as complete (will fade out)
         if (target && target.length > 0) {
           const filename = target.split('/').pop().substring(0, 30);
@@ -1142,6 +1280,9 @@
         // Command sequence complete
         liveDot.classList.remove('active');
         liveText.textContent = 'idle';
+
+        // Audio feedback - resolution chord
+        playTone('stop');
 
         // Don't immediately clear files - let them fade naturally via completeFile timeouts
         // Just reload graph to get new nodes
@@ -1341,6 +1482,10 @@
           case 't':
           case 'T':
             toggleTheme();
+            break;
+          case 'a':
+          case 'A':
+            toggleAudio();
             break;
         }
       });
