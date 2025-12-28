@@ -1167,7 +1167,7 @@ def generate_html(session_data, css, steno_data=None):
   </div>
 
   <div class="transcript-search">
-    <input type="search" placeholder="Search transcript... (press /)" />
+    <input type="search" placeholder="Search messages..." />
     <span class="search-stats"></span>
     <div class="search-nav">
       <button class="search-prev" disabled>↑</button>
@@ -1291,7 +1291,7 @@ def generate_index(sessions_info, css, project_name="Steno-Graph", steno_data=No
   </div>
 
   <div class="transcript-search">
-    <input type="search" placeholder="Filter sessions... (press /)" />
+    <input type="search" placeholder="Filter sessions..." />
     <span class="search-stats"></span>
   </div>
 
