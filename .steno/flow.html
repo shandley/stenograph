@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steno Flow</title>
+  <style>
+    /* ============================================
+       Core Variables
+       ============================================ */
+    :root {
+      --background: oklch(0.9578 0.0058 264.5321);
+      --foreground: oklch(0.4355 0.0430 279.3250);
+      --card: oklch(1.0000 0 0);
+      --primary: oklch(0.5547 0.2503 297.0156);
+      --primary-foreground: oklch(1.0000 0 0);
+      --secondary: oklch(0.8575 0.0145 268.4756);
+      --muted: oklch(0.9060 0.0117 264.5071);
+      --muted-foreground: oklch(0.5471 0.0343 279.0837);
+      --border: oklch(0.8083 0.0174 271.1982);
+      --accent: oklch(0.6820 0.1448 235.3822);
+      --code-bg: oklch(0.94 0.01 264);
+      --radius: 0.35rem;
+      --font-sans: system-ui, -apple-system, sans-serif;
+      --font-mono: "Fira Code", "SF Mono", Menlo, monospace;
+
+      /* Flow-specific */
+      --node-complete: oklch(0.6 0.15 145);
+      --node-active: oklch(0.65 0.2 85);
+      --node-pending: oklch(0.7 0.05 270);
+      --playhead: oklch(0.65 0.22 25);
+
+      /* Verb colors */
+      --verb-dx: oklch(0.6 0.15 250);
+      --verb-mk: oklch(0.6 0.18 145);
+      --verb-ch: oklch(0.6 0.18 85);
+      --verb-viz: oklch(0.6 0.2 297);
+      --verb-fnd: oklch(0.6 0.15 200);
+      --verb-stat: oklch(0.6 0.12 180);
+      --verb-ts: oklch(0.6 0.15 30);
+      --verb-rm: oklch(0.6 0.2 15);
+      --verb-steno: oklch(0.55 0.25 297);
+    }
+
+    .dark {
+      --background: oklch(0.2155 0.0254 284.0647);
+      --foreground: oklch(0.8787 0.0426 272.2767);
+      --card: oklch(0.2429 0.0304 283.9110);
+      --primary: oklch(0.7871 0.1187 304.7693);
+      --primary-foreground: oklch(0.2429 0.0304 283.9110);
+      --secondary: oklch(0.4765 0.0340 278.6430);
+      --muted: oklch(0.2973 0.0294 276.2144);
+      --muted-foreground: oklch(0.7510 0.0396 273.9320);
+      --border: oklch(0.3240 0.0319 281.9784);
+      --code-bg: oklch(0.18 0.02 284);
+
+      --node-complete: oklch(0.55 0.12 145);
+      --node-active: oklch(0.6 0.18 85);
+      --node-pending: oklch(0.45 0.03 270);
+      --playhead: oklch(0.7 0.2 25);
+
+      --verb-dx: oklch(0.7 0.12 250);
+      --verb-mk: oklch(0.7 0.15 145);
+      --verb-ch: oklch(0.7 0.15 85);
+      --verb-viz: oklch(0.75 0.15 297);
+      --verb-fnd: oklch(0.7 0.12 200);
+      --verb-stat: oklch(0.7 0.1 180);
+      --verb-ts: oklch(0.7 0.12 30);
+      --verb-rm: oklch(0.7 0.15 15);
+      --verb-steno: oklch(0.75 0.18 297);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ============================================
+       Header
+       ============================================ */
+    .flow-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1.5rem;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .flow-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .flow-logo {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: white;
+      font-weight: 700;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .live-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.375rem 0.75rem;
+      background: var(--muted);
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted-foreground);
+      transition: all 0.3s;
+    }
+
+    .live-dot.active {
+      background: var(--playhead);
+      box-shadow: 0 0 8px var(--playhead);
+      animation: pulse-dot 1s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.8; }
+    }
+
+    .theme-toggle {
+      width: 2rem;
+      height: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: var(--secondary);
+      cursor: pointer;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* ============================================
+       Branch Bar
+       ============================================ */
+    .branch-bar {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.5rem 1.5rem;
+      background: var(--muted);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+      flex-shrink: 0;
+    }
+
+    .branch-selector {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .branch-icon {
+      font-size: 1rem;
+    }
+
+    .branch-name {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .branch-status {
+      padding: 0.125rem 0.5rem;
+      background: var(--node-complete);
+      color: white;
+      border-radius: 999px;
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .branch-stats {
+      margin-left: auto;
+      display: flex;
+      gap: 1rem;
+      color: var(--muted-foreground);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+
+    /* ============================================
+       Command Roll (Enhanced)
+       ============================================ */
+    .command-roll-section {
+      padding: 1rem 1.5rem;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted-foreground);
+    }
+
+    .time-display {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+    }
+
+    .command-roll {
+      position: relative;
+      height: 100px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    /* Grid lines */
+    .roll-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(90deg, var(--border) 1px, transparent 1px),
+        linear-gradient(0deg, var(--border) 1px, transparent 1px);
+      background-size: 80px 100%, 80px 50px;
+      opacity: 0.3;
+    }
+
+    /* Timeline track */
+    .timeline-track {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--border);
+      transform: translateY(-50%);
+    }
+
+    /* Playhead */
+    .playhead {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--playhead);
+      left: 65%;
+      z-index: 20;
+      box-shadow: 0 0 20px var(--playhead), 0 0 40px oklch(from var(--playhead) l c h / 0.3);
+      transition: left 0.3s ease-out;
+    }
+
+    .playhead::before {
+      content: "NOW";
+      position: absolute;
+      top: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.5rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--playhead);
+      letter-spacing: 0.05em;
+    }
+
+    .playhead::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: -6px;
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-bottom: 10px solid var(--playhead);
+    }
+
+    /* Wave effect behind playhead */
+    .playhead-wave {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 65%;
+      width: 100px;
+      background: linear-gradient(90deg, oklch(from var(--playhead) l c h / 0.15), transparent);
+      transform: translateX(-100%);
+      pointer-events: none;
+    }
+
+    /* Nodes container */
+    .nodes-track {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 calc(65% - 40px);
+      gap: 0.75rem;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Individual nodes */
+    .flow-node {
+      flex-shrink: 0;
+      width: 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.5rem;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .flow-node::before {
+      content: "";
+      position: absolute;
+      inset: -4px;
+      border-radius: calc(var(--radius) + 4px);
+      background: transparent;
+      transition: all 0.3s;
+      z-index: -1;
+    }
+
+    .flow-node:hover {
+      transform: scale(1.08) translateY(-2px);
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px oklch(from var(--primary) l c h / 0.2);
+    }
+
+    .flow-node.complete {
+      border-color: var(--node-complete);
+      opacity: 0.85;
+    }
+
+    .flow-node.active {
+      border-color: var(--node-active);
+      transform: scale(1.1);
+      box-shadow: 0 0 20px oklch(from var(--node-active) l c h / 0.4);
+    }
+
+    .flow-node.active::before {
+      background: oklch(from var(--node-active) l c h / 0.1);
+      animation: node-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes node-glow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.1); }
+    }
+
+    .flow-node.pending {
+      border-color: var(--node-pending);
+      opacity: 0.5;
+      border-style: dashed;
+    }
+
+    .node-id {
+      font-family: var(--font-mono);
+      font-size: 0.5625rem;
+      font-weight: 600;
+      color: var(--muted-foreground);
+      margin-bottom: 0.125rem;
+    }
+
+    .node-verb {
+      font-family: var(--font-mono);
+      font-size: 0.9375rem;
+      font-weight: 700;
+      transition: color 0.2s;
+    }
+
+    .node-target {
+      font-family: var(--font-mono);
+      font-size: 0.5rem;
+      color: var(--muted-foreground);
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-top: 0.125rem;
+    }
+
+    /* Verb colors */
+    .verb-dx { color: var(--verb-dx); }
+    .verb-mk { color: var(--verb-mk); }
+    .verb-ch { color: var(--verb-ch); }
+    .verb-viz { color: var(--verb-viz); }
+    .verb-fnd { color: var(--verb-fnd); }
+    .verb-stat { color: var(--verb-stat); }
+    .verb-ts { color: var(--verb-ts); }
+    .verb-rm { color: var(--verb-rm); }
+    .verb-steno { color: var(--verb-steno); }
+
+    /* Connection lines between nodes */
+    .node-connector {
+      position: absolute;
+      right: -0.75rem;
+      top: 50%;
+      width: 0.75rem;
+      height: 2px;
+      background: var(--border);
+      transform: translateY(-50%);
+    }
+
+    .flow-node.active .node-connector {
+      background: var(--node-active);
+    }
+
+    /* ============================================
+       Detail Panel (shows on node click)
+       ============================================ */
+    .detail-panel {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%) scale(0.9);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem;
+      min-width: 200px;
+      box-shadow: 0 4px 20px oklch(0 0 0 / 0.15);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s;
+      z-index: 100;
+      font-size: 0.75rem;
+    }
+
+    .flow-node:hover .detail-panel,
+    .flow-node.selected .detail-panel {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) scale(1);
+    }
+
+    .detail-command {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      word-break: break-all;
+    }
+
+    .detail-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+      color: var(--muted-foreground);
+    }
+
+    .detail-label {
+      font-weight: 600;
+      min-width: 50px;
+    }
+
+    .detail-value {
+      font-family: var(--font-mono);
+      color: var(--foreground);
+    }
+
+    /* ============================================
+       File Activity (Enhanced)
+       ============================================ */
+    .file-activity-section {
+      padding: 0.75rem 1.5rem;
+      background: var(--muted);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .file-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      min-height: 28px;
+      align-items: center;
+    }
+
+    .file-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.625rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      transition: all 0.3s;
+      animation: file-enter 0.3s ease-out;
+    }
+
+    @keyframes file-enter {
+      from { opacity: 0; transform: scale(0.8) translateY(4px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .file-chip.reading {
+      border-color: var(--verb-dx);
+      background: oklch(from var(--verb-dx) l c h / 0.1);
+    }
+
+    .file-chip.writing {
+      border-color: var(--verb-mk);
+      background: oklch(from var(--verb-mk) l c h / 0.1);
+    }
+
+    .file-chip.searching {
+      border-color: var(--verb-fnd);
+      background: oklch(from var(--verb-fnd) l c h / 0.1);
+    }
+
+    .file-chip.running {
+      border-color: var(--verb-ts);
+      background: oklch(from var(--verb-ts) l c h / 0.1);
+    }
+
+    .file-chip.complete {
+      border-color: var(--node-complete);
+      background: oklch(from var(--node-complete) l c h / 0.1);
+      opacity: 0.6;
+    }
+
+    .file-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--muted-foreground);
+    }
+
+    .file-chip.reading .file-indicator {
+      background: var(--verb-dx);
+      animation: indicator-pulse 0.6s ease-in-out infinite;
+    }
+
+    .file-chip.writing .file-indicator {
+      background: var(--verb-mk);
+      animation: indicator-pulse 0.4s ease-in-out infinite;
+    }
+
+    .file-chip.searching .file-indicator {
+      background: var(--verb-fnd);
+      animation: indicator-scan 1s linear infinite;
+    }
+
+    .file-chip.running .file-indicator {
+      background: var(--verb-ts);
+      animation: indicator-pulse 0.5s ease-in-out infinite;
+    }
+
+    .file-chip.complete .file-indicator {
+      background: var(--node-complete);
+    }
+
+    @keyframes indicator-pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.6; }
+    }
+
+    @keyframes indicator-scan {
+      0% { opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { opacity: 0.3; }
+    }
+
+    .file-empty {
+      color: var(--muted-foreground);
+      font-size: 0.75rem;
+      font-style: italic;
+    }
+
+    /* ============================================
+       Diff Scope (Waveform visualization)
+       ============================================ */
+    .diff-scope-section {
+      padding: 0.75rem 1.5rem;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .diff-scope {
+      height: 40px;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .scope-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .scope-label {
+      position: absolute;
+      bottom: 4px;
+      right: 8px;
+      font-size: 0.5rem;
+      font-family: var(--font-mono);
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* ============================================
+       Session Spiral
+       ============================================ */
+    .spiral-section {
+      flex: 1;
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .spiral-view {
+      flex: 1;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      line-height: 1.7;
+      white-space: pre;
+      overflow: auto;
+    }
+
+    .spiral-node {
+      padding: 0.125rem 0.25rem;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .spiral-node:hover {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    .spiral-node.current {
+      background: var(--node-active);
+      color: white;
+      font-weight: 600;
+    }
+
+    .spiral-branch {
+      color: var(--accent);
+    }
+
+    .spiral-merged {
+      color: var(--node-complete);
+    }
+
+    /* ============================================
+       Controls
+       ============================================ */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .control-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--secondary);
+      color: var(--foreground);
+      font-size: 0.8125rem;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .control-btn:hover {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .control-btn.primary {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+    }
+
+    .control-btn.primary:hover {
+      filter: brightness(1.1);
+    }
+
+    .control-btn .icon {
+      font-size: 1rem;
+    }
+
+    .controls-spacer {
+      flex: 1;
+    }
+
+    .poll-status {
+      font-size: 0.6875rem;
+      font-family: var(--font-mono);
+      color: var(--muted-foreground);
+    }
+
+    .poll-status.active {
+      color: var(--node-complete);
+    }
+
+    /* Connection status */
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.625rem;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+    }
+
+    .connection-status.connected {
+      background: oklch(from var(--node-complete) l c h / 0.15);
+      color: var(--node-complete);
+    }
+
+    .connection-status.disconnected {
+      background: oklch(from var(--verb-rm) l c h / 0.15);
+      color: var(--verb-rm);
+    }
+
+    .connection-status.connecting {
+      background: oklch(from var(--node-active) l c h / 0.15);
+      color: var(--node-active);
+    }
+
+    .connection-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .connection-status.connecting .connection-dot {
+      animation: pulse-dot 1s ease-in-out infinite;
+    }
+
+    /* File chip fade out */
+    .file-chip.fading {
+      animation: file-fade 0.5s ease-out forwards;
+    }
+
+    @keyframes file-fade {
+      from { opacity: 1; transform: scale(1); }
+      to { opacity: 0; transform: scale(0.8); }
+    }
+
+    /* Activity burst on diff scope */
+    .diff-scope.burst {
+      box-shadow: inset 0 0 20px oklch(from var(--primary) l c h / 0.3);
+    }
+
+    /* ============================================
+       Keyboard shortcuts hint
+       ============================================ */
+    .keyboard-hint {
+      position: fixed;
+      bottom: 4.5rem;
+      right: 1.5rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.6875rem;
+      color: var(--muted-foreground);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .keyboard-hint.visible {
+      opacity: 1;
+    }
+
+    kbd {
+      display: inline-block;
+      padding: 0.125rem 0.375rem;
+      background: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 0.625rem;
+      margin: 0 0.125rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="flow-header">
+    <div class="flow-title">
+      <div class="flow-logo">~</div>
+      <span>steno flow</span>
+    </div>
+    <div class="header-controls">
+      <div class="live-status">
+        <div class="live-dot" id="liveDot"></div>
+        <span id="liveText">idle</span>
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme (T)">
+        <span id="themeIcon">☾</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Branch Bar -->
+  <div class="branch-bar">
+    <div class="branch-selector">
+      <span class="branch-icon">⎇</span>
+      <span class="branch-name" id="branchName">main</span>
+      <span class="branch-status" id="branchStatus">active</span>
+    </div>
+    <div class="branch-stats">
+      <span id="nodeCount">0 nodes</span>
+      <span id="branchCount">0 branches</span>
+    </div>
+  </div>
+
+  <!-- Command Roll -->
+  <section class="command-roll-section">
+    <div class="section-header">
+      <span class="section-label">Command Roll</span>
+      <span class="time-display" id="timeDisplay">--:--:--</span>
+    </div>
+    <div class="command-roll">
+      <div class="roll-grid"></div>
+      <div class="timeline-track"></div>
+      <div class="playhead-wave"></div>
+      <div class="playhead"></div>
+      <div class="nodes-track" id="nodesTrack">
+        <!-- Nodes populated by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- File Activity -->
+  <section class="file-activity-section">
+    <div class="section-header">
+      <span class="section-label">File Activity</span>
+    </div>
+    <div class="file-grid" id="fileGrid">
+      <span class="file-empty">Watching for changes...</span>
+    </div>
+  </section>
+
+  <!-- Diff Scope -->
+  <section class="diff-scope-section">
+    <div class="section-header">
+      <span class="section-label">Diff Scope</span>
+    </div>
+    <div class="diff-scope">
+      <canvas class="scope-canvas" id="scopeCanvas"></canvas>
+      <span class="scope-label">changes/sec</span>
+    </div>
+  </section>
+
+  <!-- Session Spiral -->
+  <section class="spiral-section">
+    <div class="section-header">
+      <span class="section-label">Session Graph</span>
+    </div>
+    <div class="spiral-view" id="spiralView"></div>
+  </section>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="control-btn primary" onclick="toggleSimulation()" id="simBtn">
+      <span class="icon">▶</span>
+      <span>Simulate</span>
+    </button>
+    <button class="control-btn" onclick="previousNode()" title="Previous (←)">
+      <span class="icon">◀</span>
+    </button>
+    <button class="control-btn" onclick="nextNode()" title="Next (→)">
+      <span class="icon">▶</span>
+    </button>
+    <div class="controls-spacer"></div>
+    <div class="connection-status disconnected" id="connectionStatus" title="WebSocket connection to flow server">
+      <div class="connection-dot"></div>
+      <span id="connectionText">disconnected</span>
+    </div>
+    <button class="control-btn" onclick="toggleConnection()" id="connectBtn">
+      <span class="icon">⚡</span>
+      <span>Connect</span>
+    </button>
+  </div>
+
+  <!-- Keyboard hint -->
+  <div class="keyboard-hint" id="keyboardHint">
+    <kbd>←</kbd><kbd>→</kbd> navigate
+    <kbd>Space</kbd> simulate
+    <kbd>C</kbd> connect
+    <kbd>T</kbd> theme
+  </div>
+
+  <script>
+    // ============================================
+    // State
+    // ============================================
+    let graphData = null;
+    let currentNodeIndex = 0;
+    let isSimulating = false;
+    let simulationInterval = null;
+    let isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    let activeFiles = new Map(); // Map of filename -> {status, timeout}
+    let diffHistory = [];
+    let scopeCtx = null;
+
+    // WebSocket state
+    let ws = null;
+    let wsReconnectTimeout = null;
+    let wsConnected = false;
+    const WS_URL = 'ws://localhost:3847';
+
+    // ============================================
+    // Initialize
+    // ============================================
+    async function init() {
+      if (isDark) document.body.classList.add('dark');
+      updateThemeIcon();
+      setupCanvas();
+      setupKeyboard();
+      await loadGraph();
+      startClock();
+      showKeyboardHint();
+
+      // Auto-connect to WebSocket
+      connectWebSocket();
+    }
+
+    // ============================================
+    // WebSocket Connection
+    // ============================================
+    function connectWebSocket() {
+      if (ws && ws.readyState === WebSocket.OPEN) return;
+
+      updateConnectionStatus('connecting');
+
+      try {
+        ws = new WebSocket(WS_URL);
+
+        ws.onopen = () => {
+          console.log('WebSocket connected');
+          wsConnected = true;
+          updateConnectionStatus('connected');
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            handleWsMessage(data);
+          } catch (e) {
+            console.error('Failed to parse WebSocket message:', e);
+          }
+        };
+
+        ws.onclose = () => {
+          console.log('WebSocket disconnected');
+          wsConnected = false;
+          updateConnectionStatus('disconnected');
+
+          // Auto-reconnect after 3 seconds
+          if (wsReconnectTimeout) clearTimeout(wsReconnectTimeout);
+          wsReconnectTimeout = setTimeout(() => {
+            if (!wsConnected) connectWebSocket();
+          }, 3000);
+        };
+
+        ws.onerror = (err) => {
+          console.error('WebSocket error:', err);
+          wsConnected = false;
+          updateConnectionStatus('disconnected');
+        };
+
+      } catch (e) {
+        console.error('Failed to create WebSocket:', e);
+        updateConnectionStatus('disconnected');
+      }
+    }
+
+    function disconnectWebSocket() {
+      if (wsReconnectTimeout) {
+        clearTimeout(wsReconnectTimeout);
+        wsReconnectTimeout = null;
+      }
+      if (ws) {
+        ws.close();
+        ws = null;
+      }
+      wsConnected = false;
+      updateConnectionStatus('disconnected');
+    }
+
+    function toggleConnection() {
+      if (wsConnected) {
+        disconnectWebSocket();
+      } else {
+        connectWebSocket();
+      }
+    }
+
+    function updateConnectionStatus(status) {
+      const el = document.getElementById('connectionStatus');
+      const text = document.getElementById('connectionText');
+      const btn = document.getElementById('connectBtn');
+
+      el.className = 'connection-status ' + status;
+      text.textContent = status;
+
+      if (status === 'connected') {
+        btn.innerHTML = '<span class="icon">⚡</span><span>Disconnect</span>';
+      } else {
+        btn.innerHTML = '<span class="icon">⚡</span><span>Connect</span>';
+      }
+    }
+
+    // ============================================
+    // Handle WebSocket Messages
+    // ============================================
+    function handleWsMessage(data) {
+      // Handle init message with recent events
+      if (data.type === 'init' && data.events) {
+        data.events.forEach(e => handleToolEvent(e));
+        return;
+      }
+
+      handleToolEvent(data);
+    }
+
+    function handleToolEvent(event) {
+      const { type, tool, target, success, ts } = event;
+
+      // Update live status
+      const liveDot = document.getElementById('liveDot');
+      const liveText = document.getElementById('liveText');
+
+      if (type === 'pre') {
+        // Tool starting
+        liveDot.classList.add('active');
+        liveText.textContent = tool ? tool.toLowerCase() : 'working';
+
+        // Add file to activity
+        if (target && target.length > 0) {
+          const filename = target.split('/').pop().substring(0, 30) || target.substring(0, 30);
+          const status = getStatusForTool(tool);
+          addActiveFile(filename, status);
+        } else if (tool) {
+          // Show tool name if no target
+          addActiveFile(tool.toLowerCase(), getStatusForTool(tool));
+        }
+
+        // Spike the diff scope
+        spikeDiffScope(tool);
+
+      } else if (type === 'post') {
+        // Tool completed
+        liveDot.classList.remove('active');
+        liveText.textContent = 'idle';
+
+        // Mark file as complete (will fade out)
+        if (target && target.length > 0) {
+          const filename = target.split('/').pop().substring(0, 30);
+          completeFile(filename);
+        }
+
+      } else if (type === 'stop') {
+        // Command sequence complete
+        liveDot.classList.remove('active');
+        liveText.textContent = 'idle';
+
+        // Don't immediately clear files - let them fade naturally via completeFile timeouts
+        // Just reload graph to get new nodes
+        loadGraph();
+      }
+
+      renderFileActivity();
+    }
+
+    function getStatusForTool(tool) {
+      switch (tool) {
+        case 'Read': return 'reading';
+        case 'Write':
+        case 'Edit': return 'writing';
+        case 'Glob':
+        case 'Grep': return 'searching';
+        case 'Bash': return 'running';
+        default: return 'reading';
+      }
+    }
+
+    function addActiveFile(filename, status) {
+      // Clear any existing timeout for this file
+      const existing = activeFiles.get(filename);
+      if (existing && existing.timeout) {
+        clearTimeout(existing.timeout);
+      }
+
+      activeFiles.set(filename, { status, timeout: null });
+
+      // Flash the file activity section
+      const section = document.querySelector('.file-activity-section');
+      if (section) {
+        section.style.background = 'var(--node-active)';
+        section.style.transition = 'background 0.5s';
+        setTimeout(() => {
+          section.style.background = '';
+        }, 200);
+      }
+
+      renderFileActivity();
+    }
+
+    function completeFile(filename) {
+      const file = activeFiles.get(filename);
+      if (!file) return;
+
+      // Auto-remove after 3 seconds
+      file.timeout = setTimeout(() => {
+        activeFiles.delete(filename);
+        renderFileActivity();
+      }, 3000);
+
+      file.status = 'complete';
+      renderFileActivity();
+    }
+
+    function spikeDiffScope(tool) {
+      // Add a spike to the diff history based on tool type
+      const intensity = tool === 'Write' || tool === 'Edit' ? 1.0 :
+                       tool === 'Read' ? 0.4 :
+                       tool === 'Bash' ? 0.7 : 0.3;
+
+      // Add multiple points for smoother spike
+      diffHistory.push(intensity * 0.5);
+      diffHistory.push(intensity);
+      diffHistory.push(intensity * 0.7);
+      diffHistory.push(intensity * 0.3);
+
+      // Trim history
+      while (diffHistory.length > 100) diffHistory.shift();
+
+      // Visual burst effect
+      const scope = document.querySelector('.diff-scope');
+      scope.classList.add('burst');
+      setTimeout(() => scope.classList.remove('burst'), 200);
+    }
+
+    // ============================================
+    // Canvas setup for diff scope
+    // ============================================
+    function setupCanvas() {
+      const canvas = document.getElementById('scopeCanvas');
+      scopeCtx = canvas.getContext('2d');
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      requestAnimationFrame(drawScope);
+    }
+
+    function resizeCanvas() {
+      const canvas = document.getElementById('scopeCanvas');
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+
+    // ============================================
+    // Diff scope visualization
+    // ============================================
+    function drawScope() {
+      if (!scopeCtx) return;
+      const canvas = scopeCtx.canvas;
+      const w = canvas.width;
+      const h = canvas.height;
+      const midY = h / 2;
+
+      // Clear
+      scopeCtx.fillStyle = getComputedStyle(document.body).getPropertyValue('--code-bg').trim();
+      scopeCtx.fillRect(0, 0, w, h);
+
+      // Draw center line
+      scopeCtx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--border').trim();
+      scopeCtx.lineWidth = 1;
+      scopeCtx.beginPath();
+      scopeCtx.moveTo(0, midY);
+      scopeCtx.lineTo(w, midY);
+      scopeCtx.stroke();
+
+      // Draw waveform
+      if (diffHistory.length > 1) {
+        // Gradient from border color to primary
+        const gradient = scopeCtx.createLinearGradient(0, 0, w, 0);
+        gradient.addColorStop(0, getComputedStyle(document.body).getPropertyValue('--border').trim());
+        gradient.addColorStop(1, getComputedStyle(document.body).getPropertyValue('--primary').trim());
+
+        scopeCtx.strokeStyle = gradient;
+        scopeCtx.lineWidth = 2;
+        scopeCtx.beginPath();
+
+        const step = w / (diffHistory.length - 1);
+        diffHistory.forEach((val, i) => {
+          const x = i * step;
+          const y = midY - (val * midY * 0.8);
+          if (i === 0) scopeCtx.moveTo(x, y);
+          else scopeCtx.lineTo(x, y);
+        });
+        scopeCtx.stroke();
+      }
+
+      // Animation: decay toward zero and add baseline noise
+      if (isSimulating) {
+        // Simulation mode: synthetic wave
+        diffHistory.push(Math.sin(Date.now() / 200) * 0.5 + Math.random() * 0.3);
+      } else if (wsConnected) {
+        // Live mode: subtle baseline noise + decay
+        const lastVal = diffHistory.length > 0 ? diffHistory[diffHistory.length - 1] : 0;
+        const decayed = lastVal * 0.95; // Decay toward 0
+        const noise = (Math.random() - 0.5) * 0.05; // Subtle noise
+        diffHistory.push(Math.max(0, decayed + noise));
+      } else {
+        // Disconnected: flat line with minimal noise
+        diffHistory.push((Math.random() - 0.5) * 0.02);
+      }
+
+      // Trim history
+      if (diffHistory.length > 100) diffHistory.shift();
+
+      requestAnimationFrame(drawScope);
+    }
+
+    // ============================================
+    // Clock
+    // ============================================
+    function startClock() {
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('timeDisplay').textContent =
+        now.toTimeString().split(' ')[0];
+    }
+
+    // ============================================
+    // Keyboard
+    // ============================================
+    function setupKeyboard() {
+      document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT') return;
+
+        switch(e.key) {
+          case 'ArrowLeft':
+            previousNode();
+            break;
+          case 'ArrowRight':
+            nextNode();
+            break;
+          case ' ':
+            e.preventDefault();
+            toggleSimulation();
+            break;
+          case 'c':
+          case 'C':
+            toggleConnection();
+            break;
+          case 't':
+          case 'T':
+            toggleTheme();
+            break;
+        }
+      });
+    }
+
+    function showKeyboardHint() {
+      const hint = document.getElementById('keyboardHint');
+      hint.classList.add('visible');
+      setTimeout(() => hint.classList.remove('visible'), 4000);
+    }
+
+    // ============================================
+    // Theme
+    // ============================================
+    function toggleTheme() {
+      isDark = !isDark;
+      document.body.classList.toggle('dark', isDark);
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      document.getElementById('themeIcon').textContent = isDark ? '☀' : '☾';
+    }
+
+    // ============================================
+    // Load Graph
+    // ============================================
+    async function loadGraph() {
+      try {
+        // Use HTTP URL to avoid CORS issues with file:// protocol
+        const baseUrl = window.location.protocol === 'file:'
+          ? 'http://localhost:3847'
+          : '';
+        const response = await fetch(baseUrl + '/graph.json?' + Date.now());
+        graphData = await response.json();
+      } catch (e) {
+        console.log('Using sample data', e);
+        graphData = getSampleGraph();
+      }
+      renderAll();
+    }
+
+    function getSampleGraph() {
+      return {
+        version: "1.1",
+        currentBranch: "main",
+        branches: [
+          { name: "main", status: "active", nodes: ["n_001", "n_002", "n_003", "n_005"] },
+          { name: "experiment", status: "merged", parentNode: "n_003", nodes: ["n_004"] }
+        ],
+        sessions: [{
+          nodes: [
+            { id: "n_001", raw: "dx:@samples.csv", status: "complete", inputs: ["samples.csv"] },
+            { id: "n_002", raw: "viz:heatmap ^", status: "complete", inputs: ["samples.csv"], outputs: ["heatmap.png"] },
+            { id: "n_003", raw: "ch:^ +cluster", status: "complete", inputs: ["heatmap.png"], outputs: ["heatmap_clustered.png"] },
+            { id: "n_004", raw: "ch:^ +pca", status: "complete", inputs: ["heatmap.png"], outputs: ["pca_plot.png"] },
+            { id: "n_005", raw: "steno:transcript +generate", status: "complete", outputs: ["transcripts/"] }
+          ]
+        }]
+      };
+    }
+
+    // ============================================
+    // Render All
+    // ============================================
+    function renderAll() {
+      renderBranch();
+      renderCommandRoll();
+      renderFileActivity();
+      renderSpiral();
+    }
+
+    // ============================================
+    // Render Branch
+    // ============================================
+    function renderBranch() {
+      document.getElementById('branchName').textContent = graphData.currentBranch;
+      const branch = graphData.branches.find(b => b.name === graphData.currentBranch);
+      const status = branch?.status || 'active';
+      document.getElementById('branchStatus').textContent = status;
+      document.getElementById('branchStatus').style.background =
+        status === 'merged' ? 'var(--verb-mk)' :
+        status === 'abandoned' ? 'var(--verb-rm)' : 'var(--node-complete)';
+
+      const allNodes = getAllNodes();
+      document.getElementById('nodeCount').textContent = `${allNodes.length} nodes`;
+      document.getElementById('branchCount').textContent = `${graphData.branches.length} branches`;
+    }
+
+    // ============================================
+    // Render Command Roll
+    // ============================================
+    function renderCommandRoll() {
+      const track = document.getElementById('nodesTrack');
+      const allNodes = getAllNodes();
+
+      // Calculate offset to center current node at playhead (65%)
+      const nodeWidth = 72 + 12; // width + gap
+      const offset = -currentNodeIndex * nodeWidth;
+      track.style.transform = `translateX(${offset}px)`;
+
+      track.innerHTML = allNodes.map((node, i) => {
+        const { verb, target } = parseCommand(node.raw);
+        const statusClass = i < currentNodeIndex ? 'complete' :
+                           i === currentNodeIndex ? 'active' : 'pending';
+        const verbClass = `verb-${verb}`;
+
+        return `
+          <div class="flow-node ${statusClass}"
+               onclick="selectNode(${i})"
+               data-index="${i}">
+            <span class="node-id">${node.id}</span>
+            <span class="node-verb ${verbClass}">${verb}</span>
+            <span class="node-target">${target}</span>
+            ${i < allNodes.length - 1 ? '<div class="node-connector"></div>' : ''}
+            <div class="detail-panel">
+              <div class="detail-command">${node.raw}</div>
+              <div class="detail-row">
+                <span class="detail-label">status</span>
+                <span class="detail-value">${node.status || 'pending'}</span>
+              </div>
+              ${node.inputs ? `<div class="detail-row">
+                <span class="detail-label">in</span>
+                <span class="detail-value">${node.inputs.join(', ')}</span>
+              </div>` : ''}
+              ${node.outputs ? `<div class="detail-row">
+                <span class="detail-label">out</span>
+                <span class="detail-value">${node.outputs.join(', ')}</span>
+              </div>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ============================================
+    // Render File Activity
+    // ============================================
+    function renderFileActivity() {
+      const grid = document.getElementById('fileGrid');
+      if (!grid) return;
+
+      // Convert Map to array
+      const files = [];
+      activeFiles.forEach((data, name) => {
+        files.push({ name, status: data.status });
+      });
+
+      // Add simulated files if running
+      if (isSimulating) {
+        const allNodes = getAllNodes();
+        const current = allNodes[currentNodeIndex];
+        if (current) {
+          if (current.inputs) {
+            current.inputs.forEach(f => {
+              const name = f.split('/').pop();
+              if (!files.find(x => x.name === name)) {
+                files.push({ name, status: 'reading' });
+              }
+            });
+          }
+          if (current.outputs) {
+            current.outputs.forEach(f => {
+              const name = f.split('/').pop();
+              if (!files.find(x => x.name === name)) {
+                files.push({ name, status: 'writing' });
+              }
+            });
+          }
+        }
+      }
+
+      if (files.length === 0) {
+        const statusText = wsConnected ? 'Connected - waiting for activity...' : 'Watching for changes...';
+        grid.innerHTML = `<span class="file-empty">${statusText}</span>`;
+        return;
+      }
+
+      const html = files.map(f => `
+        <div class="file-chip ${f.status}">
+          <div class="file-indicator"></div>
+          <span>${f.name}</span>
+        </div>
+      `).join('');
+
+      grid.innerHTML = html;
+    }
+
+    // ============================================
+    // Render Spiral
+    // ============================================
+    function renderSpiral() {
+      const view = document.getElementById('spiralView');
+      const allNodes = getAllNodes();
+
+      let ascii = '';
+      ascii += `<span style="color: var(--muted-foreground)">Session: ${graphData.currentBranch}</span>\n`;
+      ascii += '═'.repeat(35) + '\n\n';
+
+      const mainBranch = graphData.branches.find(b => b.name === 'main');
+      if (mainBranch) {
+        mainBranch.nodes.forEach((nodeId, i) => {
+          const node = findNode(nodeId);
+          const globalIndex = allNodes.findIndex(n => n.id === nodeId);
+          const isCurrent = globalIndex === currentNodeIndex;
+          const prefix = isCurrent ? '●' : '○';
+          const { verb, target } = node ? parseCommand(node.raw) : { verb: '?', target: '' };
+
+          ascii += `  ${prefix} <span class="spiral-node${isCurrent ? ' current' : ''}" onclick="selectNode(${globalIndex})">${nodeId}</span>`;
+          ascii += ` <span class="verb-${verb}">${verb}</span>`;
+          ascii += ` <span style="color: var(--muted-foreground)">${target}</span>\n`;
+
+          // Show branches
+          graphData.branches.forEach(branch => {
+            if (branch.parentNode === nodeId && branch.name !== 'main') {
+              ascii += `  │\n`;
+              const statusClass = branch.status === 'merged' ? 'spiral-merged' : 'spiral-branch';
+              ascii += `  ├─┬─ <span class="${statusClass}">${branch.name}</span>`;
+              ascii += ` <span style="color: var(--muted-foreground)">(${branch.status})</span>\n`;
+
+              branch.nodes.forEach((bNodeId, bi) => {
+                const bNode = findNode(bNodeId);
+                const bGlobalIndex = allNodes.findIndex(n => n.id === bNodeId);
+                const bIsCurrent = bGlobalIndex === currentNodeIndex;
+                const { verb: bVerb, target: bTarget } = bNode ? parseCommand(bNode.raw) : { verb: '?', target: '' };
+                const lastInBranch = bi === branch.nodes.length - 1;
+
+                ascii += `  │ ${lastInBranch ? '└' : '├'}─ <span class="spiral-node${bIsCurrent ? ' current' : ''}" onclick="selectNode(${bGlobalIndex})">${bNodeId}</span>`;
+                ascii += ` <span class="verb-${bVerb}">${bVerb}</span>`;
+                ascii += ` <span style="color: var(--muted-foreground)">${bTarget}</span>\n`;
+              });
+            }
+          });
+
+          if (i < mainBranch.nodes.length - 1) ascii += '  │\n';
+        });
+      }
+
+      ascii += '\n' + '═'.repeat(35);
+
+      view.innerHTML = ascii;
+    }
+
+    // ============================================
+    // Helpers
+    // ============================================
+    function getAllNodes() {
+      const nodes = [];
+      graphData.sessions.forEach(s => nodes.push(...s.nodes));
+      return nodes;
+    }
+
+    function findNode(id) {
+      for (const session of graphData.sessions) {
+        const node = session.nodes.find(n => n.id === id);
+        if (node) return node;
+      }
+      return null;
+    }
+
+    function parseCommand(raw) {
+      if (!raw) return { verb: '?', target: '' };
+      const match = raw.match(/^(\?)?([a-z]+):(.*)$/);
+      if (match) {
+        return { verb: match[2], target: match[3].substring(0, 15) };
+      }
+      return { verb: raw.split(':')[0], target: '' };
+    }
+
+    // ============================================
+    // Navigation
+    // ============================================
+    function selectNode(index) {
+      const allNodes = getAllNodes();
+      currentNodeIndex = Math.max(0, Math.min(index, allNodes.length - 1));
+      renderAll();
+    }
+
+    function previousNode() {
+      selectNode(currentNodeIndex - 1);
+    }
+
+    function nextNode() {
+      selectNode(currentNodeIndex + 1);
+    }
+
+    // ============================================
+    // Simulation
+    // ============================================
+    function toggleSimulation() {
+      isSimulating = !isSimulating;
+      const btn = document.getElementById('simBtn');
+      const liveDot = document.getElementById('liveDot');
+      const liveText = document.getElementById('liveText');
+
+      if (isSimulating) {
+        btn.innerHTML = '<span class="icon">⏸</span><span>Pause</span>';
+        liveDot.classList.add('active');
+        liveText.textContent = 'running';
+
+        // Auto-advance through nodes
+        simulationInterval = setInterval(() => {
+          const allNodes = getAllNodes();
+          if (currentNodeIndex < allNodes.length - 1) {
+            nextNode();
+          } else {
+            // Loop back
+            selectNode(0);
+          }
+        }, 2000);
+      } else {
+        btn.innerHTML = '<span class="icon">▶</span><span>Simulate</span>';
+        liveDot.classList.remove('active');
+        liveText.textContent = 'idle';
+        clearInterval(simulationInterval);
+        activeFiles.clear();  // Fix: was reassigning to [] which broke the Map
+        renderFileActivity();
+      }
+    }
+
+    // ============================================
+    // Polling (Watch for changes)
+    // ============================================
+    function togglePolling() {
+      isPolling = !isPolling;
+      const btn = document.getElementById('pollBtn');
+      const status = document.getElementById('pollStatus');
+
+      if (isPolling) {
+        btn.innerHTML = '<span class="icon">⏹</span><span>Stop</span>';
+        status.textContent = 'polling: 2s';
+        status.classList.add('active');
+
+        pollInterval = setInterval(async () => {
+          await loadGraph();
+        }, 2000);
+      } else {
+        btn.innerHTML = '<span class="icon">↻</span><span>Watch</span>';
+        status.textContent = 'polling: off';
+        status.classList.remove('active');
+        clearInterval(pollInterval);
+      }
+    }
+
+    // ============================================
+    // Start
+    // ============================================
+    init();
+  </script>
+</body>
+</html>

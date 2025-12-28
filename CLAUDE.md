@@ -45,15 +45,22 @@ Executes using available tools, returns results
 
 ```
 steno-graph/
-├── .claude/skills/steno/   # THE SKILL - source of truth
-├── .steno/                 # Session graph (created on use)
+├── .claude/
+│   ├── skills/steno/       # THE SKILL - source of truth
+│   ├── hooks/              # Claude Code hooks for steno-flow
+│   │   ├── flow-pre.sh     # Pre-tool event hook
+│   │   ├── flow-post.sh    # Post-tool event hook
+│   │   └── flow-stop.sh    # Command complete hook
+│   └── settings.json       # Hook configuration
+├── .steno/
+│   ├── current-session.json  # Active session state
+│   ├── flow-server.cjs       # WebSocket relay server
+│   ├── flow.html             # Real-time visualization dashboard
+│   └── start-flow.sh         # Server startup script
 ├── examples/               # Usage vignettes
-│   ├── grammar-basics/     # Core grammar demonstration
-│   └── webdev-api/         # Web development workflow
 ├── design/                 # Active design docs
-│   ├── biostack-integration.md  # Backend integration design
-│   └── future-analytics.md      # ggterm ideas
-├── archive/                # Historical approaches
+│   ├── steno-flow.md       # Real-time visualization design
+│   └── biostack-integration.md
 ├── CHEATSHEET.md           # Quick reference
 └── README.md               # User-facing docs
 ```
@@ -67,10 +74,11 @@ steno-graph/
 - Modes: ?plan, ?sketch, ?challenge, ?explore
 
 ### Session Tracking
-- Command history with `.steno/graph.json`
+- Command history with `.steno/current-session.json`
 - Stale detection and refresh
 - Bookmarks for reference points
 - ASCII graph visualization
+- Real-time updates via steno-flow
 
 ### Branching
 - fork/switch/compare/merge/abandon
@@ -91,6 +99,41 @@ steno-graph/
 - Transcripts: `steno:transcript +generate` / `+all` (integrates claude-code-transcripts)
 - Rich export: `steno:export .html +transcript` (interactive HTML with search)
 - Theming: `steno:transcript +theme` (shadcn-inspired, light/dark mode)
+
+### Steno Flow (Real-time Visualization)
+
+Inspired by Strudel REPL's live coding visualizations, steno-flow provides real-time feedback during Claude Code sessions. Instead of waiting passively, you can "surf" your coding session.
+
+**Components:**
+- **Command Roll**: Horizontal timeline of steno commands with verb-colored nodes
+- **File Activity**: Shows files being read/written as animated chips
+- **Diff Scope**: Oscilloscope-style waveform showing tool activity intensity
+- **Session Graph**: ASCII tree of all nodes and branches
+
+**Starting Steno Flow:**
+```bash
+# Terminal 1: Start the flow server
+.steno/start-flow.sh
+
+# Terminal 2: Open dashboard
+open http://localhost:3847
+
+# Terminal 3: Run Claude Code with hooks enabled
+claude --dangerously-skip-permissions
+```
+
+**Architecture:**
+```
+Claude Code → Hooks (pre/post/stop) → HTTP POST → Flow Server → WebSocket → Browser
+```
+
+The hooks in `.claude/hooks/` fire on every tool use, sending events to the flow server on port 3847. The browser connects via WebSocket for real-time updates.
+
+**Key Files:**
+- `.claude/hooks/flow-*.sh` — Event capture hooks
+- `.claude/settings.json` — Hook configuration
+- `.steno/flow-server.cjs` — Node.js WebSocket relay
+- `.steno/flow.html` — Dashboard UI
 
 ## Development Lessons
 
@@ -185,7 +228,11 @@ steno:diff n_001 n_002
 | File | Purpose |
 |------|---------|
 | `.claude/skills/steno/SKILL.md` | Grammar + behavior (edit here) |
+| `.claude/hooks/flow-*.sh` | Claude Code hooks for steno-flow |
+| `.claude/settings.json` | Hook configuration |
+| `.steno/current-session.json` | Active session state |
+| `.steno/flow-server.cjs` | WebSocket relay server |
+| `.steno/flow.html` | Real-time visualization dashboard |
 | `CHEATSHEET.md` | User quick reference |
 | `README.md` | User-facing documentation |
-| `.steno/graph.json` | Session state |
-| `design/biostack-integration.md` | Backend integration design |
+| `design/steno-flow.md` | Flow visualization design doc |
