@@ -82,6 +82,7 @@ stat:ttest @a.csv @b.csv  # Statistical test
 | `steno:graph` | Show workflow as ASCII tree |
 | `steno:new-session` | Archive and start fresh |
 | `steno:clear` | Clear current session |
+| `steno:reset!` | Reset all state (destructive) |
 
 ## Branching
 
@@ -94,6 +95,17 @@ stat:ttest @a.csv @b.csv  # Statistical test
 | `merge:name` | Adopt branch into current |
 | `abandon:name` | Discard branch |
 
+## Error Messages
+
+| Error | Meaning |
+|-------|---------|
+| `⚠ Missing target` | Command needs a file or reference |
+| `⚠ File not found` | Check path, see suggestions |
+| `⚠ No previous output` | Use ^ only after other commands |
+| `⚠ Bookmark not found` | Check steno:history for names |
+| `⚠ Unknown verb` | Typo? See verb list above |
+| `⚠ Branch not found` | Check steno:branches |
+
 ## Tips
 
 - **Be terse**: `dx:@f.csv` not "please analyze f.csv"
@@ -101,3 +113,4 @@ stat:ttest @a.csv @b.csv  # Statistical test
 - **Bookmark often**: `steno:bookmark baseline` for later
 - **Use ?**: When unsure, add `?` to ask first
 - **Trust Claude**: It generalizes beyond defined verbs
+- **Check errors**: Failed commands log to history

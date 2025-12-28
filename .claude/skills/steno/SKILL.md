@@ -197,6 +197,7 @@ SESSION:
   steno:refresh   - re-run stale commands
   steno:bookmark  - save reference
   steno:new-session - archive and start fresh
+  steno:reset     - clear all state (requires !)
 ```
 
 ### steno:history
@@ -617,6 +618,175 @@ When you see `~deep`:
 - Think through the problem thoroughly
 - Consider edge cases
 - Explore alternatives before acting
+
+---
+
+## Error Handling
+
+When commands fail or are malformed, respond with clear, actionable messages. Never silently fail or guess user intent.
+
+### Error Format
+
+```
+> [command]
+
+⚠ [error type]: [what went wrong]
+  [suggestion or fix]
+```
+
+### Empty/Missing Targets
+
+| Error | Message |
+|-------|---------|
+| `dx:` (no target) | `⚠ Missing target: dx: requires a file or reference. Try: dx:@file.csv` |
+| `ch:` (no target) | `⚠ Missing target: ch: requires something to change. Try: ch:@file.py +feature` |
+| `fork:` (no name) | `⚠ Missing branch name: fork: requires a name. Try: fork:experiment` |
+| `switch:` (no name) | `⚠ Missing branch name: switch: requires a name. Try: switch:main` |
+
+### File Not Found
+
+```
+> dx:@missing.csv
+
+⚠ File not found: missing.csv
+  Did you mean: data.csv, samples.csv?
+  Or create it: mk:@missing.csv
+```
+
+**Behavior:**
+1. Check if file exists at the path
+2. If not, look for similar filenames (fuzzy match)
+3. Suggest alternatives or offer to create
+
+### Invalid Reference: `^` (No Previous)
+
+```
+> ch:^ +normalize
+
+⚠ No previous output: ^ refers to the last command's output, but no commands have run yet.
+  Start with: dx:@file.csv
+  Then use ^ to chain: ch:^ +normalize
+```
+
+**Behavior:**
+1. Check `.steno/current-session.json` for nodes
+2. If empty, explain ^ and suggest starting fresh
+3. If nodes exist but last has no outputs, use its inputs
+
+### Bookmark Not Found
+
+```
+> stat:ttest @baseline @new-data
+
+⚠ Bookmark not found: @baseline
+  Available bookmarks: baseline-pca, clean-data
+
+  Run steno:history to see past commands.
+```
+
+**Behavior:**
+1. Check if @name is a file first
+2. Check bookmarks in graph.json
+3. List available bookmarks to help user
+
+### Unknown Verb
+
+```
+> analyze:@data.csv
+
+⚠ Unknown verb: analyze
+  Did you mean: dx (diagnose/analyze)?
+
+  Available verbs: dx mk ch rm fnd viz stat ts doc
+```
+
+**Behavior:**
+1. Check against known verbs
+2. Suggest closest match
+3. List all verbs for reference
+
+### Incomplete Modifiers
+
+| Input | Message |
+|-------|---------|
+| `mk:api +` | `⚠ Incomplete modifier: + requires a feature name. Try: +auth` |
+| `ch:@file -` | `⚠ Incomplete modifier: - requires something to exclude. Try: -logging` |
+| `mk:api .` | `⚠ Incomplete flag: . requires a flag name. Try: .ts or .dry` |
+
+### Branching Errors
+
+| Error | Message |
+|-------|---------|
+| `fork:main` | `⚠ Cannot fork main: main is the base branch. Choose a different name.` |
+| `fork:existing` (exists) | `⚠ Branch exists: "existing" already exists. Switch to it: switch:existing` |
+| `switch:nope` (missing) | `⚠ Branch not found: "nope". Available: main, experiment, caching` |
+| `merge:main` | `⚠ Cannot merge main: main is the current branch. Switch away first.` |
+| `merge:done` (already merged) | `⚠ Already merged: "done" was merged at Dec 27, 2025. See steno:graph.` |
+| `abandon:main` | `⚠ Cannot abandon main: main is the base branch and cannot be abandoned.` |
+| `abandon:merged` (already merged) | `⚠ Cannot abandon: "merged" was already merged. Use steno:graph to view history.` |
+
+### State Recovery
+
+If `.steno/graph.json` is corrupted or missing:
+
+```
+> dx:@file.csv
+
+⚠ Session state corrupted: .steno/graph.json could not be parsed.
+
+  Options:
+  1. steno:reset - Reset to clean state (preserves no history)
+  2. Manually fix .steno/graph.json
+
+  Proceeding without session tracking...
+```
+
+**Behavior:**
+1. Try to parse graph.json
+2. If invalid JSON, warn user but don't block the command
+3. Execute command without logging
+4. Offer steno:reset to start fresh
+
+### Logging Failed Commands
+
+Failed commands should still be logged with status "failed":
+
+```json
+{
+  "id": "n_005",
+  "timestamp": "2025-12-27T15:30:00Z",
+  "raw": "dx:@missing.csv",
+  "status": "failed",
+  "error": "File not found: missing.csv",
+  "inputs": [],
+  "outputs": [],
+  "summary": "Failed: file not found"
+}
+```
+
+This preserves history for debugging and allows `steno:history` to show what was attempted.
+
+### steno:reset
+
+Reset session state to clean:
+
+```
+> steno:reset
+
+⚠ This will clear all session history and bookmarks.
+  Branches will be reset to main only.
+
+  Type "steno:reset!" to confirm.
+```
+
+```
+> steno:reset!
+
+Session reset.
+- Cleared: 15 nodes, 3 branches, 2 bookmarks
+- Fresh: .steno/graph.json initialized
+- Ready: main branch active
+```
 
 ---
 
