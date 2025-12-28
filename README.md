@@ -1,10 +1,18 @@
-# Steno-Graph
+<p align="center">
+  <img src="assets/steno-graph-logo.jpeg" alt="Steno-Graph Logo" width="200">
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/shandley/stenograph/releases)
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-blueviolet.svg)](https://claude.com/code)
+<h1 align="center">Steno-Graph</h1>
 
-A stenographic grammar for efficient human-AI coding collaboration.
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+  <a href="https://github.com/shandley/stenograph/releases"><img src="https://img.shields.io/badge/version-1.2.0-blue.svg" alt="Version"></a>
+  <a href="https://claude.com/code"><img src="https://img.shields.io/badge/Claude%20Code-compatible-blueviolet.svg" alt="Claude Code"></a>
+</p>
+
+<p align="center">
+  <strong>A stenographic grammar for efficient human-AI coding collaboration.</strong>
+</p>
 
 ## The Idea
 
