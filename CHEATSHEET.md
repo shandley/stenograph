@@ -157,8 +157,10 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 | `steno:transcript ^` | Open transcript for last node |
 | `steno:transcript +status` | Show link configuration |
 | `steno:transcript +clear` | Remove transcript links |
+| `steno:transcript +theme` | Apply shadcn theme to transcripts |
 
 Requires [claude-code-transcripts](https://github.com/simonw/claude-code-transcripts) for generation.
+Theme CSS: `assets/steno-transcript.css` (light/dark mode, OKLch colors).
 
 ## Parameters
 

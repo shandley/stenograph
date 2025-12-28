@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-  <a href="https://github.com/shandley/stenograph/releases"><img src="https://img.shields.io/badge/version-1.5.0-blue.svg" alt="Version"></a>
+  <a href="https://github.com/shandley/stenograph/releases"><img src="https://img.shields.io/badge/version-1.6.0-blue.svg" alt="Version"></a>
   <a href="https://claude.com/code"><img src="https://img.shields.io/badge/Claude%20Code-compatible-blueviolet.svg" alt="Claude Code"></a>
 </p>
 
@@ -153,6 +153,7 @@ steno:bookmark baseline  # Save for later
 | `steno:diff n_001 n_005` | Compare node outputs |
 | `steno:transcript +generate` | Generate session transcripts |
 | `steno:export .html +transcript` | Interactive HTML with search |
+| `steno:transcript +theme` | Apply shadcn theme to transcripts |
 
 ## Branching
 
