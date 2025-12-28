@@ -22,6 +22,8 @@
 | Syntax | Meaning | Example |
 |--------|---------|---------|
 | `@file` | File reference | `dx:@src/app.ts` |
+| `@name` | Bookmark reference | `viz:pca @baseline` |
+| `^` | Previous output | `ch:^ +normalize` |
 | `+feat` | Add/include | `mk:api +auth +cache` |
 | `-thing` | Exclude | `ch:@config -logging` |
 | `.flag` | Apply flag | `mk:component .ts` |
@@ -67,9 +69,21 @@ stat:ttest @a.csv @b.csv  # Statistical test
 ?challenge current-auth   # Critique approach
 ```
 
+## Session Commands
+
+| Command | Action |
+|---------|--------|
+| `steno:history` | Show command history |
+| `steno:stale` | Check for stale outputs |
+| `steno:refresh` | Re-run stale commands |
+| `steno:bookmark <name>` | Save last as reference |
+| `steno:status` | Show session status |
+| `steno:clear` | Clear current session |
+
 ## Tips
 
 - **Be terse**: `dx:@f.csv` not "please analyze f.csv"
 - **Chain with ^**: Reference previous result
+- **Bookmark often**: `steno:bookmark baseline` for later
 - **Use ?**: When unsure, add `?` to ask first
 - **Trust Claude**: It generalizes beyond defined verbs
