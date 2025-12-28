@@ -88,6 +88,7 @@ steno-graph/
 - Replay: `steno:replay n_001..n_005`
 - Templates: `steno:template react-component Button`
 - Diff: `steno:diff @baseline ^`
+- Transcripts: `steno:transcript n_005` (links to claude-code-transcripts)
 
 ## Development Lessons
 
@@ -127,7 +128,7 @@ Steno-graph is a grammar, not an execution engine. If Claude doesn't have access
 **Core verbs**: dx, mk, ch, rm, fnd, viz, stat, ts, doc
 **Branching**: fork, switch, compare, merge, abandon
 **Session**: steno:history, steno:graph, steno:bookmark, steno:undo, steno:redo, steno:export, steno:import
-**Power**: steno:alias, steno:search, steno:replay, steno:template, steno:diff
+**Power**: steno:alias, steno:search, steno:replay, steno:template, steno:diff, steno:transcript
 
 See `CHEATSHEET.md` for complete reference.
 

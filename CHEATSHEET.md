@@ -140,6 +140,20 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 | `steno:diff +files` | Include file content diff |
 | `steno:diff +stats` | Focus on statistical results |
 
+## Transcripts
+
+| Command | Action |
+|---------|--------|
+| `steno:transcript` | Show status and setup help |
+| `steno:transcript +link <path>` | Link to local archive |
+| `steno:transcript +link <url>` | Link to remote archive |
+| `steno:transcript n_XXX` | Open transcript at node |
+| `steno:transcript @bookmark` | Open transcript at bookmark |
+| `steno:transcript ^` | Open transcript for last node |
+| `steno:transcript +status` | Show link configuration |
+
+Integrates with [claude-code-transcripts](https://github.com/simonw/claude-code-transcripts).
+
 ## Parameters
 
 | Syntax | Meaning |

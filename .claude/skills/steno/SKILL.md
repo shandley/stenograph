@@ -260,6 +260,7 @@ POWER:
   steno:replay    - re-run command sequences
   steno:template  - reusable command workflows
   steno:diff      - compare nodes/branches/bookmarks
+  steno:transcript - link to conversation transcripts
 ```
 
 ### steno:history
@@ -1322,6 +1323,157 @@ Top differences:
 6. `+files` includes actual content comparison
 7. `+stats` extracts and compares numerical results
 
+### steno:transcript
+
+Link steno nodes to conversation transcripts for full context.
+
+Integrates with [claude-code-transcripts](https://github.com/simonw/claude-code-transcripts) to connect terse steno commands with complete conversation history.
+
+**Check transcript tool status:**
+
+```
+> steno:transcript
+
+Transcript status:
+  claude-code-transcripts: not installed
+  Archive link: not configured
+
+Setup options:
+  1. Install: pip install claude-code-transcripts
+  2. Or link existing archive: steno:transcript +link <path>
+```
+
+**Link to existing archive:**
+
+```
+> steno:transcript +link ./archive/
+
+Scanning archive for sessions...
+  Found: 5 sessions, 127 messages
+
+Linking steno nodes to transcript positions...
+  Matched: 23 nodes across 2 sessions
+
+Links saved to .steno/transcript-links.json
+
+Use steno:transcript n_XXX to open transcript at node.
+```
+
+**Link to remote archive:**
+
+```
+> steno:transcript +link https://example.com/transcripts/
+
+Remote transcript base URL set.
+Links will open: https://example.com/transcripts/{session}.html#{node}
+
+Saved to .steno/transcript-links.json
+```
+
+**View transcript for specific node:**
+
+```
+> steno:transcript n_005
+
+Opening transcript for n_005...
+  Session: sess_20251228_143000
+  Command: ch:@api.ts +auth
+
+Opening: ./archive/sess_20251228.html#n_005
+```
+
+**View transcript for bookmark:**
+
+```
+> steno:transcript @baseline
+
+Opening transcript for bookmark "baseline" (n_003)...
+  Session: sess_20251228_143000
+  Command: dx:@api.ts ~deep
+
+Opening: ./archive/sess_20251228.html#n_003
+```
+
+**View current node transcript:**
+
+```
+> steno:transcript ^
+
+Opening transcript for last node (n_012)...
+Opening: ./archive/sess_20251228.html#n_012
+```
+
+**Show transcript links status:**
+
+```
+> steno:transcript +status
+
+Transcript configuration:
+  Base URL: ./archive/
+  Sessions linked: 3
+  Nodes linked: 47
+
+Recent links:
+  n_010: sess_20251228.html#n_010
+  n_011: sess_20251228.html#n_011
+  n_012: sess_20251228.html#n_012
+```
+
+**Clear transcript links:**
+
+```
+> steno:transcript +clear
+
+Cleared transcript links.
+  Removed: .steno/transcript-links.json
+```
+
+**Command options:**
+
+| Command | Action |
+|---------|--------|
+| `steno:transcript` | Show status and setup help |
+| `steno:transcript +link <path>` | Link to local archive directory |
+| `steno:transcript +link <url>` | Link to remote archive URL |
+| `steno:transcript n_XXX` | Open transcript at specific node |
+| `steno:transcript @bookmark` | Open transcript at bookmarked node |
+| `steno:transcript ^` | Open transcript for last node |
+| `steno:transcript +status` | Show link configuration |
+| `steno:transcript +clear` | Remove transcript links |
+
+**Behavior:**
+
+1. Check for transcript configuration in `.steno/transcript-links.json`
+2. For `+link`: Scan archive directory or store base URL
+3. For node references: Look up URL and open in browser
+4. Node anchors use format: `{base}/{session}.html#{node_id}`
+
+**Transcript links file format:**
+
+```json
+{
+  "version": "1.0",
+  "base_url": "./archive/",
+  "type": "local",
+  "linked_at": "2025-12-28T15:30:00Z",
+  "sessions": {
+    "sess_20251228_143000": {
+      "file": "sess_20251228.html",
+      "nodes": ["n_001", "n_002", "n_003"]
+    }
+  }
+}
+```
+
+**Opening transcripts:**
+
+When opening a transcript:
+1. Look up node's session in transcript-links.json
+2. Construct URL: `{base_url}/{session_file}#{node_id}`
+3. Open in default browser (or display URL if browser unavailable)
+
+For local paths, use `open` (macOS), `xdg-open` (Linux), or `start` (Windows).
+
 ---
 
 ## Branching
@@ -2104,6 +2256,78 @@ Running template "api-endpoint"...
 ⚠ Unknown parameter: "unknown"
   Valid parameters for "test": file, coverage
   Usage: test file:<path> [coverage:<level>]
+```
+
+### Transcript Errors
+
+**Not configured:**
+```
+> steno:transcript n_005
+
+⚠ Transcripts not configured.
+  Link an archive first: steno:transcript +link <path>
+
+  Options:
+  1. Generate archive: pip install claude-code-transcripts
+     Then: claude-code-transcripts all -o archive/
+  2. Link existing: steno:transcript +link ./archive/
+```
+
+**Archive not found:**
+```
+> steno:transcript +link ./missing-archive/
+
+⚠ Archive not found: ./missing-archive/
+  Directory does not exist.
+
+  Generate with: claude-code-transcripts all -o ./missing-archive/
+```
+
+**No HTML files in archive:**
+```
+> steno:transcript +link ./empty-folder/
+
+⚠ No transcripts found in ./empty-folder/
+  Expected HTML files from claude-code-transcripts.
+
+  Generate with: claude-code-transcripts all -o ./empty-folder/
+```
+
+**Node not found:**
+```
+> steno:transcript n_999
+
+⚠ Node not found: n_999
+  Use steno:history to see available nodes.
+```
+
+**Node not linked:**
+```
+> steno:transcript n_005
+
+⚠ No transcript link for n_005.
+  Node exists but wasn't matched to a transcript session.
+
+  Try: steno:transcript +link <path> to rescan archive.
+```
+
+**Invalid URL:**
+```
+> steno:transcript +link not-a-url
+
+⚠ Invalid path or URL: not-a-url
+  Use a local path: steno:transcript +link ./archive/
+  Or a URL: steno:transcript +link https://example.com/archive/
+```
+
+**Cannot open browser:**
+```
+> steno:transcript n_005
+
+Transcript URL: ./archive/sess_20251228.html#n_005
+
+⚠ Could not open browser automatically.
+  Open the URL above manually, or set BROWSER environment variable.
 ```
 
 ### State Recovery

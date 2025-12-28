@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-  <a href="https://github.com/shandley/stenograph/releases"><img src="https://img.shields.io/badge/version-1.2.0-blue.svg" alt="Version"></a>
+  <a href="https://github.com/shandley/stenograph/releases"><img src="https://img.shields.io/badge/version-1.3.0-blue.svg" alt="Version"></a>
   <a href="https://claude.com/code"><img src="https://img.shields.io/badge/Claude%20Code-compatible-blueviolet.svg" alt="Claude Code"></a>
 </p>
 
@@ -151,6 +151,7 @@ steno:bookmark baseline  # Save for later
 | `steno:replay n_001..n_005` | Re-run command sequence |
 | `steno:template name` | Run reusable workflow |
 | `steno:diff n_001 n_005` | Compare node outputs |
+| `steno:transcript n_005` | View conversation context |
 
 ## Branching
 
