@@ -8,15 +8,24 @@ Court stenographers capture complex proceedings at 225+ WPM using compressed, st
 
 Instead of:
 ```
-"Please analyze the samples.csv file and give me a summary of the data"
+"Please look at the app.ts file and add error handling to all the async functions"
 ```
 
 Type:
 ```
-dx:@samples.csv
+ch:@app.ts +error-handling
 ```
 
 Claude learns the grammar and executes directly.
+
+## What Steno-Graph Is
+
+- **A grammar** — Terse, structured commands for expressing intent
+- **A workflow tracker** — Session history, branching, bookmarks
+- **Domain-agnostic** — Works for any coding task
+- **A skill** — Claude learns and interprets the patterns
+
+Steno-graph is about **how you communicate**, not what Claude can do. Execution depends on Claude's available tools.
 
 ## Installation
 
@@ -37,11 +46,11 @@ cp -r stenograph/.claude/skills/steno ~/.claude/skills/
 In Claude Code, type steno commands directly:
 
 ```bash
-dx:@data.csv                  # Analyze a file
-mk:api +auth +cache           # Create something with features
-ch:@login.py +validation      # Modify existing code
-viz:pca @samples.csv          # Visualize data
-?plan microservices           # Plan before acting
+dx:@src/app.ts            # Explore a file
+mk:api +auth +cache       # Create with features
+ch:@config.json +logging  # Modify existing code
+ts:@utils.test.js         # Run tests
+?plan refactor            # Plan before acting
 ```
 
 ## Grammar
@@ -60,8 +69,6 @@ viz:pca @samples.csv          # Visualize data
 | `ch` | Change/modify | `ch:@login.py +validation` |
 | `rm` | Remove/delete | `rm:@deprecated` |
 | `fnd` | Find/search | `fnd:auth-handlers` |
-| `viz` | Visualize | `viz:pca @data.csv` |
-| `stat` | Statistics | `stat:ttest @a @b` |
 | `ts` | Test | `ts:@utils.ts` |
 | `doc` | Document | `doc:@api/` |
 
@@ -70,10 +77,11 @@ viz:pca @samples.csv          # Visualize data
 | Syntax | Meaning | Example |
 |--------|---------|---------|
 | `@file` | File reference | `dx:@src/app.ts` |
-| `^` | Previous output | `ch:^ +normalize` |
+| `^` | Previous output | `ch:^ +refactor` |
+| `@branch:^` | Cross-branch ref | `compare @main:^ @feature:^` |
 | `+feat` | Add/include | `mk:api +auth +cache` |
-| `-thing` | Exclude | `ch:@config -logging` |
-| `.flag` | Apply flag | `mk:component .ts` |
+| `-thing` | Exclude | `ch:@config -secrets` |
+| `.flag` | Apply flag | `mk:component .tsx` |
 
 ### Precision
 
@@ -97,10 +105,10 @@ viz:pca @samples.csv          # Visualize data
 Steno tracks commands for workflow continuity:
 
 ```bash
-dx:@samples.csv              # Analyze (saved as n_001)
-ch:^ +normalize              # ^ = previous output
-viz:heatmap ^                # Chain continues
-steno:bookmark baseline      # Save for later
+dx:@src/app.ts           # Explore (saved as n_001)
+ch:^ +error-handling     # ^ = previous output
+ch:^ +logging            # Chain continues
+steno:bookmark baseline  # Save for later
 ```
 
 ### Session Commands
@@ -108,10 +116,12 @@ steno:bookmark baseline      # Save for later
 | Command | Action |
 |---------|--------|
 | `steno:history` | Show command history |
-| `steno:stale` | Check for stale outputs |
-| `steno:refresh` | Re-run stale commands |
-| `steno:bookmark <name>` | Save as reference |
 | `steno:graph` | Show workflow as tree |
+| `steno:bookmark <name>` | Save as reference |
+| `steno:undo` | Undo last command |
+| `steno:redo` | Redo undone command |
+| `steno:export` | Export workflow |
+| `steno:import` | Import workflow |
 
 ## Branching
 
@@ -129,32 +139,37 @@ abandon:experiment           # Discard it
 
 ## Examples
 
-### Data Analysis
+### Code Exploration
 ```bash
-dx:@samples.csv                    # Explore
-ch:^ +normalize                    # Transform
-viz:pca ^                          # Visualize
-stat:ttest @treated @control       # Test
+dx:@src/                       # Explore directory
+dx:@app.ts ~deep               # Deep analysis
+fnd:TODO                       # Find all TODOs
 ```
 
-### Code Development
+### Code Modification
 ```bash
-mk:api +auth +rate-limit .ts       # Create
-ch:@login.py +validation           # Enhance
-ts:@utils.ts                       # Test
-?plan refactor-auth ~deep          # Plan with deep thinking
+ch:@server.js +validation      # Add validation
+ch:@api.ts +error-handling     # Add error handling
+mk:middleware/auth.js +jwt     # Create new file
 ```
 
 ### Workflow with Branching
 ```bash
-dx:@codebase                       # Understand
-fork:risky-refactor                # Safe branch
-ch:@auth.ts +complete-rewrite      # Try it
-ts:@auth.ts                        # Test
+dx:@codebase                   # Understand
+fork:risky-refactor            # Safe branch
+ch:@auth.ts +rewrite           # Try it
+ts:@auth.test.ts               # Test
 # If good:
-merge:risky-refactor               # Adopt
+merge:risky-refactor           # Adopt
 # If bad:
-abandon:risky-refactor             # Discard
+abandon:risky-refactor         # Discard
+```
+
+### Planning
+```bash
+?plan microservices +docker    # Plan architecture
+?sketch auth-flow              # Draft implementation
+?challenge current-approach    # Critique existing code
 ```
 
 ## Why It Works
@@ -166,12 +181,14 @@ abandon:risky-refactor             # Discard
 
 ## Philosophy
 
-> *"If you're typing, you're doing it wrong."*
+> *"Minimal keystrokes, maximum precision."*
 
-Minimal keystrokes, maximum precision, direct execution. Steno-graph is a shared language between you and Claude that enables flow.
+Steno-graph is a shared language between you and Claude that enables flow state coding.
 
 ---
 
 See [CHEATSHEET.md](CHEATSHEET.md) for quick reference.
+
+See [examples/](examples/) for usage vignettes.
 
 *Structure in, intelligence where needed.*

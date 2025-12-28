@@ -10,16 +10,31 @@ Court stenographers capture complex proceedings at 225+ WPM using compressed, st
 
 The goal is **flow state**, not interrupt-driven batch processing.
 
+## What Steno-Graph Is (and Isn't)
+
+**Steno-graph IS:**
+- A terse grammar for expressing intent to Claude
+- A workflow tracking system with branching and bookmarks
+- Domain-agnostic (works for any coding task)
+- A skill that Claude learns and interprets
+
+**Steno-graph IS NOT:**
+- An execution engine or computational backend
+- A replacement for actual tools (R, Python, etc.)
+- A guarantor of computational correctness
+
+Claude interprets steno commands using its available tools. The quality of execution depends on what Claude can actually do, not on steno-graph itself.
+
 ## Architecture: Skill-First
 
 **Key insight**: Claude can learn the grammar via a skill and parse/execute directly. No preprocessing, no daemon, no separate parser needed.
 
 ```
-You type:     dx:@samples.csv
+You type:     dx:@app.ts
      ↓
 Claude recognizes the pattern (via skill)
      ↓
-Executes directly, returns results
+Executes using available tools, returns results
 ```
 
 ### Source of Truth
@@ -32,14 +47,40 @@ Executes directly, returns results
 steno-graph/
 ├── .claude/skills/steno/   # THE SKILL - source of truth
 ├── .steno/                 # Session graph (created on use)
-├── spec/                   # Grammar reference (TypeScript)
 ├── examples/               # Usage vignettes
+│   ├── grammar-basics/     # Core grammar demonstration
+│   └── webdev-api/         # Web development workflow
 ├── design/                 # Active design docs
-│   └── future-analytics.md # ggterm integration ideas
+│   ├── biostack-integration.md  # Backend integration design
+│   └── future-analytics.md      # ggterm ideas
 ├── archive/                # Historical approaches
 ├── CHEATSHEET.md           # Quick reference
 └── README.md               # User-facing docs
 ```
+
+## Features
+
+### Core Grammar
+- 9 verbs: dx, mk, ch, rm, fnd, viz, stat, ts, doc
+- Modifiers: @file, ^, +add, -exclude, .flag
+- Precision: ~ (flexible), ! (exact), ? (ask), ~deep
+- Modes: ?plan, ?sketch, ?challenge, ?explore
+
+### Session Tracking
+- Command history with `.steno/graph.json`
+- Stale detection and refresh
+- Bookmarks for reference points
+- ASCII graph visualization
+
+### Branching
+- fork/switch/compare/merge/abandon
+- Explore alternatives without losing work
+- Lightweight (metadata-only, not file state)
+
+### Advanced Features
+- Cross-branch references: `@branch:^`, `@branch:n_001`
+- Undo/redo: `steno:undo`, `steno:redo`
+- Export/import: `steno:export`, `steno:import`
 
 ## Development Lessons
 
@@ -60,31 +101,15 @@ steno-graph/
 
 **Problem**: `compare:main experiment` was interpreted as git command.
 
-**Fix**: Explicitly list branching verbs in skill description and trigger patterns:
-```markdown
-description: ...Triggers on verb-colon-target patterns (dx, mk, ch, viz, stat, fork, switch, compare, merge, abandon)...
-
-**Trigger patterns:**
-- fork:name - create branch
-- switch:name - switch branch
-- compare:branch-a branch-b - compare branches
-- merge:branch - adopt branch
-- abandon:branch - discard branch
-```
+**Fix**: Explicitly list branching verbs in skill description and trigger patterns.
 
 ### 3. Track-Only Branching
 
 Branches track commands and metadata, not file states. Files stay as-is when switching branches. Use git for file state management if needed.
 
-### 4. Session Graph Structure
+### 4. Execution Reality
 
-```
-.steno/
-├── graph.json           # All sessions, bookmarks, branches
-└── current-session.json # Active session (git-ignored)
-```
-
-Nodes track: id, timestamp, raw command, status, inputs, outputs, summary, branch.
+Steno-graph is a grammar, not an execution engine. If Claude doesn't have access to a tool (e.g., a statistical package), it will interpret the command using its training knowledge, not execute the actual algorithm. This is a Claude limitation, not a steno-graph limitation.
 
 ## Grammar Quick Reference
 
@@ -94,11 +119,19 @@ Nodes track: id, timestamp, raw command, status, inputs, outputs, summary, branc
 
 **Core verbs**: dx, mk, ch, rm, fnd, viz, stat, ts, doc
 **Branching**: fork, switch, compare, merge, abandon
-**Session**: steno:history, steno:stale, steno:refresh, steno:bookmark, steno:graph
+**Session**: steno:history, steno:stale, steno:refresh, steno:bookmark, steno:graph, steno:undo, steno:redo, steno:export, steno:import
 
 See `CHEATSHEET.md` for complete reference.
 
 ## Future Considerations
+
+### Backend Integration (design/biostack-integration.md)
+
+For domain-specific validated computation, steno-graph can integrate with execution backends like biostack. The design supports:
+- Backend detection and routing
+- Command translation
+- Provenance linking
+- Two-tier branching (lightweight vs. computational)
 
 ### ggterm Integration (design/future-analytics.md)
 
@@ -106,12 +139,6 @@ The session graph could power advanced visualizations:
 - `steno:timeline` — Command timeline
 - `steno:stats` — Workflow analytics
 - `steno:flow` — Dependency network
-
-Low priority — current tooling covers primary use cases.
-
-### Semantic Terminal (archived)
-
-The `archive/design/claude-code-terminal.md` explores a purpose-built Claude Code interface with semantic blocks instead of ANSI parsing. Separate project idea, not part of steno-graph.
 
 ## Testing Workflow
 
@@ -122,12 +149,14 @@ claude --dangerously-skip-permissions
 
 Test core commands:
 ```
-dx:@examples/vignette/samples.csv
+dx:@examples/grammar-basics/README.md
 steno:history
 steno:graph
 fork:test
 switch:main
 compare:main test
+steno:undo
+steno:export
 ```
 
 ## Key Files
@@ -138,3 +167,4 @@ compare:main test
 | `CHEATSHEET.md` | User quick reference |
 | `README.md` | User-facing documentation |
 | `.steno/graph.json` | Session state |
+| `design/biostack-integration.md` | Backend integration design |
