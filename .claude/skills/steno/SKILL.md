@@ -58,6 +58,7 @@ These are NOT git commands. They operate on the steno graph in .steno/graph.json
 |--------|---------|---------|
 | `@file.ext` | File reference | `dx:@data.csv` |
 | `@name` | Named reference or bookmark | `ch:@auth-module` |
+| `@branch:ref` | Cross-branch reference | `viz:diff @deseq2:^ @ancombc:^` |
 | `+feature` | Add/include | `mk:api +auth +cache` |
 | `-thing` | Exclude/without | `ch:@config -logging` |
 | `.flag` | Apply flag | `.ts` (TypeScript), `.dry` (dry run) |
@@ -175,6 +176,56 @@ stat:ttest @baseline-pca @new-samples
 # @new-samples is a file reference
 ```
 
+### Cross-Branch References (`@branch:ref`)
+
+Reference outputs from other branches without switching:
+
+| Syntax | Meaning |
+|--------|---------|
+| `@branch:^` | Last output from branch |
+| `@branch:n_001` | Specific node from branch |
+| `@branch:-1` | Last node (same as ^) |
+| `@branch:-2` | Second-to-last node |
+
+**Examples:**
+
+```
+# Compare results from two method branches
+stat:compare @deseq2:^ @ancombc:^
+
+# Use output from experiment branch on main
+switch:main
+viz:pca @experiment:n_004
+
+# Reference specific node from another branch
+ch:@caching:n_003 +redis
+```
+
+**Resolution process:**
+
+1. Parse `@branch:ref` format (colon separates branch from reference)
+2. Look up branch in `.steno/graph.json`
+3. Resolve the reference within that branch:
+   - `^` or `-1`: Last node on that branch
+   - `-N`: Nth from last on that branch
+   - `n_XXX`: Specific node ID
+4. Return that node's outputs (or inputs if no outputs)
+
+**Distinguishing from files:**
+
+The parser checks in order:
+1. Does `@path` exist as a file? → Use file
+2. Does `@name` contain `:` with valid branch? → Cross-branch ref
+3. Is `@name` a bookmark? → Bookmark ref
+4. Error: reference not found
+
+Example disambiguation:
+```
+@data:clean.csv      # File "data:clean.csv" if exists, else branch "data" node "clean.csv"
+@experiment:^        # Branch "experiment", last node
+@deseq2:n_018        # Branch "deseq2", node n_018
+```
+
 ---
 
 ## Session Commands
@@ -187,7 +238,7 @@ Show quick reference for steno commands.
 > steno:help
 
 VERBS: dx mk ch rm fnd viz stat ts doc
-REFS:  @file.csv  ^  @bookmark
+REFS:  @file.csv  ^  @bookmark  @branch:^
 MODS:  +add  -exclude  .flag  .flag:value
 PREC:  ~flexible  !exact  ?clarify  ~deep
 
@@ -688,6 +739,44 @@ When commands fail or are malformed, respond with clear, actionable messages. Ne
 1. Check if @name is a file first
 2. Check bookmarks in graph.json
 3. List available bookmarks to help user
+
+### Cross-Branch Reference Errors
+
+**Branch not found:**
+```
+> viz:pca @experiment:^
+
+⚠ Branch not found in reference: @experiment:^
+  Available branches: main, deseq2, ancombc
+
+  Use steno:branches to see all branches.
+```
+
+**Node not found on branch:**
+```
+> ch:@deseq2:n_999 +feature
+
+⚠ Node not found: n_999 not on branch "deseq2"
+  Nodes on deseq2: n_018
+
+  Use steno:graph to see branch structure.
+```
+
+**Empty branch (no nodes):**
+```
+> stat:compare @new-branch:^
+
+⚠ Branch empty: "new-branch" has no nodes yet.
+  Switch to it and run commands first: switch:new-branch
+```
+
+**Invalid reference format:**
+```
+> dx:@branch:
+
+⚠ Invalid cross-branch reference: @branch:
+  Expected format: @branch:^ or @branch:n_001 or @branch:-1
+```
 
 ### Unknown Verb
 

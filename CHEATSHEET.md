@@ -24,6 +24,8 @@
 | `@file` | File reference | `dx:@src/app.ts` |
 | `@name` | Bookmark reference | `viz:pca @baseline` |
 | `^` | Previous output | `ch:^ +normalize` |
+| `@branch:^` | Last from branch | `stat:compare @deseq2:^ @ancombc:^` |
+| `@branch:n_001` | Specific node from branch | `ch:@experiment:n_004` |
 | `+feat` | Add/include | `mk:api +auth +cache` |
 | `-thing` | Exclude | `ch:@config -logging` |
 | `.flag` | Apply flag | `mk:component .ts` |
@@ -67,6 +69,10 @@ stat:ttest @a.csv @b.csv  # Statistical test
 # Plan
 ?plan microservices       # Plan architecture
 ?challenge current-auth   # Critique approach
+
+# Cross-branch
+stat:compare @deseq2:^ @ancombc:^  # Compare branch outputs
+viz:diff @main:n_002 @experiment:^ # Diff across branches
 ```
 
 ## Session Commands
@@ -105,6 +111,8 @@ stat:ttest @a.csv @b.csv  # Statistical test
 | `⚠ Bookmark not found` | Check steno:history for names |
 | `⚠ Unknown verb` | Typo? See verb list above |
 | `⚠ Branch not found` | Check steno:branches |
+| `⚠ Node not found` | Wrong node ID? Check steno:graph |
+| `⚠ Branch empty` | Branch has no nodes yet |
 
 ## Tips
 
