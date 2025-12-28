@@ -73,6 +73,7 @@ stat:ttest @a.csv @b.csv  # Statistical test
 
 | Command | Action |
 |---------|--------|
+| `steno:help` | Quick reference |
 | `steno:history` | Show command history |
 | `steno:stale` | Check for stale outputs |
 | `steno:refresh` | Re-run stale commands |

@@ -18,7 +18,7 @@ Execute steno commands when you see this pattern:
 - `verb:target` (e.g., `dx:@file.csv`, `mk:api`, `ch:login`)
 - `verb:type @file` (e.g., `viz:pca @data.csv`, `stat:ttest @a @b`)
 - `?mode topic` (e.g., `?plan architecture`, `?sketch auth-flow`)
-- Commands ending in `~deep` or `~` or `!` or `?`
+- Commands with precision markers: `~deep`, `~`, `!`, `?`
 - `steno:command` (session management commands)
 
 ## Core Verbs
@@ -161,6 +161,26 @@ stat:ttest @baseline-pca @new-samples
 ---
 
 ## Session Commands
+
+### steno:help
+
+Show quick reference for steno commands.
+
+```
+> steno:help
+
+VERBS: dx mk ch rm fnd viz stat ts doc
+REFS:  @file.csv  ^  @bookmark
+MODS:  +add  -exclude  .flag  .flag:value
+PREC:  ~flexible  !exact  ?clarify  ~deep
+
+SESSION:
+  steno:history   - command history
+  steno:stale     - check for stale outputs
+  steno:refresh   - re-run stale commands
+  steno:bookmark  - save reference
+  steno:new-session - archive and start fresh
+```
 
 ### steno:history
 
