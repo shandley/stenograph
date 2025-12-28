@@ -92,6 +92,10 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 | `steno:undo!` | Hard undo (reverts files too) |
 | `steno:undo n_XXX` | Undo specific node |
 | `steno:redo` | Restore last undone command |
+| `steno:export` | Export as markdown |
+| `steno:export .json` | Export for import |
+| `steno:export .sh` | Export as script |
+| `steno:import! file.json` | Import workflow |
 | `steno:reset!` | Reset all state (destructive) |
 
 ## Branching
@@ -119,6 +123,9 @@ viz:diff @main:n_002 @experiment:^ # Diff across branches
 | `⚠ Branch empty` | Branch has no nodes yet |
 | `⚠ Nothing to undo` | No commands in session |
 | `⚠ Nothing to redo` | No undone commands |
+| `⚠ Nothing to export` | No commands in session |
+| `⚠ Unsupported format` | Use .md, .json, or .sh |
+| `⚠ Cannot import` | Only .json files |
 
 ## Tips
 

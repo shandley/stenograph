@@ -249,6 +249,8 @@ SESSION:
   steno:bookmark  - save reference
   steno:undo      - undo last command (! for hard)
   steno:redo      - restore undone command
+  steno:export    - export workflow (.md .json .sh)
+  steno:import    - import workflow (! to confirm)
   steno:reset     - clear all state (requires !)
 ```
 
@@ -448,6 +450,184 @@ Restoring n_005: ch:@data.csv +normalize
 
   ⚠ Files were deleted. Re-run command to recreate:
     ch:@data.csv +normalize
+```
+
+### steno:export
+
+Export workflow for sharing or documentation.
+
+**Default (Markdown):**
+
+```
+> steno:export
+
+Exported to workflow.md
+
+# Steno Workflow Export
+**Project:** /Users/me/microbiome-analysis
+**Exported:** 2025-12-27T15:30:00Z
+**Nodes:** 15
+
+## Workflow
+
+### 1. n_005: dx:@counts.csv
+- **Status:** complete
+- **Inputs:** counts.csv
+- **Summary:** 18 samples × 15 ASVs, IBD study
+
+### 2. n_006: ch:^ +normalize .method:clr
+- **Status:** complete
+- **Inputs:** counts.csv
+- **Outputs:** counts_clr.csv
+- **Summary:** CLR transformed, centered log-ratio
+
+...
+
+## Branches
+
+- **main** (12 nodes)
+- **deseq2** (1 node, from n_017)
+- **ancombc** (1 node, from n_017)
+
+## Bookmarks
+
+- `@baseline-diff` → n_017
+```
+
+**Export formats:**
+
+| Command | Format | Use Case |
+|---------|--------|----------|
+| `steno:export` | Markdown | Documentation, sharing |
+| `steno:export .json` | JSON | Import to another project |
+| `steno:export .sh` | Shell script | Replay commands |
+
+**JSON export:**
+
+```
+> steno:export .json
+
+Exported to workflow.json
+```
+
+```json
+{
+  "version": "1.1",
+  "exported": "2025-12-27T15:30:00Z",
+  "project": "/Users/me/microbiome-analysis",
+  "sessions": [...],
+  "branches": [...],
+  "bookmarks": {...}
+}
+```
+
+**Script export:**
+
+```
+> steno:export .sh
+
+Exported to workflow.sh
+```
+
+```bash
+#!/bin/bash
+# Steno workflow export
+# Project: /Users/me/microbiome-analysis
+# Exported: 2025-12-27T15:30:00Z
+
+# Replay these commands in Claude Code:
+# dx:@counts.csv
+# ch:^ +normalize .method:clr
+# stat:alpha @counts.csv .metrics:shannon,chao1
+# ...
+```
+
+**Export options:**
+
+| Option | Effect |
+|--------|--------|
+| `steno:export workflow.md` | Custom filename |
+| `steno:export @main` | Export only main branch |
+| `steno:export @deseq2` | Export specific branch |
+| `steno:export +full` | Include file contents |
+
+**Branch export:**
+
+```
+> steno:export @deseq2
+
+Exported branch "deseq2" to deseq2-workflow.md
+
+Includes:
+- Parent chain (main: n_001 → n_017)
+- Branch nodes (n_018)
+- Branch-specific bookmarks
+```
+
+**Full export (with file contents):**
+
+```
+> steno:export +full
+
+Exported to workflow-full.md
+
+Includes embedded file contents for:
+- counts.csv (18 rows)
+- counts_clr.csv (18 rows)
+- metadata.csv (19 rows)
+```
+
+### steno:import
+
+Import a workflow from JSON export.
+
+```
+> steno:import workflow.json
+
+Importing workflow from workflow.json...
+
+  Nodes: 15
+  Branches: 3
+  Bookmarks: 2
+
+  ⚠ This will merge into your current session.
+  Existing bookmarks with same names will be overwritten.
+
+  Type "steno:import! workflow.json" to confirm.
+```
+
+```
+> steno:import! workflow.json
+
+Imported workflow.json
+  Added: 15 nodes, 3 branches, 2 bookmarks
+  Merged into current session.
+```
+
+**Import options:**
+
+| Option | Effect |
+|--------|--------|
+| `steno:import workflow.json` | Preview import |
+| `steno:import! workflow.json` | Confirm and import |
+| `steno:import workflow.json +replay` | Re-execute commands |
+
+**Replay mode:**
+
+```
+> steno:import! workflow.json +replay
+
+Replaying workflow...
+
+  n_001: dx:@counts.csv
+    → 18 samples × 15 ASVs
+
+  n_002: ch:^ +normalize .method:clr
+    → Created counts_clr.csv
+
+  ...
+
+Replay complete: 15 commands executed.
 ```
 
 ### steno:status
@@ -968,6 +1148,75 @@ When commands fail or are malformed, respond with clear, actionable messages. Ne
 
   Proceeding with soft undo instead...
   Files kept: normalized.csv
+```
+
+### Export/Import Errors
+
+**Nothing to export:**
+```
+> steno:export
+
+⚠ Nothing to export: No commands in current session.
+  Run some commands first, then export.
+```
+
+**Invalid export format:**
+```
+> steno:export .pdf
+
+⚠ Unsupported format: .pdf
+  Supported formats: .md (default), .json, .sh
+```
+
+**Export file exists:**
+```
+> steno:export workflow.md
+
+⚠ File exists: workflow.md
+  Use steno:export workflow.md ! to overwrite.
+  Or choose a different filename.
+```
+
+**Import file not found:**
+```
+> steno:import missing.json
+
+⚠ File not found: missing.json
+  Check the path and try again.
+```
+
+**Invalid import format:**
+```
+> steno:import workflow.md
+
+⚠ Cannot import: workflow.md is not a valid JSON export.
+  Only .json exports can be imported.
+  Use steno:export .json to create an importable file.
+```
+
+**Import version mismatch:**
+```
+> steno:import! old-workflow.json
+
+⚠ Version mismatch: File is version 0.9, current is 1.1
+  Some features may not import correctly.
+
+  Proceeding with best-effort import...
+  Imported: 10 nodes, 1 branch, 0 bookmarks
+  Skipped: 2 nodes (unsupported format)
+```
+
+**Branch conflict on import:**
+```
+> steno:import! workflow.json
+
+⚠ Branch conflict: "experiment" already exists.
+
+  Options:
+  1. steno:import! workflow.json +rename - Auto-rename conflicting branches
+  2. Manually resolve by renaming/deleting existing branch
+
+  Aborting import.
 ```
 
 ### State Recovery
