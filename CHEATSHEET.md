@@ -90,6 +90,8 @@ stat:ttest @a.csv @b.csv  # Statistical test
 | `switch:name` | Switch to branch |
 | `steno:branches` | List all branches |
 | `compare:a b` | Compare two branches |
+| `merge:name` | Adopt branch into current |
+| `abandon:name` | Discard branch |
 
 ## Tips
 

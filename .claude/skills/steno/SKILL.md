@@ -1,6 +1,6 @@
 ---
 name: steno
-description: Execute stenographic shorthand commands for efficient coding. Triggers on verb-colon-target patterns (dx, mk, ch, viz, stat, fork, switch, compare) and steno-colon commands for session management. Branching commands (fork, switch, compare) operate on .steno/graph.json, NOT git.
+description: Execute stenographic shorthand commands for efficient coding. Triggers on verb-colon-target patterns (dx, mk, ch, viz, stat, fork, switch, compare, merge, abandon) and steno-colon commands for session management. Branching commands (fork, switch, compare, merge, abandon) operate on .steno/graph.json, NOT git.
 ---
 
 # Steno: Stenographic Command Interface
@@ -23,6 +23,8 @@ Execute steno commands when you see this pattern:
 - fork:name - create branch
 - switch:name - switch branch
 - compare:branch-a branch-b - compare branches
+- merge:branch - adopt branch into current
+- abandon:branch - discard branch
 
 ## Core Verbs
 
@@ -45,6 +47,8 @@ Execute steno commands when you see this pattern:
 | `fork` | Create branch | fork:name - create new branch from current node |
 | `switch` | Switch branch | switch:name - switch to existing branch |
 | `compare` | Compare branches | compare:a b - show differences between branches |
+| `merge` | Merge branch | merge:name - adopt branch work into current branch |
+| `abandon` | Abandon branch | abandon:name - discard branch without merging |
 
 These are NOT git commands. They operate on the steno graph in .steno/graph.json.
 
@@ -423,6 +427,48 @@ If branches have output files in common, note the differences:
 Files in both branches:
   - results.csv: main (45 lines) vs experiment (52 lines)
 ```
+
+### merge:branch
+
+Merge a branch into the current branch (usually main).
+
+```
+> merge:experiment
+
+Merging "experiment" into "main"...
+  n_004: dx:@samples.csv → 19 samples analysis
+
+Branch "experiment" merged.
+Outputs adopted: (none - diagnostic only)
+```
+
+**Behavior:**
+1. Read `.steno/graph.json`
+2. Verify branch exists and is not already merged/abandoned
+3. List the nodes and outputs from that branch
+4. Mark branch status as "merged" in graph.json
+5. Write updated graph.json
+
+Note: This is a metadata operation - it marks the branch as adopted. Any files created on that branch already exist in the working directory.
+
+### abandon:branch
+
+Abandon a branch without merging.
+
+```
+> abandon:experiment
+
+Abandoned branch "experiment"
+Work on that branch was not adopted.
+```
+
+**Behavior:**
+1. Read `.steno/graph.json`
+2. Verify branch exists and is not already merged/abandoned
+3. Mark branch status as "abandoned" in graph.json
+4. Write updated graph.json
+
+Note: This does not delete files - it marks the branch as discarded in the graph. Use this when an experimental approach didn't work out.
 
 ### Branch-Aware Node Creation
 
