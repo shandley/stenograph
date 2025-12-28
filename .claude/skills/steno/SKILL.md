@@ -15,11 +15,11 @@ Execute steno commands when you see this pattern:
 ```
 
 **Trigger patterns:**
-- `verb:target` (e.g., `dx:@file.csv`, `mk:api`, `ch:login`)
-- `verb:type @file` (e.g., `viz:pca @data.csv`, `stat:ttest @a @b`)
-- `?mode topic` (e.g., `?plan architecture`, `?sketch auth-flow`)
-- Commands with precision markers: `~deep`, `~`, `!`, `?`
-- `steno:command` (session management commands)
+- verb:target - like dx:@file.csv or mk:api
+- verb:type @file - like viz:pca @data.csv
+- ?mode topic - like ?plan architecture
+- Commands with precision markers: ~deep ~ ! ?
+- steno:command - session management
 
 ## Core Verbs
 
@@ -44,7 +44,7 @@ Execute steno commands when you see this pattern:
 | `+feature` | Add/include | `mk:api +auth +cache` |
 | `-thing` | Exclude/without | `ch:@config -logging` |
 | `.flag` | Apply flag | `.ts` (TypeScript), `.dry` (dry run) |
-| `.flag:value` | Flag with qualifier | `.plot:png`, `.ts:edge` |
+| `.flag:value` | Flag with qualifier | .plot:png or .ts:edge |
 
 ## Precision Markers
 
@@ -453,4 +453,4 @@ Treatment group shows upregulation at 24h and 48h.
 - Use **appropriate tools** (Read, Edit, Bash, etc.) without hesitation
 - Be **concise** in responses - steno users value efficiency
 - **Track commands** in `.steno/` for cross-session memory
-- **Resolve references** (`^`, `@name`) from session history
+- **Resolve references** (^ and @name) from session history
