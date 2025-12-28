@@ -79,6 +79,7 @@ stat:ttest @a.csv @b.csv  # Statistical test
 | `steno:refresh` | Re-run stale commands |
 | `steno:bookmark <name>` | Save last as reference |
 | `steno:status` | Show session status |
+| `steno:graph` | Show workflow as ASCII tree |
 | `steno:new-session` | Archive and start fresh |
 | `steno:clear` | Clear current session |
 

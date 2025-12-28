@@ -321,6 +321,38 @@ This command:
 
 Use this when starting a new logical unit of work.
 
+### steno:graph
+
+Show the workflow graph as an ASCII tree.
+
+```
+> steno:graph
+
+main
+├── n_001 dx:@samples.csv
+├── n_002 viz:heatmap ^
+│   └── experiment (merged)
+│       └── n_004 dx:@samples.csv
+└── n_003 ch:^ +cluster
+```
+
+**Behavior:**
+1. Read `.steno/graph.json` and `.steno/current-session.json`
+2. Build tree structure from branches and nodes
+3. Render as ASCII tree with box-drawing characters
+
+**Rendering rules:**
+- Use box-drawing: ├── for middle items, └── for last item, │ for vertical continuation
+- Show branch name with status in parentheses: (current), (merged), (abandoned)
+- Show node ID and raw command
+- Indent child branches under their parent node
+- Mark current branch with asterisk if not main
+
+**Tree structure:**
+- Main branch nodes are the trunk
+- Child branches fork from their parentNode
+- Nodes on child branches are indented under the branch name
+
 ---
 
 ## Branching
