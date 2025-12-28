@@ -265,6 +265,25 @@ Bookmarks: baseline-pca, initial-dx
 Stale: 0
 ```
 
+### steno:new-session
+
+Archive current session and start fresh.
+
+```
+> steno:new-session
+
+Archived session sess_20241227 (4 nodes) to graph.json
+Starting new session: sess_20241228_143022
+```
+
+This command:
+1. Reads `current-session.json`
+2. Appends the session to `graph.json` sessions array
+3. Creates fresh `current-session.json` with new session ID
+4. Preserves all bookmarks
+
+Use this when starting a new logical unit of work.
+
 ---
 
 ## File Structure
