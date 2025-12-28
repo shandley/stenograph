@@ -731,6 +731,34 @@ Theme features:
   - Code blocks highlighted
 ```
 
+**Using the injection script:**
+
+A helper script automates theme injection for all HTML files:
+
+```bash
+# Apply theme to default transcripts directory
+./scripts/inject-theme.sh
+
+# Apply to custom directory
+./scripts/inject-theme.sh ~/my-transcripts/
+
+# Preview changes without modifying files
+./scripts/inject-theme.sh --dry-run
+
+# Embed CSS inline (larger files, but self-contained)
+./scripts/inject-theme.sh --embed
+
+# Show detailed progress
+./scripts/inject-theme.sh --verbose
+```
+
+The script:
+- Copies `steno-transcript.css` to the transcripts directory
+- Injects `<link>` tags into each HTML file's `<head>`
+- Adds a dark mode toggle button
+- Creates `.bak` backups of modified files
+- Skips files that are already themed
+
 **Manual theme injection:**
 
 To manually apply the theme to any HTML transcript:
