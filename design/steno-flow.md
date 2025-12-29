@@ -95,12 +95,17 @@ Verbs have consistent colors throughout:
 | Command Roll | Horizontal scrolling timeline with playhead |
 | Verb Colors | Semantic coloring per verb type |
 | Node Details | Hover popover with full command + I/O |
-| File Activity | Chips showing files being read/written |
-| Diff Scope | Canvas waveform (simulated for now) |
+| File Activity | Chips showing files being read/written with elapsed time |
+| Diff Scope | Canvas waveform showing tool activity intensity |
 | Session Graph | ASCII tree with branches, clickable nodes |
-| Watch Mode | Polls `graph.json` every 2s for live updates |
-| Keyboard Nav | `←` `→` navigate, `Space` simulate, `W` watch, `T` theme |
+| WebSocket Mode | Real-time updates via flow server |
 | Theme Support | Light/dark mode with system preference detection |
+| Audio Feedback | Soft ambient tones for tool start/complete/error |
+| Elapsed Time | Live running time on active tools with progress bar |
+| Session Stats | Operations count, success rate, top files accessed |
+| Command Filter | Filter by verb type with colored buttons |
+| Search | Search commands by text, jump to matches |
+| Error Log | Collapsible panel showing errors with details |
 
 ### Keyboard Shortcuts
 
@@ -108,24 +113,28 @@ Verbs have consistent colors throughout:
 |-----|--------|
 | `←` `→` | Navigate nodes |
 | `Space` | Toggle simulation |
-| `W` | Toggle watch mode |
+| `/` | Focus search input |
+| `S` | Toggle session stats |
+| `E` | Toggle error log |
+| `A` | Toggle audio feedback |
+| `C` | Toggle WebSocket connection |
 | `T` | Toggle theme |
+| `Esc` | Clear filters |
 
 ## Future Directions
 
 ### Near-term
 
-1. **Real file watching** — Use `fs.watch` events instead of polling
-2. **Claude Code integration** — Hook into tool events if possible
-3. **Sound cues** — Optional ambient audio feedback (not music-from-code, but subtle ticks/tones)
-4. **Predicted commands** — Show likely next commands based on patterns/templates
+1. **Browser notifications** — Notify when long-running tasks complete
+2. **Session persistence** — Save timing history to localStorage
+3. **Compact mode** — Toggle minimal UI layout
 
 ### Medium-term
 
 1. **True spiral visualization** — Canvas/SVG spiral where cycles wrap vertically
-2. **Diff oscilloscope** — Real-time visualization of actual code diffs
+2. **Diff preview** — Show actual file changes inline
 3. **Branch comparison** — Side-by-side branch visualization
-4. **Session timeline** — Multiple sessions as stacked pianorolls
+4. **Bookmark nodes** — Mark and quick-jump to important nodes
 
 ### Long-term (Integration with Strudel concepts)
 
@@ -133,6 +142,12 @@ Verbs have consistent colors throughout:
 2. **Command loops** — Visual representation of replay/template cycles
 3. **Workflow composition** — Combine patterns like Strudel combines sounds
 4. **Multi-user visualization** — See collaborators' streams
+
+### Completed (moved from future)
+
+- ~~Real file watching~~ — Now uses WebSocket with Claude Code hooks
+- ~~Claude Code integration~~ — Hooks fire on every tool use
+- ~~Sound cues~~ — Audio feedback with soft ambient tones
 
 ## Technical Notes
 
@@ -261,9 +276,24 @@ steno:flow .theme:midnight
 
 ## Changelog
 
+### v0.3.0 (2024-12-29)
+- Command filtering by verb type with colored buttons
+- Search input for filtering by node ID, command, or target
+- Error highlighting with red border/glow on failed nodes
+- Collapsible error log panel with timestamps and details
+- Auto-show error panel on first error
+
+### v0.2.0 (2024-12-29)
+- Elapsed time tracking on active tools
+- Progress bar based on historical average
+- Session statistics panel (operations, success rate, top files)
+- Audio feedback with soft ambient tones
+- Toggle buttons for audio (A) and stats (S)
+
 ### v0.1.0 (2024-12-28)
 - Initial prototype with command roll, file activity, diff scope
 - Verb coloring, node details, session graph
-- Watch mode for live updates
+- WebSocket integration with Claude Code hooks
+- Real-time updates via flow server
 - Keyboard navigation
 - Light/dark theme support
