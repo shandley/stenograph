@@ -136,6 +136,24 @@
       border-radius: 999px;
       font-size: 0.75rem;
       font-family: var(--font-mono);
+      min-width: 120px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .live-status .progress-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      background: oklch(from var(--node-active) l c h / 0.2);
+      transition: width 0.1s linear;
+      z-index: 0;
+    }
+
+    .live-status > * {
+      position: relative;
+      z-index: 1;
     }
 
     .live-dot {
@@ -632,6 +650,18 @@
       font-style: italic;
     }
 
+    .file-elapsed {
+      font-size: 0.625rem;
+      color: var(--muted-foreground);
+      padding-left: 0.25rem;
+      font-weight: 500;
+    }
+
+    .file-elapsed.over-avg {
+      color: var(--verb-ts);
+      font-weight: 600;
+    }
+
     /* ============================================
        Diff Scope (Waveform visualization)
        ============================================ */
@@ -875,6 +905,7 @@
     </div>
     <div class="header-controls">
       <div class="live-status">
+        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
         <div class="live-dot" id="liveDot"></div>
         <span id="liveText">idle</span>
       </div>
@@ -1001,6 +1032,11 @@
     let audioEnabled = false;
     let audioContext = null;
 
+    // Timing state
+    let toolStartTimes = new Map();  // Map of filename/tool -> start timestamp
+    let toolHistory = new Map();      // Map of tool type -> array of durations (ms)
+    let elapsedTimerInterval = null;
+
     // ============================================
     // Initialize
     // ============================================
@@ -1012,6 +1048,7 @@
       await loadGraph();
       startClock();
       showKeyboardHint();
+      startElapsedTimer();
 
       // Auto-connect to WebSocket
       connectWebSocket();
@@ -1206,14 +1243,18 @@
         // Audio feedback
         playTone('start');
 
+        // Track start time
+        const startKey = target || tool || 'unknown';
+        toolStartTimes.set(startKey, { time: Date.now(), tool });
+
         // Add file to activity
         if (target && target.length > 0) {
           const filename = target.split('/').pop().substring(0, 30) || target.substring(0, 30);
           const status = getStatusForTool(tool);
-          addActiveFile(filename, status);
+          addActiveFile(filename, status, startKey);
         } else if (tool) {
           // Show tool name if no target
-          addActiveFile(tool.toLowerCase(), getStatusForTool(tool));
+          addActiveFile(tool.toLowerCase(), getStatusForTool(tool), startKey);
         }
 
         // Spike the diff scope
@@ -1223,6 +1264,27 @@
         // Tool completed
         liveDot.classList.remove('active');
         liveText.textContent = 'idle';
+        document.querySelector('.live-status').title = '';
+
+        // Calculate and store duration
+        const startKey = target || tool || 'unknown';
+        const startInfo = toolStartTimes.get(startKey);
+        if (startInfo) {
+          const duration = Date.now() - startInfo.time;
+          const toolType = startInfo.tool || tool || 'unknown';
+
+          // Add to history
+          if (!toolHistory.has(toolType)) {
+            toolHistory.set(toolType, []);
+          }
+          const history = toolHistory.get(toolType);
+          history.push(duration);
+          // Keep only last 20 samples per tool type
+          if (history.length > 20) history.shift();
+
+          // Clear start time
+          toolStartTimes.delete(startKey);
+        }
 
         // Audio feedback - different tone for success vs error
         if (success === false) {
@@ -1241,9 +1303,14 @@
         // Command sequence complete
         liveDot.classList.remove('active');
         liveText.textContent = 'idle';
+        document.querySelector('.live-status').title = '';
+        document.getElementById('progressBar').style.width = '0%';
 
         // Audio feedback - resolution chord
         playTone('stop');
+
+        // Clear any lingering start times
+        toolStartTimes.clear();
 
         // Don't immediately clear files - let them fade naturally via completeFile timeouts
         // Just reload graph to get new nodes
@@ -1265,14 +1332,14 @@
       }
     }
 
-    function addActiveFile(filename, status) {
+    function addActiveFile(filename, status, startKey = null) {
       // Clear any existing timeout for this file
       const existing = activeFiles.get(filename);
       if (existing && existing.timeout) {
         clearTimeout(existing.timeout);
       }
 
-      activeFiles.set(filename, { status, timeout: null });
+      activeFiles.set(filename, { status, timeout: null, startKey });
 
       // Flash the file activity section
       const section = document.querySelector('.file-activity-section');
@@ -1416,6 +1483,106 @@
       const now = new Date();
       document.getElementById('timeDisplay').textContent =
         now.toTimeString().split(' ')[0];
+    }
+
+    // ============================================
+    // Elapsed Time Tracking
+    // ============================================
+    function startElapsedTimer() {
+      // Update elapsed times every 100ms for smooth display
+      elapsedTimerInterval = setInterval(updateElapsedTimes, 100);
+    }
+
+    function updateElapsedTimes() {
+      const now = Date.now();
+      const liveText = document.getElementById('liveText');
+      const liveDot = document.getElementById('liveDot');
+      const progressBar = document.getElementById('progressBar');
+
+      if (toolStartTimes.size === 0) {
+        // Reset progress bar when idle
+        if (progressBar) progressBar.style.width = '0%';
+        return;
+      }
+
+      if (liveDot.classList.contains('active') && toolStartTimes.size > 0) {
+        // Get the oldest running tool
+        let oldestStart = Infinity;
+        let activeTool = null;
+        toolStartTimes.forEach((info, key) => {
+          if (info.time < oldestStart) {
+            oldestStart = info.time;
+            activeTool = info.tool;
+          }
+        });
+
+        if (activeTool && oldestStart < Infinity) {
+          const elapsed = now - oldestStart;
+          const avg = getAverageTime(activeTool);
+          const elapsedStr = formatElapsed(elapsed);
+
+          // Update progress bar
+          if (progressBar) {
+            if (avg > 0) {
+              const progress = Math.min(100, (elapsed / avg) * 100);
+              progressBar.style.width = `${progress}%`;
+              // Change color when over average
+              if (elapsed > avg) {
+                progressBar.style.background = 'oklch(from var(--verb-ts) l c h / 0.25)';
+              } else {
+                progressBar.style.background = 'oklch(from var(--node-active) l c h / 0.2)';
+              }
+            } else {
+              // No average yet - show indeterminate progress
+              const pulseProgress = 30 + Math.sin(now / 500) * 20;
+              progressBar.style.width = `${pulseProgress}%`;
+            }
+          }
+
+          // Update text and tooltip
+          const liveStatus = document.querySelector('.live-status');
+          if (avg > 0) {
+            if (elapsed < avg) {
+              liveText.textContent = `${activeTool.toLowerCase()} ${elapsedStr}`;
+            } else {
+              liveText.textContent = `${activeTool.toLowerCase()} ${elapsedStr}+`;
+            }
+            if (liveStatus) {
+              liveStatus.title = `${activeTool}: avg ${formatElapsed(avg)} (${toolHistory.get(activeTool)?.length || 0} samples)`;
+            }
+          } else {
+            liveText.textContent = `${activeTool.toLowerCase()} ${elapsedStr}`;
+            if (liveStatus) {
+              liveStatus.title = `${activeTool}: no timing data yet`;
+            }
+          }
+        }
+      }
+
+      // Re-render file activity to update elapsed times on chips
+      renderFileActivity();
+    }
+
+    function formatElapsed(ms) {
+      if (ms < 1000) return `${Math.floor(ms)}ms`;
+      const seconds = Math.floor(ms / 1000);
+      if (seconds < 60) return `${seconds}s`;
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${minutes}m ${secs}s`;
+    }
+
+    function getAverageTime(toolType) {
+      const history = toolHistory.get(toolType);
+      if (!history || history.length === 0) return 0;
+      const sum = history.reduce((a, b) => a + b, 0);
+      return Math.round(sum / history.length);
+    }
+
+    function getExpectedTimeDisplay(toolType) {
+      const avg = getAverageTime(toolType);
+      if (avg === 0) return '';
+      return `avg ${formatElapsed(avg)}`;
     }
 
     // ============================================
@@ -1589,10 +1756,24 @@
       const grid = document.getElementById('fileGrid');
       if (!grid) return;
 
-      // Convert Map to array
+      const now = Date.now();
+
+      // Convert Map to array with timing info
       const files = [];
       activeFiles.forEach((data, name) => {
-        files.push({ name, status: data.status });
+        const fileInfo = { name, status: data.status, elapsed: null, avgTime: null };
+
+        // Get elapsed time if still active
+        if (data.startKey && data.status !== 'complete') {
+          const startInfo = toolStartTimes.get(data.startKey);
+          if (startInfo) {
+            fileInfo.elapsed = now - startInfo.time;
+            fileInfo.avgTime = getAverageTime(startInfo.tool);
+            fileInfo.tool = startInfo.tool;
+          }
+        }
+
+        files.push(fileInfo);
       });
 
       // Add simulated files if running
@@ -1604,7 +1785,7 @@
             current.inputs.forEach(f => {
               const name = f.split('/').pop();
               if (!files.find(x => x.name === name)) {
-                files.push({ name, status: 'reading' });
+                files.push({ name, status: 'reading', elapsed: null, avgTime: null });
               }
             });
           }
@@ -1612,7 +1793,7 @@
             current.outputs.forEach(f => {
               const name = f.split('/').pop();
               if (!files.find(x => x.name === name)) {
-                files.push({ name, status: 'writing' });
+                files.push({ name, status: 'writing', elapsed: null, avgTime: null });
               }
             });
           }
@@ -1625,12 +1806,22 @@
         return;
       }
 
-      const html = files.map(f => `
-        <div class="file-chip ${f.status}">
-          <div class="file-indicator"></div>
-          <span>${f.name}</span>
-        </div>
-      `).join('');
+      const html = files.map(f => {
+        let elapsedHtml = '';
+        if (f.elapsed !== null && f.status !== 'complete') {
+          const elapsedStr = formatElapsed(f.elapsed);
+          const isOverAvg = f.avgTime > 0 && f.elapsed > f.avgTime;
+          elapsedHtml = `<span class="file-elapsed${isOverAvg ? ' over-avg' : ''}">${elapsedStr}</span>`;
+        }
+
+        return `
+          <div class="file-chip ${f.status}">
+            <div class="file-indicator"></div>
+            <span>${f.name}</span>
+            ${elapsedHtml}
+          </div>
+        `;
+      }).join('');
 
       grid.innerHTML = html;
     }
