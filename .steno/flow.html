@@ -1129,90 +1129,51 @@
     function playTone(type) {
       if (!audioEnabled || !audioContext) return;
 
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      osc.connect(gain);
-      gain.connect(audioContext.destination);
-
       const now = audioContext.currentTime;
+
+      // Helper to create a soft, warm oscillator with gentle envelope
+      function createSoftTone(freq, startTime, duration, volume = 0.06) {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, startTime);
+
+        // Soft attack and long decay for smooth sound
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(volume, startTime + 0.08); // Gentle fade in
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration); // Long fade out
+
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+        return osc;
+      }
 
       switch (type) {
         case 'start':
-          // Rising tone for tool starting
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(440, now);
-          osc.frequency.exponentialRampToValueAtTime(660, now + 0.1);
-          gain.gain.setValueAtTime(0.1, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-          osc.start(now);
-          osc.stop(now + 0.15);
+          // Soft rising whisper - like a gentle breath
+          createSoftTone(330, now, 0.3, 0.04); // E4 - warm low tone
+          createSoftTone(440, now + 0.05, 0.25, 0.03); // A4 - gentle fifth
           break;
 
         case 'complete':
-          // Pleasant completion chime
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(523, now); // C5
-          gain.gain.setValueAtTime(0.1, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-          osc.start(now);
-          osc.stop(now + 0.2);
-
-          // Add a harmonious second tone
-          const osc2 = audioContext.createOscillator();
-          const gain2 = audioContext.createGain();
-          osc2.connect(gain2);
-          gain2.connect(audioContext.destination);
-          osc2.type = 'sine';
-          osc2.frequency.setValueAtTime(659, now + 0.05); // E5
-          gain2.gain.setValueAtTime(0.08, now + 0.05);
-          gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-          osc2.start(now + 0.05);
-          osc2.stop(now + 0.25);
+          // Soft bell-like tone - single gentle note
+          createSoftTone(392, now, 0.4, 0.05); // G4 - warm and settled
           break;
 
         case 'error':
-          // Lower, dissonant tone for errors
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(220, now);
-          osc.frequency.exponentialRampToValueAtTime(110, now + 0.2);
-          gain.gain.setValueAtTime(0.08, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-          osc.start(now);
-          osc.stop(now + 0.25);
+          // Soft low hum - not jarring, just different
+          createSoftTone(165, now, 0.5, 0.04); // E3 - low and gentle
+          createSoftTone(156, now + 0.1, 0.4, 0.03); // Eb3 - slight tension
           break;
 
         case 'stop':
-          // Resolution chord for command sequence complete
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(523, now); // C5
-          gain.gain.setValueAtTime(0.08, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-          osc.start(now);
-          osc.stop(now + 0.4);
-
-          // E5
-          const oscE = audioContext.createOscillator();
-          const gainE = audioContext.createGain();
-          oscE.connect(gainE);
-          gainE.connect(audioContext.destination);
-          oscE.type = 'sine';
-          oscE.frequency.setValueAtTime(659, now);
-          gainE.gain.setValueAtTime(0.06, now);
-          gainE.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-          oscE.start(now);
-          oscE.stop(now + 0.4);
-
-          // G5
-          const oscG = audioContext.createOscillator();
-          const gainG = audioContext.createGain();
-          oscG.connect(gainG);
-          gainG.connect(audioContext.destination);
-          oscG.type = 'sine';
-          oscG.frequency.setValueAtTime(784, now);
-          gainG.gain.setValueAtTime(0.05, now);
-          gainG.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-          oscG.start(now);
-          oscG.stop(now + 0.4);
+          // Soft resolution - like a peaceful sigh
+          createSoftTone(262, now, 0.6, 0.04);        // C4
+          createSoftTone(330, now + 0.1, 0.5, 0.035); // E4
+          createSoftTone(392, now + 0.2, 0.4, 0.03);  // G4 - gentle arpeggio up
           break;
       }
     }
