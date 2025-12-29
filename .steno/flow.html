@@ -250,6 +250,129 @@
     }
 
     /* ============================================
+       Session Stats Panel
+       ============================================ */
+    .stats-panel {
+      display: none;
+      padding: 0.75rem 1.5rem;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      gap: 1.5rem;
+    }
+
+    .stats-panel.visible {
+      display: flex;
+    }
+
+    .stats-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.375rem;
+    }
+
+    .stats-group-label {
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted-foreground);
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.5rem;
+      background: var(--muted);
+      border-radius: var(--radius);
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+    }
+
+    .stat-value {
+      font-weight: 700;
+      min-width: 1.5rem;
+      text-align: right;
+    }
+
+    .stat-label {
+      color: var(--muted-foreground);
+    }
+
+    .stat-item.read { border-left: 3px solid var(--verb-dx); }
+    .stat-item.write { border-left: 3px solid var(--verb-mk); }
+    .stat-item.edit { border-left: 3px solid var(--verb-ch); }
+    .stat-item.search { border-left: 3px solid var(--verb-fnd); }
+    .stat-item.bash { border-left: 3px solid var(--verb-ts); }
+    .stat-item.success { border-left: 3px solid var(--node-complete); }
+    .stat-item.error { border-left: 3px solid var(--verb-rm); }
+
+    .stats-files {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .file-stat {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.125rem 0;
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+    }
+
+    .file-stat-name {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--foreground);
+    }
+
+    .file-stat-count {
+      color: var(--muted-foreground);
+      font-weight: 600;
+    }
+
+    .file-stat-bar {
+      width: 40px;
+      height: 4px;
+      background: var(--muted);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .file-stat-bar-fill {
+      height: 100%;
+      background: var(--primary);
+      transition: width 0.3s;
+    }
+
+    .stats-toggle {
+      cursor: pointer;
+      padding: 0.125rem 0.375rem;
+      border-radius: var(--radius);
+      transition: background 0.2s;
+    }
+
+    .stats-toggle:hover {
+      background: var(--secondary);
+    }
+
+    .session-duration {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      color: var(--muted-foreground);
+    }
+
+    /* ============================================
        Command Roll (Enhanced)
        ============================================ */
     .command-roll-section {
@@ -928,6 +1051,63 @@
     <div class="branch-stats">
       <span id="nodeCount">0 nodes</span>
       <span id="branchCount">0 branches</span>
+      <span class="stats-toggle" onclick="toggleStats()" title="Toggle stats (S)">📊</span>
+    </div>
+  </div>
+
+  <!-- Session Stats Panel -->
+  <div class="stats-panel" id="statsPanel">
+    <div class="stats-group">
+      <span class="stats-group-label">Operations</span>
+      <div class="stats-row">
+        <div class="stat-item read">
+          <span class="stat-value" id="statRead">0</span>
+          <span class="stat-label">read</span>
+        </div>
+        <div class="stat-item write">
+          <span class="stat-value" id="statWrite">0</span>
+          <span class="stat-label">write</span>
+        </div>
+        <div class="stat-item edit">
+          <span class="stat-value" id="statEdit">0</span>
+          <span class="stat-label">edit</span>
+        </div>
+        <div class="stat-item search">
+          <span class="stat-value" id="statSearch">0</span>
+          <span class="stat-label">search</span>
+        </div>
+        <div class="stat-item bash">
+          <span class="stat-value" id="statBash">0</span>
+          <span class="stat-label">bash</span>
+        </div>
+      </div>
+    </div>
+    <div class="stats-group">
+      <span class="stats-group-label">Results</span>
+      <div class="stats-row">
+        <div class="stat-item success">
+          <span class="stat-value" id="statSuccess">0</span>
+          <span class="stat-label">success</span>
+        </div>
+        <div class="stat-item error">
+          <span class="stat-value" id="statError">0</span>
+          <span class="stat-label">errors</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="statRate">-</span>
+          <span class="stat-label">rate</span>
+        </div>
+      </div>
+    </div>
+    <div class="stats-group stats-files">
+      <span class="stats-group-label">Top Files</span>
+      <div id="topFiles">
+        <span class="file-empty">No file activity yet</span>
+      </div>
+    </div>
+    <div class="stats-group">
+      <span class="stats-group-label">Session</span>
+      <div class="session-duration" id="sessionDuration">0m 0s</div>
     </div>
   </div>
 
@@ -1005,6 +1185,7 @@
     <kbd>←</kbd><kbd>→</kbd> navigate
     <kbd>Space</kbd> simulate
     <kbd>A</kbd> audio
+    <kbd>S</kbd> stats
     <kbd>C</kbd> connect
     <kbd>T</kbd> theme
   </div>
@@ -1036,6 +1217,16 @@
     let toolStartTimes = new Map();  // Map of filename/tool -> start timestamp
     let toolHistory = new Map();      // Map of tool type -> array of durations (ms)
     let elapsedTimerInterval = null;
+
+    // Session statistics
+    let sessionStats = {
+      startTime: Date.now(),
+      operations: { Read: 0, Write: 0, Edit: 0, Glob: 0, Grep: 0, Bash: 0, other: 0 },
+      errors: 0,
+      successes: 0,
+      fileAccess: new Map(),  // filename -> { reads: N, writes: N }
+    };
+    let statsVisible = false;
 
     // ============================================
     // Initialize
@@ -1216,6 +1407,100 @@
     }
 
     // ============================================
+    // Session Statistics
+    // ============================================
+    function toggleStats() {
+      statsVisible = !statsVisible;
+      const panel = document.getElementById('statsPanel');
+      panel.classList.toggle('visible', statsVisible);
+      if (statsVisible) {
+        renderStats();
+      }
+    }
+
+    function renderStats() {
+      // Update operation counts
+      document.getElementById('statRead').textContent = sessionStats.operations.Read;
+      document.getElementById('statWrite').textContent = sessionStats.operations.Write;
+      document.getElementById('statEdit').textContent = sessionStats.operations.Edit;
+      document.getElementById('statSearch').textContent =
+        sessionStats.operations.Glob + sessionStats.operations.Grep;
+      document.getElementById('statBash').textContent = sessionStats.operations.Bash;
+
+      // Update success/error counts
+      document.getElementById('statSuccess').textContent = sessionStats.successes;
+      document.getElementById('statError').textContent = sessionStats.errors;
+
+      // Calculate and display success rate
+      const total = sessionStats.successes + sessionStats.errors;
+      if (total > 0) {
+        const rate = Math.round((sessionStats.successes / total) * 100);
+        document.getElementById('statRate').textContent = `${rate}%`;
+      } else {
+        document.getElementById('statRate').textContent = '-';
+      }
+
+      // Update session duration
+      const duration = Date.now() - sessionStats.startTime;
+      const minutes = Math.floor(duration / 60000);
+      const seconds = Math.floor((duration % 60000) / 1000);
+      document.getElementById('sessionDuration').textContent = `${minutes}m ${seconds}s`;
+
+      // Render top files
+      renderTopFiles();
+    }
+
+    function renderTopFiles() {
+      const container = document.getElementById('topFiles');
+      if (!container) return;
+
+      // Convert Map to array and sort by total access count
+      const files = [];
+      sessionStats.fileAccess.forEach((stats, name) => {
+        const total = stats.reads + stats.writes;
+        if (total > 0) {
+          files.push({ name, reads: stats.reads, writes: stats.writes, total });
+        }
+      });
+
+      if (files.length === 0) {
+        container.innerHTML = '<span class="file-empty">No file activity yet</span>';
+        return;
+      }
+
+      // Sort by total and take top 5
+      files.sort((a, b) => b.total - a.total);
+      const topFiles = files.slice(0, 5);
+      const maxCount = topFiles[0].total;
+
+      const html = topFiles.map(f => {
+        const barWidth = Math.round((f.total / maxCount) * 100);
+        const shortName = f.name.length > 20 ? '...' + f.name.slice(-17) : f.name;
+        return `
+          <div class="file-stat">
+            <span class="file-stat-name" title="${f.name}">${shortName}</span>
+            <span class="file-stat-count">${f.reads}r/${f.writes}w</span>
+            <div class="file-stat-bar">
+              <div class="file-stat-bar-fill" style="width: ${barWidth}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = html;
+    }
+
+    // Update session duration every second
+    setInterval(() => {
+      if (statsVisible) {
+        const duration = Date.now() - sessionStats.startTime;
+        const minutes = Math.floor(duration / 60000);
+        const seconds = Math.floor((duration % 60000) / 1000);
+        document.getElementById('sessionDuration').textContent = `${minutes}m ${seconds}s`;
+      }
+    }, 1000);
+
+    // ============================================
     // Handle WebSocket Messages
     // ============================================
     function handleWsMessage(data) {
@@ -1242,6 +1527,28 @@
 
         // Audio feedback
         playTone('start');
+
+        // Track session stats - count operations by type
+        if (tool) {
+          if (sessionStats.operations.hasOwnProperty(tool)) {
+            sessionStats.operations[tool]++;
+          } else {
+            sessionStats.operations.other++;
+          }
+          // Track file access
+          if (target) {
+            const filename = target.split('/').pop();
+            if (!sessionStats.fileAccess.has(filename)) {
+              sessionStats.fileAccess.set(filename, { reads: 0, writes: 0 });
+            }
+            const fileStats = sessionStats.fileAccess.get(filename);
+            if (tool === 'Read' || tool === 'Glob' || tool === 'Grep') {
+              fileStats.reads++;
+            } else if (tool === 'Write' || tool === 'Edit') {
+              fileStats.writes++;
+            }
+          }
+        }
 
         // Track start time
         const startKey = target || tool || 'unknown';
@@ -1286,12 +1593,17 @@
           toolStartTimes.delete(startKey);
         }
 
-        // Audio feedback - different tone for success vs error
+        // Track success/error
         if (success === false) {
+          sessionStats.errors++;
           playTone('error');
         } else {
+          sessionStats.successes++;
           playTone('complete');
         }
+
+        // Update stats display
+        renderStats();
 
         // Mark file as complete (will fade out)
         if (target && target.length > 0) {
@@ -1614,6 +1926,10 @@
           case 'a':
           case 'A':
             toggleAudio();
+            break;
+          case 's':
+          case 'S':
+            toggleStats();
             break;
         }
       });
