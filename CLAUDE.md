@@ -106,9 +106,14 @@ Inspired by Strudel REPL's live coding visualizations, steno-flow provides real-
 
 **Components:**
 - **Command Roll**: Horizontal timeline of steno commands with verb-colored nodes
-- **File Activity**: Shows files being read/written as animated chips
+- **File Activity**: Shows files being read/written as animated chips with elapsed time
 - **Diff Scope**: Oscilloscope-style waveform showing tool activity intensity
 - **Session Graph**: ASCII tree of all nodes and branches
+- **Session Stats**: Operations count, success rate, top files accessed (toggle with `S`)
+- **Command Filter**: Filter nodes by verb type with colored buttons
+- **Search**: Search commands by text, jump to matches (press `/`)
+- **Error Log**: Collapsible panel showing errors with timestamps (toggle with `E`)
+- **Audio Feedback**: Soft ambient tones for tool start/complete/error (toggle with `A`)
 
 **Starting Steno Flow:**
 ```bash
